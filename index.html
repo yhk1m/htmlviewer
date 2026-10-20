@@ -27,9 +27,10 @@
   body.resizing { cursor: col-resize; user-select: none; }
   body.resizing iframe { pointer-events: none; } /* 끄는 중에 미리보기가 마우스를 가로채지 않게 */
 
-  /* 전체화면 — 브라우저 전체화면을 못 쓰면(아이폰 등) 화면을 덮는 방식으로 */
-  .pane:fullscreen { width: 100%; height: 100%; }
-  .pane.max { position: fixed; inset: 0; z-index: 50; }
+  /* 전체화면 — 한쪽 칸이 가로로 가득 참 (머리줄·바닥줄은 그대로) */
+  main[data-full] { grid-template-columns: minmax(0, 1fr); }
+  main[data-full] .divider, main[data-full="editPane"] #previewPane, main[data-full="previewPane"] #editPane { display: none !important; }
+  main[data-full="editPane"] #editPane, main[data-full="previewPane"] #previewPane { display: flex !important; }
   .btn-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .bar {
     display: flex; align-items: center; gap: 6px; padding: 12px 24px; min-height: 58px;
@@ -298,38 +299,20 @@
   const ICON_ENTER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
   const ICON_EXIT = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg>';
   const fullButtons = document.querySelectorAll('[data-full]');
-  const fullPane = () => document.fullscreenElement || document.querySelector('.pane.max');
   function syncFull() {
-    const cur = fullPane();
+    const cur = mainEl.dataset.full;
     fullButtons.forEach((b) => {
-      const on = cur && cur.id === b.dataset.full;
+      const on = cur === b.dataset.full;
       b.innerHTML = (on ? ICON_EXIT : ICON_ENTER) + `<span class="txt">${on ? '나가기' : '전체화면'}</span>`;
-      b.title = on ? '전체화면 나가기 (Esc)' : '전체화면';
+      b.title = on ? '나란히 보기로 돌아가기 (Esc)' : '이 칸을 가로로 가득 채우기';
     });
   }
-  async function toggleFull(pane) {
-    const cur = fullPane();
-    if (cur) {
-      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
-      document.querySelectorAll('.pane.max').forEach((p) => p.classList.remove('max'));
-      if (cur === pane) return syncFull();
-    }
-    try {
-      if (!pane.requestFullscreen) throw new Error('unsupported');
-      await pane.requestFullscreen();
-    } catch {
-      pane.classList.add('max');
-    }
+  function setFull(id) {
+    if (id) mainEl.dataset.full = id; else delete mainEl.dataset.full;
     syncFull();
   }
-  fullButtons.forEach((b) => { b.onclick = () => toggleFull(document.getElementById(b.dataset.full)); });
-  document.addEventListener('fullscreenchange', syncFull);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && document.querySelector('.pane.max')) {
-      document.querySelectorAll('.pane.max').forEach((p) => p.classList.remove('max'));
-      syncFull();
-    }
-  });
+  fullButtons.forEach((b) => { b.onclick = () => setFull(mainEl.dataset.full === b.dataset.full ? null : b.dataset.full); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && mainEl.dataset.full) setFull(null); });
   syncFull();
 
   // ---------- 시작 ----------
