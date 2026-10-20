@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세계사 연표 | 비그늘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A4A;
+  --navy-light:#2C4370;
+  --cream:#F8F6F1;
+  --paper:#FDFCF8;
+  --ink:#1A1A1A;
+  --ink-soft:#4A4A4A;
+  --ink-mute:#7A7A7A;
+  --line:#D9D3C5;
+  --line-soft:#EBE6D9;
+  --accent:#B84A3D;
+  --world:#8B6F47;
+  --korea:#3D5A80;
+  --era-ancient:#C9A870;
+  --era-classical:#B08968;
+  --era-medieval:#8B7AA5;
+  --era-earlymod:#7A9A8A;
+  --era-modern:#B07878;
+  --era-contemp:#6B8CB3;
+  --shadow:0 4px 12px rgba(27,42,74,.08);
+  --shadow-strong:0 12px 40px rgba(27,42,74,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overscroll-behavior:none}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+}
+.serif{font-family:'Noto Serif KR',serif}
+
+/* ================= HEADER ================= */
+header{
+  position:sticky;top:0;z-index:100;
+  background:var(--navy);
+  color:var(--cream);
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.header-inner{
+  max-width:1400px;margin:0 auto;
+  padding:14px 28px;
+  display:flex;align-items:center;gap:24px;
+}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-logo{
+  font-family:'Noto Serif KR',serif;
+  font-weight:700;font-size:22px;letter-spacing:-.01em;
+  color:#fff;
+}
+.brand-sub{
+  font-size:12px;color:rgba(255,255,255,.55);
+  letter-spacing:.05em;
+}
+.era-nav{
+  display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;
+}
+.era-btn{
+  background:transparent;border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.75);
+  padding:7px 14px;border-radius:20px;
+  font-family:inherit;font-size:13px;font-weight:400;
+  cursor:pointer;transition:all .15s;
+  white-space:nowrap;
+}
+.era-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.4)}
+.era-btn.active{background:var(--cream);color:var(--navy);border-color:var(--cream);font-weight:500}
+
+/* ================= INTRO ================= */
+.intro{
+  max-width:1400px;margin:0 auto;
+  padding:40px 28px 24px;
+}
+.intro h1{
+  font-family:'Noto Serif KR',serif;
+  font-size:38px;font-weight:700;letter-spacing:-.02em;
+  color:var(--navy);margin-bottom:10px;
+}
+.intro .sub{
+  color:var(--ink-mute);font-size:15px;max-width:720px;
+}
+.legend{
+  display:flex;gap:20px;margin-top:20px;flex-wrap:wrap;
+  font-size:13px;color:var(--ink-soft);
+}
+.legend-item{display:flex;align-items:center;gap:8px}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+
+/* ================= TIMELINE ================= */
+.timeline-wrap{
+  max-width:1400px;margin:0 auto;
+  padding:20px 28px 120px;
+  position:relative;
+}
+.timeline{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr 140px 1fr;
+  gap:0;
+}
+.column-header{
+  position:sticky;top:62px;z-index:50;
+  background:linear-gradient(to bottom,var(--cream) 0%,var(--cream) 80%,transparent 100%);
+  padding:12px 0 20px;
+  text-align:center;
+  font-family:'Noto Serif KR',serif;
+  font-size:20px;font-weight:500;
+  color:var(--navy);
+  letter-spacing:.05em;
+  grid-row:1;
+}
+.col-h-world{grid-column:1}
+.col-h-axis{grid-column:2}
+.col-h-korea{grid-column:3}
+.col-h-axis{
+  font-size:11px;color:var(--ink-mute);
+  letter-spacing:.15em;font-weight:400;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.col-world, .col-axis, .col-korea{
+  grid-row:2;position:relative;
+}
+.col-world{grid-column:1;padding-right:16px;padding-left:46px}
+.col-axis{grid-column:2}
+.col-korea{grid-column:3;padding-left:16px;padding-right:46px}
+
+/* Era strip on outer edge of each column */
+.era-strip{
+  position:absolute;
+  top:0;bottom:0;width:38px;
+  z-index:1;
+}
+.col-world .era-strip{left:0;border-right:1px solid var(--line-soft)}
+.col-korea .era-strip{right:0;border-left:1px solid var(--line-soft)}
+
+/* Era bands (colored backgrounds inside strip) */
+.era-band{
+  position:absolute;
+  left:0;right:0;
+  opacity:.82;
+  transition:opacity .2s, filter .2s;
+  cursor:pointer;
+  border-top:1px solid rgba(255,255,255,.4);
+}
+.era-band:first-child{border-top:none}
+.era-band:hover, .era-band.hover{opacity:1;filter:brightness(1.08)}
+
+/* Era label — vertical Korean text */
+.era-label{
+  position:absolute;
+  left:0;right:0;
+  writing-mode:vertical-rl;
+  font-family:'Noto Serif KR',serif;
+  font-size:13px;
+  font-weight:500;
+  color:rgba(0,0,0,.78);
+  letter-spacing:.08em;
+  padding-top:14px;
+  padding-bottom:14px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  transition:color .2s,font-weight .2s;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.col-korea .era-label{transform:rotate(180deg)}
+.era-label:hover, .era-label.hover{color:#000}
+
+/* Center axis */
+.axis-line{
+  position:absolute;left:50%;top:0;bottom:0;
+  width:1px;background:var(--line);
+  transform:translateX(-50%);
+}
+.axis-tick{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;
+}
+.tick-mark{
+  width:14px;height:1px;background:var(--ink-mute);
+}
+.tick-major .tick-mark{width:28px;height:1.5px;background:var(--navy)}
+.tick-label{
+  margin-top:4px;font-size:11px;color:var(--ink-mute);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+  letter-spacing:.02em;
+}
+.tick-major .tick-label{
+  font-size:13px;font-weight:500;color:var(--navy);
+}
+
+/* Events */
+.event{
+  position:absolute;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:5px;
+  padding:7px 11px 8px;
+  font-size:12.5px;
+  line-height:1.4;
+  cursor:pointer;
+  transition:all .18s ease;
+  box-shadow:0 1px 2px rgba(0,0,0,.02);
+  z-index:2;
+}
+.col-world .event{left:46px;right:16px}
+.col-korea .event{left:16px;right:46px}
+.event:hover{
+  border-color:var(--navy);
+  transform:translateY(-1px);
+  box-shadow:var(--shadow);
+  z-index:20;
+}
+.event-year{
+  font-variant-numeric:tabular-nums;
+  font-size:10.5px;color:var(--accent);
+  font-weight:500;letter-spacing:.05em;
+  margin-bottom:1px;
+}
+.event-title{
+  color:var(--ink);
+  font-weight:500;font-size:13px;
+  line-height:1.35;
+}
+.event-tag{
+  display:inline-block;
+  font-size:9.5px;padding:1px 5px;border-radius:3px;
+  margin-left:5px;vertical-align:middle;
+  background:var(--line-soft);color:var(--ink-mute);
+  font-weight:400;
+}
+.event.has-detail::after{
+  content:'';position:absolute;right:9px;top:50%;
+  width:5px;height:5px;
+  border-right:1.5px solid var(--navy);
+  border-top:1.5px solid var(--navy);
+  transform:translateY(-50%) rotate(45deg);
+  opacity:0;
+  transition:opacity .2s;
+}
+.event.has-detail:hover::after{opacity:.4}
+
+/* Connector from event edge to axis */
+.event-connector{
+  position:absolute;top:50%;height:1px;
+  background:var(--line);
+  pointer-events:none;
+}
+.col-world .event-connector{right:-16px;width:16px}
+.col-korea .event-connector{left:-16px;width:16px}
+.event:hover .event-connector{background:var(--accent)}
+
+/* Era band hover coupling */
+.era-band.hover{opacity:.22}
+.era-label.hover{opacity:1;color:var(--accent)}
+
+/* Era highlight mode (filter) */
+.timeline.highlight-mode .event:not(.in-era){opacity:.25}
+.timeline.highlight-mode .era-band:not(.active-era){opacity:.04}
+.timeline.highlight-mode .era-band.active-era{opacity:.25}
+.timeline.highlight-mode .era-label:not(.active-label){opacity:.25}
+
+/* ================= DETAIL PANEL ================= */
+.panel-backdrop{
+  position:fixed;inset:0;
+  background:rgba(27,42,74,.35);
+  backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+  z-index:200;
+}
+.panel-backdrop.open{opacity:1;pointer-events:auto}
+
+.detail-panel{
+  position:fixed;top:0;right:0;bottom:0;
+  width:min(520px,92vw);
+  background:var(--paper);
+  box-shadow:var(--shadow-strong);
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  z-index:201;
+  display:flex;flex-direction:column;
+}
+.detail-panel.open{transform:translateX(0)}
+.panel-header{
+  padding:20px 28px 16px;
+  border-bottom:1px solid var(--line-soft);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:16px;
+}
+.panel-era-pill{
+  display:inline-block;
+  font-size:11px;font-weight:500;
+  padding:3px 10px;border-radius:12px;
+  background:var(--line-soft);color:var(--ink-soft);
+  letter-spacing:.05em;
+  margin-bottom:8px;
+}
+.panel-title{
+  font-family:'Noto Serif KR',serif;
+  font-size:24px;font-weight:700;
+  color:var(--navy);line-height:1.3;
+  letter-spacing:-.01em;
+}
+.panel-subtitle{
+  margin-top:4px;
+  font-size:13px;color:var(--ink-mute);
+  font-variant-numeric:tabular-nums;
+}
+.panel-close{
+  background:transparent;border:none;
+  width:36px;height:36px;border-radius:50%;
+  cursor:pointer;flex-shrink:0;
+  color:var(--ink-soft);font-size:20px;
+  transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.panel-close:hover{background:var(--line-soft);color:var(--navy)}
+.panel-body{
+  padding:24px 28px 40px;
+  overflow-y:auto;flex:1;
+  font-size:14.5px;line-height:1.75;color:var(--ink-soft);
+}
+.panel-body h3{
+  font-family:'Noto Serif KR',serif;
+  font-size:16px;font-weight:500;
+  color:var(--navy);
+  margin:20px 0 8px;
+  letter-spacing:-.005em;
+}
+.panel-body h3:first-child{margin-top:0}
+.panel-body p{margin-bottom:10px}
+.panel-body ul{margin:4px 0 12px;padding-left:18px}
+.panel-body li{margin-bottom:4px}
+.panel-body strong{color:var(--ink);font-weight:500}
+.panel-meta{
+  background:var(--cream);
+  border-radius:6px;padding:14px 18px;
+  margin-bottom:20px;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:6px 16px;
+  font-size:13px;
+}
+.panel-meta dt{color:var(--ink-mute);font-weight:400}
+.panel-meta dd{color:var(--ink);font-weight:500}
+.panel-keywords{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;
+}
+.panel-keyword{
+  font-size:11.5px;padding:3px 10px;border-radius:3px;
+  background:var(--line-soft);color:var(--ink-soft);
+  font-weight:400;
+}
+
+/* Tooltip */
+.tooltip{
+  position:fixed;
+  background:var(--navy);color:var(--cream);
+  font-size:12.5px;padding:8px 12px;border-radius:5px;
+  max-width:280px;line-height:1.5;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s;
+  z-index:150;
+  box-shadow:var(--shadow);
+}
+.tooltip.show{opacity:1}
+.tooltip-arrow{
+  position:absolute;width:0;height:0;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+}
+.tooltip.below .tooltip-arrow{
+  top:-5px;left:50%;transform:translateX(-50%);
+  border-bottom:5px solid var(--navy);
+}
+.tooltip.above .tooltip-arrow{
+  bottom:-5px;left:50%;transform:translateX(-50%);
+  border-top:5px solid var(--navy);
+}
+
+/* Floating scroll indicator */
+.scroll-hint{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--navy);color:var(--cream);
+  padding:8px 16px;border-radius:20px;
+  font-size:12px;
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+  z-index:90;
+}
+.scroll-hint.show{opacity:.85}
+
+footer{
+  max-width:1400px;margin:0 auto;
+  padding:40px 28px 60px;
+  color:var(--ink-mute);font-size:12.5px;
+  text-align:center;border-top:1px solid var(--line-soft);
+}
+footer a{color:var(--navy);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* Responsive */
+@media (max-width:900px){
+  .timeline{grid-template-columns:1fr 80px 1fr}
+  .intro h1{font-size:28px}
+  .col-world{padding-right:10px;padding-left:38px}
+  .col-korea{padding-left:10px;padding-right:38px}
+  .era-strip{width:32px}
+  .col-world .event{left:38px;right:10px}
+  .col-korea .event{left:10px;right:38px}
+  .event{font-size:12px;padding:6px 10px 7px}
+  .event-title{font-size:12.5px}
+  .era-label{font-size:12px}
+  .header-inner{flex-wrap:wrap;gap:12px}
+  .era-nav{margin-left:0;width:100%;justify-content:flex-start;overflow-x:auto}
+}
+@media (max-width:600px){
+  .timeline{grid-template-columns:1fr 50px 1fr}
+  .col-world{padding-right:4px;padding-left:22px}
+  .col-korea{padding-left:4px;padding-right:22px}
+  .era-strip{width:18px}
+  .col-world .event{left:22px;right:4px}
+  .col-korea .event{left:4px;right:22px}
+  .event{padding:5px 8px 6px;font-size:11.5px}
+  .event-title{font-size:11.5px;line-height:1.35}
+  .event-year{font-size:9.5px}
+  .tick-label{font-size:9.5px}
+  .tick-major .tick-label{font-size:11px}
+  .era-label{display:none}
+  .intro{padding:24px 16px 12px}
+  .intro h1{font-size:24px}
+  .timeline-wrap{padding:12px 16px 60px}
+  .detail-panel{width:100vw}
+  .panel-header{padding:16px 20px 12px}
+  .panel-body{padding:18px 20px 32px}
+  .panel-title{font-size:20px}
+  .column-header{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-logo">世界史年表</div>
+      <div class="brand-sub">INTERACTIVE TIMELINE · 비그늘</div>
+    </div>
+    <div class="era-nav" id="era-nav">
+      <button class="era-btn active" data-era="all">전체</button>
+      <button class="era-btn" data-era="ancient">고대</button>
+      <button class="era-btn" data-era="classical">고전</button>
+      <button class="era-btn" data-era="medieval">중세</button>
+      <button class="era-btn" data-era="earlymod">근세</button>
+      <button class="era-btn" data-era="modern">근대</button>
+      <button class="era-btn" data-era="contemp">현대</button>
+    </div>
+  </div>
+</header>
+
+<section class="intro">
+  <h1>세계사 연표</h1>
+  <p class="sub">선사시대부터 현대까지, 세계와 한국의 주요 사건을 시대순으로 나란히 배치했습니다. 시대 이름이나 사건을 클릭하면 자세한 설명을 볼 수 있습니다.</p>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:var(--world)"></span>세계사</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--korea)"></span>한국사</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>연도 표시</div>
+    <div class="legend-item" style="color:var(--ink-mute)">· 상단 시대 버튼으로 필터링</div>
+  </div>
+</section>
+
+<div class="timeline-wrap">
+  <div class="timeline" id="timeline">
+    <div class="column-header col-h-world">세 계</div>
+    <div class="column-header col-h-axis">YEAR</div>
+    <div class="column-header col-h-korea">한 국</div>
+    <div class="col-world" id="col-world">
+      <div class="era-strip" id="strip-world"></div>
+    </div>
+    <div class="col-axis" id="col-axis">
+      <div class="axis-line"></div>
+    </div>
+    <div class="col-korea" id="col-korea">
+      <div class="era-strip" id="strip-korea"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  비그늘(BGNL) · 데이터 기반: <a href="https://ko.wikipedia.org/wiki/세계사_연표" target="_blank">한국어 위키백과 세계사 연표</a>
+</footer>
+
+<div class="panel-backdrop" id="panel-backdrop"></div>
+<aside class="detail-panel" id="detail-panel" role="dialog" aria-modal="true">
+  <div class="panel-header">
+    <div>
+      <div class="panel-era-pill" id="panel-pill">시대</div>
+      <h2 class="panel-title" id="panel-title">제목</h2>
+      <div class="panel-subtitle" id="panel-subtitle">연도</div>
+    </div>
+    <button class="panel-close" id="panel-close" aria-label="닫기">×</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</aside>
+
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-arrow"></div>
+  <div class="tooltip-text"></div>
+</div>
+
+<div class="scroll-hint" id="scroll-hint">↓ 스크롤하여 연대 탐색</div>
+
+<script>
+// ================= DATA =================
+
+// 시대 구분 (era category - top filter buttons)
+const ERA_CATEGORIES = {
+  ancient:   {label:'고대',  range:[-4000, -500],  color:'var(--era-ancient)'},
+  classical: {label:'고전',  range:[-500,   500],  color:'var(--era-classical)'},
+  medieval:  {label:'중세',  range:[ 500,  1400],  color:'var(--era-medieval)'},
+  earlymod:  {label:'근세',  range:[1400,  1800],  color:'var(--era-earlymod)'},
+  modern:    {label:'근대',  range:[1800,  1945],  color:'var(--era-modern)'},
+  contemp:   {label:'현대',  range:[1945,  2030],  color:'var(--era-contemp)'}
+};
+
+// 왕조 · 문명 · 시대 (era bands shown as vertical colored strips)
+const ERAS = [
+  // --- 세계 ---
+  {id:'mesopo',  side:'world', start:-3500, end:-539,  name:'메소포타미아 문명', cat:'ancient',
+   desc:'티그리스·유프라테스 강 유역에서 발달한 인류 최초의 도시 문명. 수메르에서 시작해 아카드·바빌로니아·아시리아로 이어졌다.',
+   highlights:['설형문자(쐐기문자) 발명','함무라비 법전(B.C. 1750년경)','60진법·태음력','지구라트 신전 건축'],
+   keywords:['수메르','바빌론','함무라비','쐐기문자']},
+
+  {id:'egypt',   side:'world', start:-3100, end:-30,   name:'이집트 문명', cat:'ancient',
+   desc:'나일강의 범람을 이용한 농경 문명. 고왕국·중왕국·신왕국을 거쳐 프톨레마이오스 왕조에서 로마에 병합되었다.',
+   highlights:['상형문자 사용','피라미드(기자, B.C. 2500년경)','태양력 제정','파피루스와 미라 문화'],
+   keywords:['파라오','피라미드','상형문자','클레오파트라']},
+
+  {id:'indus',   side:'world', start:-2500, end:-1500, name:'인더스 문명', cat:'ancient',
+   desc:'인더스 강 유역에서 발달한 고대 도시 문명. 모헨조다로와 하라파가 대표 유적이다.',
+   highlights:['계획 도시 건설','하수도·목욕탕 시설','인더스 문자(미해독)','청동기 공예'],
+   keywords:['모헨조다로','하라파','인더스 문자']},
+
+  {id:'shang',   side:'world', start:-1600, end:-1046, name:'상(商)', cat:'ancient',
+   desc:'중국 최초의 확인된 왕조. 청동기와 갑골문을 사용했으며, 은허에서 유적이 발굴되었다.',
+   highlights:['갑골문(甲骨文)','청동기 제작','은(殷)으로도 불림','제정일치 사회'],
+   keywords:['은나라','갑골문','청동기']},
+
+  {id:'zhou',    side:'world', start:-1046, end:-256,  name:'주(周) · 춘추전국', cat:'ancient',
+   desc:'중국 최장 왕조. 서주·동주(춘추전국)로 나뉘며, 제자백가 사상이 꽃피웠다.',
+   highlights:['봉건제 실시','공자·노자·묵자 등장(제자백가)','철기 보급','유교·도교·법가 탄생'],
+   keywords:['춘추전국','제자백가','공자','봉건제']},
+
+  {id:'persia',  side:'world', start:-550,  end:-330,  name:'페르시아 제국', cat:'classical',
+   desc:'아케메네스 왕조의 대제국. 다리우스 1세 때 최대 판도에 이르렀으며 알렉산드로스에게 멸망했다.',
+   highlights:['20개 속주, 사트라프 통치','조로아스터교','왕의 길(도로망)','그리스-페르시아 전쟁'],
+   keywords:['다리우스','크세르크세스','조로아스터교']},
+
+  {id:'greece',  side:'world', start:-800,  end:-146,  name:'고대 그리스', cat:'classical',
+   desc:'폴리스(도시국가) 중심 문명. 민주정·철학·연극·올림픽의 기원지다. 알렉산드로스의 헬레니즘 시대로 이어졌다.',
+   highlights:['아테네 민주정 확립(B.C. 508)','페르시아 전쟁 승리','펠로폰네소스 전쟁','플라톤·아리스토텔레스'],
+   keywords:['아테네','스파르타','폴리스','헬레니즘']},
+
+  {id:'rome-r',  side:'world', start:-509,  end:-27,   name:'로마 공화정', cat:'classical',
+   desc:'왕정 축출 후 원로원·집정관 중심으로 운영된 공화정. 포에니 전쟁으로 지중해를 장악했다.',
+   highlights:['12표법 제정','포에니 전쟁(카르타고)','그라쿠스 형제 개혁','카이사르와 삼두정'],
+   keywords:['원로원','카이사르','카르타고','포에니 전쟁']},
+
+  {id:'rome-e',  side:'world', start:-27,   end:476,   name:'로마 제국', cat:'classical',
+   desc:'아우구스투스부터 시작된 제정기. 팍스 로마나(로마의 평화) 이후 분열되어 서로마가 476년 멸망했다.',
+   highlights:['아우구스투스 즉위(B.C. 27)','팍스 로마나(5현제 시대)','기독교 공인(313)','동서 분리(395)·서로마 멸망(476)'],
+   keywords:['아우구스투스','콘스탄티누스','기독교 공인','게르만족']},
+
+  {id:'qin-han', side:'world', start:-221,  end:220,   name:'진(秦) · 한(漢)', cat:'classical',
+   desc:'진시황제의 중국 최초 통일 후 한 고조가 세운 한 왕조는 중국 문명의 원형이 되었다.',
+   highlights:['진시황 중국 통일(B.C. 221)','문자·도량형 통일, 만리장성','한 무제, 유교 국교화','비단길 개척'],
+   keywords:['진시황','한 무제','실크로드','만리장성']},
+
+  {id:'byzan',   side:'world', start:395,   end:1453,  name:'비잔티움 제국', cat:'medieval',
+   desc:'동로마 제국의 별칭. 그리스 정교회 중심지로 1453년 오스만에게 콘스탄티노플이 함락되며 멸망했다.',
+   highlights:['유스티니아누스 법전(529)','그리스 정교회 분리(1054)','비잔틴 양식 예술','콘스탄티노플 함락(1453)'],
+   keywords:['콘스탄티노플','유스티니아누스','정교회']},
+
+  {id:'islam',   side:'world', start:622,   end:1258,  name:'이슬람 제국', cat:'medieval',
+   desc:'무함마드의 헤지라(622)로 시작된 이슬람 문명. 정통 칼리프-우마이야-아바스 왕조를 거쳤다.',
+   highlights:['무함마드 헤지라(622)','정통 칼리프 시대','우마이야·아바스 왕조','중세 과학·수학의 황금기'],
+   keywords:['무함마드','칼리프','바그다드','알라']},
+
+  {id:'tang',    side:'world', start:618,   end:907,   name:'수(隋) · 당(唐)', cat:'medieval',
+   desc:'수나라가 재통일한 중국을 당이 계승했다. 세계제국으로 장안은 국제도시였다.',
+   highlights:['과거제 확립','장안, 세계 최대 도시','견당사·신라방','균전제·조용조'],
+   keywords:['당나라','장안','측천무후','견당사']},
+
+  {id:'song-y',  side:'world', start:960,   end:1368,  name:'송(宋) · 원(元)', cat:'medieval',
+   desc:'송대에 경제·문화가 꽃피었고, 몽골의 원이 중국 전체를 지배했다.',
+   highlights:['나침반·화약·인쇄술(송)','성리학 완성(주희)','칭기즈칸의 몽골 제국','쿠빌라이의 원 건국(1271)'],
+   keywords:['송나라','원나라','칭기즈칸','성리학','마르코 폴로']},
+
+  {id:'europe-m',side:'world', start:476,   end:1453,  name:'중세 유럽', cat:'medieval',
+   desc:'서로마 멸망 후 봉건제·장원제·교회 중심 사회가 형성된 약 1000년간의 시대.',
+   highlights:['봉건제·장원제','카롤루스 대관식(800)','십자군 전쟁(1096-1270)','흑사병(1347-)','백년전쟁(1337-1453)'],
+   keywords:['봉건제','교황','십자군','흑사병','기사']},
+
+  {id:'ming-qing',side:'world',start:1368,  end:1912,  name:'명(明) · 청(淸)', cat:'earlymod',
+   desc:'한족의 명, 만주족의 청. 명 정화의 원정과 청의 강희·옹정·건륭 시대에 동아시아 질서를 주도했다.',
+   highlights:['정화의 대항해(1405-)','임진왜란 파병','청 강희·건륭제','아편전쟁(1840)으로 쇠퇴'],
+   keywords:['명나라','청나라','정화','강희제','아편전쟁']},
+
+  {id:'ottoman', side:'world', start:1299,  end:1922,  name:'오스만 제국', cat:'earlymod',
+   desc:'13세기 말 아나톨리아에서 일어난 이슬람 제국. 콘스탄티노플을 점령하고 600년 넘게 지속되었다.',
+   highlights:['콘스탄티노플 함락(1453)','술레이만 대제 전성기','빈 포위(1529·1683)','1922년 술탄제 폐지'],
+   keywords:['술탄','이스탄불','술레이만']},
+
+  {id:'renai',   side:'world', start:1350,  end:1600,  name:'르네상스 · 대항해시대', cat:'earlymod',
+   desc:'이탈리아에서 시작된 인문주의 운동과 유럽의 세계 진출이 맞물린 시대.',
+   highlights:['인문주의(페트라르카·단테)','다빈치·미켈란젤로','구텐베르크 활자(1450)','콜럼버스 신대륙 도착(1492)','마젤란 세계일주(1519-22)'],
+   keywords:['르네상스','대항해시대','콜럼버스','구텐베르크','다빈치']},
+
+  {id:'reform',  side:'world', start:1517,  end:1648,  name:'종교개혁 · 절대왕정', cat:'earlymod',
+   desc:'루터의 95개조 반박문으로 시작된 종교개혁과 유럽 국왕들의 절대 권력 강화 시대.',
+   highlights:['루터 95개조(1517)','30년 전쟁(1618-1648)','베스트팔렌 조약','루이 14세·표트르 대제'],
+   keywords:['루터','칼뱅','절대왕정','루이 14세','30년 전쟁']},
+
+  {id:'enlight', side:'world', start:1650,  end:1800,  name:'계몽주의 · 시민혁명', cat:'earlymod',
+   desc:'이성과 진보를 강조한 계몽사상이 시민혁명으로 이어진 시대.',
+   highlights:['영국 명예혁명(1688)','뉴턴·로크·볼테르·루소','미국 독립(1776)','프랑스 혁명(1789)'],
+   keywords:['계몽주의','명예혁명','미국 독립','프랑스 혁명','루소']},
+
+  {id:'industrial',side:'world',start:1760, end:1914,  name:'산업혁명 · 제국주의', cat:'modern',
+   desc:'증기기관과 공장제 기계공업으로 시작된 산업혁명과 유럽 열강의 식민지 쟁탈전.',
+   highlights:['와트 증기기관 개량(1769)','제1차·제2차 산업혁명','아프리카 분할','러일전쟁(1904)'],
+   keywords:['산업혁명','제국주의','식민지','증기기관']},
+
+  {id:'ww',      side:'world', start:1914,  end:1945,  name:'양차 세계대전', cat:'modern',
+   desc:'두 차례의 세계대전으로 국제질서가 재편된 시대. 공산주의·파시즘·자유주의가 충돌했다.',
+   highlights:['1차대전(1914-18)','러시아 혁명(1917)','대공황(1929)','2차대전(1939-45)','UN 창설(1945)'],
+   keywords:['1차대전','2차대전','러시아 혁명','대공황','나치']},
+
+  {id:'coldwar', side:'world', start:1945,  end:1991,  name:'냉전 시대', cat:'contemp',
+   desc:'미국과 소련을 중심으로 한 자본주의·공산주의 진영의 대립 시기.',
+   highlights:['한국전쟁(1950-53)','쿠바 미사일 위기(1962)','베트남 전쟁','베를린 장벽 붕괴(1989)','소련 해체(1991)'],
+   keywords:['냉전','미국','소련','베를린 장벽','데탕트']},
+
+  {id:'global',  side:'world', start:1991,  end:2025,  name:'탈냉전 · 세계화', cat:'contemp',
+   desc:'공산권 붕괴 후 세계화와 정보혁명이 진행된 시대. 새로운 분쟁과 기술 변화가 이어지고 있다.',
+   highlights:['EU 출범(1993)','9·11 테러(2001)','글로벌 금융위기(2008)','코로나19 팬데믹(2019-)','생성형 AI 혁명(2020s)'],
+   keywords:['세계화','EU','9·11','코로나','AI']},
+
+  // --- 한국 ---
+  {id:'k-gojos', side:'korea', start:-2333, end:-108,  name:'고조선', cat:'ancient',
+   desc:'단군왕검이 세운 한민족 최초의 국가. 청동기 문화를 바탕으로 하다가 한 무제의 침입으로 멸망했다.',
+   highlights:['단군 건국 신화(B.C. 2333)','8조법(살인·상해·도둑질)','위만조선(B.C. 194)','한 무제에 멸망, 한4군 설치(B.C. 108)'],
+   keywords:['단군','위만','한4군','청동기']},
+
+  {id:'k-sam',   side:'korea', start:-57,   end:668,   name:'삼국시대', cat:'classical',
+   desc:'고구려·백제·신라의 경쟁과 통합의 시대. 불교 수용과 중앙집권 국가 체제가 형성되었다.',
+   highlights:['고구려(B.C. 37~A.D. 668)','백제(B.C. 18~A.D. 660)','신라(B.C. 57~A.D. 935)','광개토대왕·장수왕','진흥왕 순수비'],
+   keywords:['고구려','백제','신라','광개토대왕','진흥왕']},
+
+  {id:'k-north', side:'korea', start:676,   end:926,   name:'남북국시대', cat:'medieval',
+   desc:'통일신라와 발해가 남북에서 공존한 시기. 해동성국 발해와 불교문화의 신라가 공존했다.',
+   highlights:['통일신라(676~935)','발해 건국(698, 대조영)','불국사·석굴암(751)','장보고 청해진(828)','해동성국'],
+   keywords:['통일신라','발해','대조영','장보고','불국사']},
+
+  {id:'k-goryeo',side:'korea', start:918,   end:1392,  name:'고려', cat:'medieval',
+   desc:'왕건이 세운 고려는 불교 국가로 귀족 문화가 발달했으며, 몽골 침입과 무신정권의 변동을 겪었다.',
+   highlights:['과거제 실시(958)','거란 3차 침입·귀주대첩(1019)','무신정변(1170)','몽골 침입(1231~)','팔만대장경·금속활자(직지, 1377)'],
+   keywords:['왕건','무신정권','몽골','팔만대장경','직지']},
+
+  {id:'k-joseon',side:'korea', start:1392,  end:1897,  name:'조선', cat:'earlymod',
+   desc:'성리학을 통치이념으로 삼은 유교 국가. 세종 대의 문화적 융성에서 일제의 침략까지 이어졌다.',
+   highlights:['한양 천도(1394)','훈민정음 창제(1443)·반포(1446)','임진왜란(1592)·병자호란(1636)','영조·정조 탕평과 실학','개항(1876, 강화도조약)'],
+   keywords:['세종','훈민정음','임진왜란','영정조','실학']},
+
+  {id:'k-empire',side:'korea', start:1897,  end:1910,  name:'대한제국', cat:'modern',
+   desc:'고종이 황제로 즉위하며 수립한 자주 제국. 광무개혁을 추진했으나 일제의 침탈로 국권을 상실했다.',
+   highlights:['고종 황제 즉위(1897)','광무개혁','을사늑약(1905)','헤이그 특사(1907)','한일강제병합(1910)'],
+   keywords:['고종','광무개혁','을사늑약','헤이그 특사']},
+
+  {id:'k-colon', side:'korea', start:1910,  end:1945,  name:'일제강점기', cat:'modern',
+   desc:'일본의 식민지배와 이에 맞선 독립운동의 시기. 무단통치→문화통치→민족말살통치로 이어졌다.',
+   highlights:['무단통치(1910s)','3·1 운동(1919)','대한민국 임시정부(1919)','문화통치(1920s)','민족말살통치(1930s~)','광복(1945.8.15)'],
+   keywords:['3·1운동','임시정부','무단통치','광복']},
+
+  {id:'k-rok',   side:'korea', start:1948,  end:2025,  name:'대한민국', cat:'contemp',
+   desc:'1948년 정부 수립 이후 한국전쟁, 산업화, 민주화를 거쳐 선진국으로 성장한 시대.',
+   highlights:['정부 수립(1948)','한국전쟁(1950~53)','4·19 혁명(1960)','한강의 기적(1960~70s)','6월 민주항쟁(1987)','IMF 외환위기(1997)','G20·선진국 진입'],
+   keywords:['대한민국','한국전쟁','민주화','산업화','IMF']}
+];
+
+// 주요 사건 (events list)
+// ev(year, side, title, [detail], [tags])
+const E = (year, side, title, detail, tags) => ({year, side, title, detail:detail||'', tags:tags||[]});
+
+const EVENTS = [
+  // --- BC ---
+  E(-3500,'world','메소포타미아 문명 시작','티그리스·유프라테스 강 유역에 수메르 도시국가들이 등장하면서 인류 최초의 문명이 시작되었다.',['문명']),
+  E(-3000,'world','이집트 문명 시작','나일강 유역에서 상·하 이집트가 통일되며 파라오 왕조가 시작되었다.',['문명']),
+  E(-2500,'world','인더스 문명 시작','모헨조다로·하라파 등 계획도시가 건설된 인더스 문명이 발달했다.',['문명']),
+  E(-2333,'korea','고조선 건국','단군왕검이 아사달에 도읍을 정하고 한민족 최초의 국가 고조선을 세웠다. (단군기원의 기준)',['고조선']),
+  E(-2070,'world','중국 하(夏) 건국','우(禹)임금이 세웠다고 전해지는 중국 최초의 세습 왕조.'),
+  E(-1800,'world','함무라비 법전','바빌로니아의 함무라비왕이 "눈에는 눈"으로 유명한 성문법을 편찬했다.',['법전']),
+  E(-1600,'world','상(商, 은) 건국','갑골문과 청동기로 유명한 중국 왕조가 건국되었다.'),
+  E(-1500,'world','히타이트, 철기 사용','아나톨리아의 히타이트인들이 세계 최초로 철기를 제련했다.',['철기']),
+  E(-1122,'world','주(周) 건국','문왕·무왕이 상을 멸하고 주를 세웠으며, 봉건제를 실시했다.'),
+  E(-1000,'korea','고조선의 발전','청동기 문화를 바탕으로 고조선이 세력을 확장하였다.'),
+  E(-770, 'world','춘추시대 시작','주나라 수도가 낙읍으로 천도하며 춘추시대(B.C. 770~403)가 시작되었다.',['중국']),
+  E(-600, 'world','석가모니 탄생','북인도에서 고타마 싯다르타(석가모니)가 탄생해 불교를 창시했다.',['종교']),
+  E(-594, 'world','솔론의 개혁','아테네의 솔론이 부채 탕감과 정치 개혁을 단행해 민주정의 기틀을 마련했다.',['그리스']),
+  E(-551, 'world','공자 탄생','노나라에서 공자가 태어나 유교 사상을 정립했다.',['사상']),
+  E(-525, 'world','페르시아, 이집트 정복','아케메네스 페르시아의 캄비세스 2세가 이집트를 정복했다.'),
+  E(-509, 'world','로마 공화정 수립','마지막 왕 타르퀴니우스를 추방하고 공화정을 수립했다.',['로마']),
+  E(-500, 'korea','철기 문화의 보급','한반도에 철기 문화가 본격적으로 보급되기 시작했다.',['철기']),
+  E(-492, 'world','그리스-페르시아 전쟁','3차에 걸친 전쟁에서 그리스 도시국가들이 페르시아를 격퇴했다. 마라톤·살라미스 해전이 유명하다.'),
+  E(-431, 'world','펠로폰네소스 전쟁','아테네와 스파르타 간의 27년 전쟁(~B.C. 404). 그리스 폴리스 문명 쇠퇴의 시작.'),
+  E(-334, 'world','알렉산드로스 동방원정','마케도니아의 알렉산드로스 대왕이 페르시아를 정복하며 헬레니즘 세계를 열었다.'),
+  E(-321, 'world','마우리아 왕조 성립','찬드라굽타가 인도 최초의 통일 제국을 건설했다.',['인도']),
+  E(-264, 'world','1차 포에니 전쟁','로마와 카르타고의 첫 충돌. 로마가 시칠리아를 차지했다.'),
+  E(-221, 'world','진시황, 중국 통일','진시황제가 전국을 통일하고 황제 칭호를 사용했다. 문자·도량형 통일, 만리장성 축조.',['중국','통일']),
+  E(-202, 'world','한(漢) 건국','유방(한 고조)이 진을 뒤이어 한 왕조를 세웠다.'),
+  E(-194, 'korea','위만조선 성립','연나라 사람 위만이 준왕을 몰아내고 위만조선을 세웠다.'),
+  E(-138, 'world','장건, 서역 원정','한 무제의 명으로 장건이 서역을 개척하며 비단길이 열렸다.',['실크로드']),
+  E(-108, 'korea','고조선 멸망','한 무제의 침입으로 위만조선이 멸망하고 한4군이 설치되었다.'),
+  E(-57,  'korea','신라 건국','박혁거세가 서라벌(경주)에서 신라(사로국)를 세웠다.',['삼국']),
+  E(-37,  'korea','고구려 건국','주몽(동명성왕)이 졸본에서 고구려를 세웠다.',['삼국']),
+  E(-27,  'world','로마 제국 시작','옥타비아누스가 아우구스투스 칭호를 받으며 사실상 초대 황제가 되었다.',['로마']),
+  E(-18,  'korea','백제 건국','온조가 위례성에서 백제를 세웠다.',['삼국']),
+
+  // --- AD ---
+  E(4,    'world','예수 그리스도 탄생(추정)','후대에 기독교 연력의 기준이 되는 예수 그리스도가 베들레헴에서 탄생했다고 전해진다.'),
+  E(25,   'world','후한(後漢) 성립','광무제 유수가 왕망의 신(新)을 멸하고 후한을 재건했다.'),
+  E(67,   'world','불교, 중국에 전파','후한 명제 때 백마사가 세워지며 불교가 중국에 공식 전파되었다.'),
+  E(184,  'world','황건적의 난','장각 형제가 태평도를 바탕으로 일으킨 반란. 후한 쇠퇴의 계기.'),
+  E(220,  'world','한 멸망·삼국시대','조비가 헌제를 폐하고 위(魏)를 세움. 위·촉·오 삼국시대 시작.'),
+  E(260,  'korea','백제 율령 반포','백제 고이왕이 6좌평제와 16관등제를 정비했다.'),
+  E(280,  'world','진(晉), 중국 통일','사마염이 오를 멸하고 중국을 잠시 통일했다.'),
+  E(313,  'world','밀라노 칙령','로마 황제 콘스탄티누스가 기독교를 공인했다.',['종교']),
+  E(313,  'korea','고구려, 낙랑군 멸망시킴','미천왕이 한반도에서 한4군의 마지막 낙랑군을 축출했다.'),
+  E(316,  'world','5호 16국 시대','서진 멸망 후 북방에서 유목민족들이 16국을 세우며 혼란기 시작(~439).'),
+  E(356,  'korea','신라, 내물왕 즉위','김씨 세습 왕위를 확립하고 마립간 칭호 사용.'),
+  E(372,  'korea','고구려, 불교 수용·태학 설립','소수림왕이 전진에서 불교를 수용하고 교육기관 태학을 설립했다.'),
+  E(375,  'world','게르만족의 대이동','훈족의 압박으로 게르만족이 대이동을 시작, 서로마 멸망의 원인이 되었다.'),
+  E(384,  'korea','백제, 불교 전래','침류왕 때 동진에서 마라난타가 불교를 전했다.'),
+  E(395,  'world','로마 제국 분열','테오도시우스 사후 로마가 동서로 완전히 분리되었다.'),
+  E(427,  'korea','고구려, 평양 천도','장수왕이 국내성에서 평양으로 수도를 옮겼다.'),
+  E(433,  'korea','나제동맹','신라(눌지왕)와 백제(비유왕)가 고구려에 맞서 동맹을 맺었다.'),
+  E(475,  'korea','백제, 웅진 천도','고구려 장수왕의 한성 공격으로 개로왕이 전사, 문주왕이 웅진(공주)으로 천도.'),
+  E(476,  'world','서로마 제국 멸망','게르만 용병대장 오도아케르가 마지막 황제 로물루스 아우구스툴루스를 폐위.',['로마']),
+  E(486,  'world','프랑크 왕국 건국','클로비스가 메로빙거 왕조를 세우며 서유럽 중세의 시작을 알렸다.'),
+  E(502,  'korea','신라, 우경(牛耕) 시행','소를 이용한 농사가 권장되며 농업 생산력이 증대.'),
+  E(503,  'korea','국호·왕호 정비','지증왕이 국호를 신라, 왕호를 왕으로 확정했다.'),
+  E(520,  'korea','신라, 율령 반포','법흥왕이 율령을 반포하고 백관의 공복을 제정했다.'),
+  E(527,  'korea','신라, 불교 공인','법흥왕이 이차돈의 순교를 계기로 불교를 공인했다.',['불교']),
+  E(538,  'korea','백제, 사비 천도','성왕이 웅진에서 사비(부여)로 천도하고 국호를 남부여로 변경.'),
+  E(552,  'korea','백제, 일본에 불교 전래','성왕이 일본 흠명천황에게 불상과 경전을 보냈다.'),
+  E(562,  'korea','대가야 멸망','진흥왕이 대가야를 정복해 가야 연맹이 완전히 신라에 병합.'),
+  E(589,  'world','수(隋), 중국 통일','문제(양견)가 진(陳)을 멸하고 남북조를 통일했다.'),
+  E(610,  'world','이슬람 창시','무함마드가 메카에서 알라의 계시를 받고 이슬람교를 시작.',['종교']),
+  E(612,  'korea','살수대첩','을지문덕이 살수(청천강)에서 수 양제의 113만 대군을 격퇴.',['전쟁']),
+  E(618,  'world','당(唐) 건국','이연(고조)이 수를 멸하고 당을 세웠다.'),
+  E(622,  'world','무함마드의 헤지라','메카에서 메디나로의 이주. 이슬람력의 원년.'),
+  E(645,  'korea','안시성 전투','고구려 안시성 성주가 당 태종의 침략군을 격퇴.'),
+  E(660,  'korea','백제 멸망','나·당 연합군에게 사비성이 함락되며 의자왕이 항복.'),
+  E(668,  'korea','고구려 멸망','나·당 연합군에 의해 평양성이 함락되며 고구려가 멸망.'),
+  E(676,  'korea','신라, 삼국통일 완성','매소성·기벌포 전투에서 당군을 격퇴하고 대동강 이남을 장악.',['통일']),
+  E(698,  'korea','발해 건국','대조영이 동모산에서 발해(진국)를 건국했다.',['발해']),
+  E(751,  'korea','불국사·석굴암 건립','경덕왕 때 김대성이 창건, 통일신라 불교문화의 정수.'),
+  E(755,  'world','안사의 난','안록산·사사명의 반란으로 당나라가 크게 쇠퇴.'),
+  E(794,  'world','헤이안 천도','일본이 수도를 헤이안쿄(교토)로 옮기며 헤이안 시대 시작.'),
+  E(800,  'world','카롤루스 대제 대관식','프랑크의 카롤루스(샤를마뉴)가 교황으로부터 서로마 황제 관을 받음.'),
+  E(828,  'korea','청해진 설치','장보고가 완도에 청해진을 설치, 해상 무역을 장악.'),
+  E(900,  'korea','후삼국시대 시작','견훤이 후백제, 다음해 궁예가 후고구려(태봉)를 건국.'),
+  E(907,  'world','당 멸망·5대 10국','주전충이 당을 멸하고 후량을 세움. 중국 분열기(~960).'),
+  E(916,  'world','거란 건국','야율아보기가 거란(요)을 세움.'),
+  E(918,  'korea','고려 건국','왕건이 태봉의 궁예를 축출하고 고려를 세웠다.',['고려']),
+  E(926,  'korea','발해 멸망','거란에 의해 발해가 멸망, 세자 대광현이 고려로 망명.'),
+  E(936,  'korea','후삼국 통일','고려 태조가 신검의 후백제를 평정하며 후삼국 통일을 완성.'),
+  E(958,  'korea','과거제 실시','광종이 쌍기의 건의로 과거제를 도입, 호족 세력 약화.'),
+  E(960,  'world','송(宋) 건국','조광윤(태조)이 송을 건국. 중국 재통일.'),
+  E(962,  'world','신성로마제국 성립','독일왕 오토 1세가 교황으로부터 황제관을 받음.'),
+  E(992,  'korea','국자감 설치','성종이 최고 교육기관 국자감을 설치.'),
+  E(1010, 'korea','거란 2차 침입','거란 성종이 40만 대군으로 침입, 강조 정변이 구실.'),
+  E(1019, 'korea','귀주대첩','강감찬이 귀주에서 거란 소배압의 10만 대군을 섬멸.',['전쟁']),
+  E(1054, 'world','동·서교회 분열','로마 가톨릭과 그리스 정교회가 공식 분리.'),
+  E(1066, 'world','노르만의 잉글랜드 정복','정복자 윌리엄이 헤이스팅스 전투에서 승리.'),
+  E(1096, 'world','1차 십자군 전쟁 시작','교황 우르바누스 2세의 호소로 성지 탈환 원정 시작(~1099).'),
+  E(1107, 'korea','윤관, 여진 정벌','윤관이 별무반으로 여진을 정벌하고 동북 9성을 쌓음.'),
+  E(1126, 'korea','이자겸의 난','왕실 외척 이자겸이 난을 일으켜 궁궐을 불태움.'),
+  E(1135, 'korea','묘청의 서경천도운동','묘청이 서경 천도와 칭제건원을 주장하며 반란을 일으킴.'),
+  E(1145, 'korea','「삼국사기」 편찬','김부식이 현존 최고(最古)의 한국 정사를 완성.'),
+  E(1170, 'korea','무신정변','정중부 등 무신들이 문신을 살해하고 정권 장악.'),
+  E(1206, 'world','칭기즈칸, 몽골 통일','테무친이 몽골 부족을 통일하고 칭기즈칸 즉위.',['몽골']),
+  E(1215, 'world','마그나카르타','영국 존 왕이 귀족에게 대헌장을 승인, 의회 민주주의의 초석.'),
+  E(1231, 'korea','몽골 1차 침입','몽골의 6차례 침입이 시작, 30여 년간 항쟁.',['몽골']),
+  E(1234, 'korea','세계 최초 금속활자','「상정고금예문」을 금속활자로 인쇄(기록상).',['기술']),
+  E(1236, 'korea','팔만대장경 조판 시작','몽골 격퇴 염원으로 16년간 대장경을 판각(~1251).'),
+  E(1258, 'korea','무신정권 붕괴','최씨 정권이 무너지고 몽골과 강화 협상 시작.'),
+  E(1270, 'korea','개경 환도','무신정권이 완전히 무너지고 개경으로 돌아옴. 삼별초 항쟁 시작.'),
+  E(1271, 'world','원(元) 건국','쿠빌라이 칸이 국호를 원으로 정함.'),
+  E(1279, 'world','남송 멸망','원이 애산 전투에서 남송을 멸하고 중국 전체 장악.'),
+  E(1347, 'world','흑사병 대유행','유럽 인구의 1/3이 사망한 대역병.',['전염병']),
+  E(1351, 'korea','공민왕 즉위','반원 자주 개혁을 추진, 권문세족과 대립.'),
+  E(1368, 'world','명(明) 건국','주원장(홍무제)이 원을 북쪽으로 몰아내고 명을 건국.'),
+  E(1377, 'korea','「직지심체요절」 간행','현존 세계 최고(最古) 금속활자 인쇄본. 청주 흥덕사에서 간행.'),
+  E(1388, 'korea','위화도 회군','이성계가 요동 정벌 도중 회군해 정권을 장악.'),
+  E(1392, 'korea','조선 건국','이성계가 공양왕을 폐하고 조선을 건국.',['조선']),
+  E(1394, 'korea','한양 천도','태조가 수도를 개경에서 한양(서울)으로 옮김.'),
+  E(1405, 'world','정화의 대항해','명 환관 정화가 7차례 대선단으로 인도양·아프리카까지 원정(~1433).'),
+  E(1429, 'korea','「농사직설」 편찬','정초가 한국 풍토에 맞는 독자적 농서를 저술.'),
+  E(1443, 'korea','훈민정음 창제','세종대왕이 백성을 위한 문자를 창제.',['훈민정음']),
+  E(1446, 'korea','훈민정음 반포','세종대왕이 「훈민정음 해례본」을 반포.',['훈민정음']),
+  E(1450, 'world','구텐베르크 활자','금속활자 인쇄기로 서양 정보혁명 시작.',['기술']),
+  E(1453, 'world','콘스탄티노플 함락','오스만의 메흐메트 2세가 비잔틴 제국을 멸망시킴.'),
+  E(1492, 'world','콜럼버스, 신대륙 도착','산타 마리아호가 바하마 제도에 도착. 대항해시대 개막.',['신대륙']),
+  E(1498, 'world','바스코 다 가마, 인도 항로 개척','희망봉을 돌아 캘리컷에 도착.'),
+  E(1498, 'korea','무오사화','김종직 「조의제문」을 빌미로 훈구파가 사림파를 제거.'),
+  E(1504, 'korea','갑자사화','연산군이 생모 폐비 윤씨 사건을 빌미로 사림 제거.'),
+  E(1506, 'korea','중종반정','박원종 등이 연산군을 폐하고 중종을 옹립.'),
+  E(1517, 'world','루터의 95개조 반박문','마르틴 루터가 면벌부 판매를 비판, 종교개혁 시작.',['종교개혁']),
+  E(1519, 'world','마젤란 세계일주 시작','포르투갈 출신 마젤란이 스페인 후원으로 출항(~1522).'),
+  E(1519, 'world','코르테스, 아즈텍 정복','신대륙 문명 파괴의 시작.'),
+  E(1533, 'world','잉카 제국 멸망','피사로가 아타우알파를 처형.'),
+  E(1543, 'world','코페르니쿠스 지동설','「천체의 회전에 관하여」 출간.',['과학']),
+  E(1543, 'world','포르투갈인, 일본 표착','일본에 조총 전래.'),
+  E(1592, 'korea','임진왜란','도요토미 히데요시가 조선 침략(~1598). 이순신의 한산도대첩.',['전쟁']),
+  E(1597, 'korea','정유재란','일본의 2차 침략. 명량해전에서 이순신이 대승.'),
+  E(1608, 'korea','대동법 실시','광해군이 경기도에 대동법 첫 시행.'),
+  E(1616, 'world','후금 건국','누르하치가 여진을 통일하고 후금을 세움.'),
+  E(1618, 'world','30년 전쟁','신성로마제국 내 종교전쟁으로 시작된 국제전(~1648).'),
+  E(1620, 'world','메이플라워호 도착','청교도들이 북미 플리머스에 정착.'),
+  E(1627, 'korea','정묘호란','후금이 조선을 침략.'),
+  E(1636, 'korea','병자호란','청 태종이 10만 대군으로 조선 침공. 인조, 삼전도에서 항복.',['전쟁']),
+  E(1644, 'world','명 멸망·청 입관','이자성의 난으로 명이 멸망, 청이 베이징 입성.'),
+  E(1649, 'world','영국 청교도 혁명','찰스 1세 처형, 크롬웰 공화정 수립.'),
+  E(1653, 'korea','하멜 표착','네덜란드인 하멜이 제주도에 표착, 조선 첫 서양 견문록 남김.'),
+  E(1688, 'world','영국 명예혁명','제임스 2세가 축출되고 권리장전이 제정됨.'),
+  E(1701, 'world','스페인 왕위계승전쟁','유럽 국제전. 위트레흐트 조약(1713)으로 종결.'),
+  E(1751, 'world','백과전서 간행','디드로·달랑베르의 계몽주의 집대성.'),
+  E(1762, 'korea','사도세자 사건','영조가 아들 사도세자를 뒤주에 가둬 죽임.'),
+  E(1776, 'world','미국 독립선언','제퍼슨이 기초. 7월 4일 발표.',['혁명']),
+  E(1776, 'korea','규장각 설치','정조가 창덕궁 후원에 왕실 도서관·학술기관을 설치.'),
+  E(1789, 'world','프랑스 혁명','바스티유 감옥 습격(7.14). 인권선언 발표.',['혁명']),
+  E(1796, 'korea','수원 화성 완공','정조가 정약용의 거중기 등을 활용해 신도시 건설.'),
+  E(1801, 'korea','신유박해','천주교 박해로 이승훈·정약종 등 순교.'),
+  E(1804, 'world','나폴레옹 즉위','나폴레옹 보나파르트가 프랑스 황제로 즉위.'),
+  E(1811, 'korea','홍경래의 난','서북 지방 차별에 맞선 평안도 농민 봉기.'),
+  E(1815, 'world','워털루 전투','나폴레옹 패배, 빈 회의로 유럽 질서 재편.'),
+  E(1832, 'world','영국 1차 선거법 개정','중산층에게 선거권 확대.'),
+  E(1840, 'world','아편전쟁','영국이 청을 상대로 전쟁, 난징조약(1842)으로 홍콩 할양.'),
+  E(1848, 'world','유럽 혁명·공산당 선언','2월 혁명, 마르크스-엥겔스 「공산당 선언」 발표.',['혁명']),
+  E(1853, 'world','페리 제독, 일본 개항','흑선(黑船) 내항으로 일본 강제 개항.'),
+  E(1860, 'world','미국 남북전쟁','링컨 당선→남부 이탈. 노예해방선언(1863).'),
+  E(1861, 'world','이탈리아·독일 통일 진행','이탈리아 왕국 성립, 독일은 1871년 완성.'),
+  E(1866, 'korea','병인양요','프랑스 함대가 강화도 침공, 외규장각 약탈.'),
+  E(1868, 'world','메이지 유신','일본이 막부 체제를 폐지하고 근대국가로 전환.'),
+  E(1876, 'korea','강화도 조약','일본과 불평등 조약 체결, 조선 개항.',['개항']),
+  E(1882, 'korea','임오군란','구식 군인의 폭동, 청군 개입으로 진압.'),
+  E(1884, 'korea','갑신정변','김옥균 등 개화파가 쿠데타 시도, 3일 천하로 실패.'),
+  E(1894, 'korea','동학농민운동·갑오개혁','전봉준의 농민군 봉기와 근대적 제도 개혁.',['개혁']),
+  E(1895, 'korea','을미사변','일본이 경복궁에 침입해 명성황후를 시해.'),
+  E(1896, 'korea','아관파천·독립신문 창간','고종이 러시아 공사관으로 피신. 서재필이 「독립신문」 창간.'),
+  E(1897, 'korea','대한제국 선포','고종이 황제로 즉위하며 국호를 대한제국으로 변경.',['대한제국']),
+  E(1899, 'korea','경인선 개통','노량진-제물포 구간 한국 최초 철도 개통.'),
+  E(1900, 'world','의화단 운동','청 말기 반외세 민중봉기, 8개국 연합군에 진압.'),
+  E(1904, 'world','러일전쟁','일본이 러시아를 상대로 승리(~1905). 동아시아 판도 재편.'),
+  E(1905, 'korea','을사늑약','외교권 박탈. 민영환 자결, 황성신문 시일야방성대곡.'),
+  E(1907, 'korea','정미7조약·군대해산','고종 강제 퇴위, 군대 해산으로 의병전쟁 격화.'),
+  E(1909, 'korea','안중근, 이토 사살','하얼빈역에서 안중근 의사가 이토 히로부미를 저격.'),
+  E(1910, 'korea','국권 피탈(경술국치)','한일강제병합조약으로 대한제국 멸망.'),
+  E(1911, 'world','신해혁명','손문(쑨원)이 청을 무너뜨리고 중화민국 수립.'),
+  E(1914, 'world','1차 세계대전','사라예보 사건으로 발발(~1918). 전세계가 참전.',['세계대전']),
+  E(1917, 'world','러시아 혁명','10월 혁명으로 볼셰비키가 정권 장악, 세계 최초 공산국가 수립.',['혁명']),
+  E(1919, 'korea','3·1 운동·임시정부','전국적 독립만세운동. 상하이에서 대한민국 임시정부 수립.',['독립운동']),
+  E(1920, 'korea','봉오동·청산리 대첩','홍범도·김좌진이 이끄는 독립군의 대승리.'),
+  E(1929, 'world','대공황','월가 대폭락으로 세계 경제 위기 시작.',['경제']),
+  E(1929, 'korea','광주학생항일운동','광주에서 시작된 전국적 학생 독립운동.'),
+  E(1932, 'korea','이봉창·윤봉길 의거','이봉창의 일왕 폭탄 투척, 윤봉길의 상하이 훙커우 의거.'),
+  E(1939, 'world','2차 세계대전','독일의 폴란드 침공으로 시작(~1945).',['세계대전']),
+  E(1941, 'world','태평양전쟁','일본의 진주만 공습으로 미국 참전.'),
+  E(1945, 'world','2차대전 종전·UN 창설','독일 항복(5월), 히로시마·나가사키 원폭, 일본 항복(8월). UN 창설.'),
+  E(1945, 'korea','8·15 광복','일제로부터 해방. 미·소 38선 분할 점령.',['광복']),
+  E(1948, 'korea','대한민국 정부 수립','8월 15일 정부 수립 선포. 9월 조선민주주의인민공화국 수립.'),
+  E(1949, 'world','중화인민공화국 수립','마오쩌둥이 공산정권 수립, 장제스는 대만으로.'),
+  E(1950, 'korea','한국전쟁 발발','북한의 남침으로 한국전쟁 발발(~1953). UN군 참전.',['전쟁']),
+  E(1953, 'korea','정전협정','판문점에서 휴전협정 체결. 남북 분단 고착화.'),
+  E(1957, 'world','스푸트니크 발사','소련이 세계 최초 인공위성을 발사, 우주경쟁 시작.'),
+  E(1960, 'korea','4·19 혁명','이승만 부정선거에 맞선 학생·시민 혁명, 이승만 하야.',['혁명']),
+  E(1961, 'korea','5·16 군사정변','박정희 등 군부가 쿠데타로 정권 장악.'),
+  E(1962, 'world','쿠바 미사일 위기','냉전기 최대의 핵전쟁 위기, 13일간 대치.'),
+  E(1963, 'world','케네디 암살','미국 35대 대통령이 댈러스에서 저격당함.'),
+  E(1969, 'world','아폴로 11호 달 착륙','암스트롱이 인류 최초로 달에 발을 디딤.'),
+  E(1972, 'world','닉슨의 중국 방문','미-중 데탕트. 핑퐁 외교의 결실.'),
+  E(1979, 'korea','10·26 사건','박정희 대통령이 김재규에게 피격 사망.'),
+  E(1980, 'korea','5·18 광주민주화운동','신군부에 맞선 광주 시민들의 민주화 항쟁.'),
+  E(1986, 'world','체르노빌 원전 사고','소련 우크라이나 원전 폭발, 세계적 환경 재앙.'),
+  E(1987, 'korea','6월 민주항쟁','대통령 직선제 쟁취. 한국 민주화의 분수령.',['민주화']),
+  E(1988, 'korea','서울 올림픽','24회 하계올림픽 개최, 한국의 국제적 위상 상승.'),
+  E(1989, 'world','베를린 장벽 붕괴','동독의 개방으로 냉전 해체 가속화.'),
+  E(1990, 'world','독일 통일','동서독이 공식 통일.'),
+  E(1991, 'world','소련 해체','15개 공화국으로 분리, 냉전 종식.'),
+  E(1991, 'korea','남북한 UN 동시 가입','9월 UN 총회에서 남북이 각각 가입.'),
+  E(1993, 'world','EU 출범','마스트리흐트 조약 발효.'),
+  E(1997, 'korea','IMF 외환위기','외환 부족으로 IMF 구제금융 신청. 경제 구조조정.'),
+  E(1997, 'world','홍콩 반환','영국이 150년 지배 끝에 중국에 반환.'),
+  E(2000, 'korea','남북정상회담','김대중-김정일의 첫 정상회담. 6·15 공동선언.'),
+  E(2001, 'world','9·11 테러','알카에다의 뉴욕 세계무역센터 공격.'),
+  E(2008, 'world','글로벌 금융위기','리먼 브라더스 파산으로 세계 금융위기.'),
+  E(2008, 'korea','이명박 정부 출범','17대 대통령, 747 경제공약.'),
+  E(2013, 'korea','박근혜 정부 출범','18대 대통령, 2017년 탄핵·파면.'),
+  E(2017, 'korea','문재인 정부 출범','19대 대통령, 촛불혁명 이후.'),
+  E(2018, 'korea','평창올림픽·남북정상회담','2월 평창올림픽, 4월 판문점 남북정상회담.'),
+  E(2019, 'world','코로나19 대유행 시작','중국 우한 발생, 2020년 팬데믹 선언.',['팬데믹']),
+  E(2020, 'korea','코로나19 국내 발생','1월 20일 첫 확진자.'),
+  E(2022, 'korea','윤석열 정부 출범','20대 대통령.'),
+  E(2022, 'world','러시아-우크라이나 전쟁','2월 24일 러시아의 전면 침공.'),
+  E(2024, 'korea','12·3 비상계엄 사태','12월 3일 비상계엄 선포·해제.'),
+];
+
+// ================= Y-POSITION MAPPING =================
+// Non-linear timeline: scale adapted to event density
+const SEGMENTS = [
+  { start: -4000, end: -1000, yStart: 0,    yEnd: 520 },   // 선사~고대초기
+  { start: -1000, end: 0,     yStart: 520,  yEnd: 1180 },  // 고대후기
+  { start: 0,     end: 500,   yStart: 1180, yEnd: 1880 },  // 고전후기
+  { start: 500,   end: 1000,  yStart: 1880, yEnd: 2640 },  // 중세초기
+  { start: 1000,  end: 1500,  yStart: 2640, yEnd: 3600 },  // 중세후기
+  { start: 1500,  end: 1800,  yStart: 3600, yEnd: 4860 },  // 근세
+  { start: 1800,  end: 1900,  yStart: 4860, yEnd: 5640 },  // 근대 (19세기)
+  { start: 1900,  end: 2030,  yStart: 5640, yEnd: 7500 },  // 현대
+];
+const TOTAL_HEIGHT = 7500;
+
+function yearToY(year){
+  for(const s of SEGMENTS){
+    if(year >= s.start && year <= s.end){
+      const t = (year - s.start) / (s.end - s.start);
+      return s.yStart + t * (s.yEnd - s.yStart);
+    }
+  }
+  if(year < SEGMENTS[0].start) return 0;
+  return TOTAL_HEIGHT;
+}
+
+function formatYear(y){
+  if(y < 0) return `B.C. ${Math.abs(y)}`;
+  return `A.D. ${y}`;
+}
+function formatYearShort(y){
+  if(y === 0) return 'A.D. 1';
+  if(y < 0) return `B.C. ${Math.abs(y)}`;
+  return `${y}`;
+}
+function formatRange(s, e){
+  return `${formatYearShort(s)} ~ ${formatYearShort(e)}`;
+}
+
+// ================= RENDER =================
+const colWorld = document.getElementById('col-world');
+const colAxis  = document.getElementById('col-axis');
+const colKorea = document.getElementById('col-korea');
+
+[colWorld, colAxis, colKorea].forEach(c => c.style.minHeight = TOTAL_HEIGHT + 'px');
+
+// --- Render era bands ---
+function renderEras(){
+  const stripWorld = document.getElementById('strip-world');
+  const stripKorea = document.getElementById('strip-korea');
+  ERAS.forEach(era => {
+    const strip = era.side === 'world' ? stripWorld : stripKorea;
+    const y1 = yearToY(era.start);
+    const y2 = yearToY(era.end);
+    const height = Math.max(y2 - y1, 30);
+
+    const band = document.createElement('div');
+    band.className = 'era-band';
+    band.dataset.eraId = era.id;
+    band.dataset.cat = era.cat;
+    band.style.top = y1 + 'px';
+    band.style.height = height + 'px';
+    band.style.background = `var(--era-${era.cat})`;
+    band.addEventListener('click', () => openEraPanel(era));
+    strip.appendChild(band);
+
+    // Era label (vertical text) - sits on top of band
+    const label = document.createElement('div');
+    label.className = 'era-label';
+    label.dataset.eraId = era.id;
+    label.dataset.cat = era.cat;
+    label.textContent = era.name;
+    label.style.top = y1 + 'px';
+    label.style.height = height + 'px';
+    label.addEventListener('click', (e) => { e.stopPropagation(); openEraPanel(era); });
+    label.addEventListener('mouseenter', () => band.classList.add('hover'));
+    label.addEventListener('mouseleave', () => band.classList.remove('hover'));
+    strip.appendChild(label);
+  });
+}
+
+// --- Render axis with ticks ---
+function renderAxis(){
+  const ticks = [
+    -4000, -3500, -3000, -2500, -2000, -1500, -1000, -750, -500, -300, -100,
+    1, 200, 400, 600, 800, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800,
+    1850, 1900, 1920, 1940, 1945, 1960, 1980, 2000, 2020
+  ];
+  const majors = new Set([-3000, -1000, 1, 500, 1000, 1500, 1800, 1900, 1945, 2000]);
+  ticks.forEach(y => {
+    const el = document.createElement('div');
+    el.className = 'axis-tick' + (majors.has(y) ? ' tick-major' : '');
+    el.style.top = yearToY(y) + 'px';
+    el.innerHTML = `<div class="tick-mark"></div><div class="tick-label">${formatYearShort(y)}</div>`;
+    colAxis.appendChild(el);
+  });
+}
+
+// --- Collision-avoidance layout for events ---
+function layoutEvents(side){
+  const parent = side === 'world' ? colWorld : colKorea;
+  const list = EVENTS.filter(e => e.side === side).sort((a,b) => a.year - b.year);
+  const MIN_GAP = 50; // min vertical spacing — card height (~38-42px) + ~10px breathing room
+  let lastY = -Infinity;
+
+  list.forEach(ev => {
+    const el = document.createElement('div');
+    el.className = 'event has-detail';
+    let y = yearToY(ev.year);
+    if(y - lastY < MIN_GAP) y = lastY + MIN_GAP;
+    lastY = y;
+
+    // determine which era this event falls in (for filter highlighting)
+    const eraCats = getEventCategories(ev.year);
+    el.dataset.cats = eraCats.join(',');
+    el.dataset.year = ev.year;
+
+    el.style.top = y + 'px';
+    const tagsHtml = ev.tags && ev.tags.length
+      ? ev.tags.slice(0,1).map(t => `<span class="event-tag">${t}</span>`).join('')
+      : '';
+    el.innerHTML = `
+      <div class="event-connector" style="top:18px"></div>
+      <div class="event-year">${formatYearShort(ev.year)}</div>
+      <div class="event-title">${ev.title}${tagsHtml}</div>
+    `;
+    el.addEventListener('click', () => openEventPanel(ev));
+    el.addEventListener('mouseenter', e => showTooltip(e.currentTarget, ev));
+    el.addEventListener('mouseleave', hideTooltip);
+    parent.appendChild(el);
+  });
+}
+
+function getEventCategories(year){
+  const cats = [];
+  for(const key in ERA_CATEGORIES){
+    const [s, e] = ERA_CATEGORIES[key].range;
+    if(year >= s && year < e) cats.push(key);
+  }
+  return cats.length ? cats : ['contemp'];
+}
+
+renderEras();
+renderAxis();
+layoutEvents('world');
+layoutEvents('korea');
+
+// ================= FILTER (era buttons) =================
+const timeline = document.getElementById('timeline');
+document.querySelectorAll('.era-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.era-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const era = btn.dataset.era;
+    filterByEra(era);
+  });
+});
+
+function filterByEra(cat){
+  const events = timeline.querySelectorAll('.event');
+  const bands = timeline.querySelectorAll('.era-band');
+  const labels = timeline.querySelectorAll('.era-label');
+
+  if(cat === 'all'){
+    timeline.classList.remove('highlight-mode');
+    events.forEach(e => e.classList.remove('in-era'));
+    bands.forEach(b => b.classList.remove('active-era'));
+    labels.forEach(l => l.classList.remove('active-label'));
+    return;
+  }
+  timeline.classList.add('highlight-mode');
+  events.forEach(e => {
+    const cats = (e.dataset.cats || '').split(',');
+    e.classList.toggle('in-era', cats.includes(cat));
+  });
+  bands.forEach(b => b.classList.toggle('active-era', b.dataset.cat === cat));
+  labels.forEach(l => l.classList.toggle('active-label', l.dataset.cat === cat));
+
+  // Scroll to era (account for timeline position on page and sticky header)
+  const [startY] = ERA_CATEGORIES[cat].range;
+  const relY = yearToY(startY);
+  const timelineTop = document.querySelector('.timeline-wrap').offsetTop;
+  const headerOffset = 140; // sticky header + column header
+  window.scrollTo({top: Math.max(0, timelineTop + relY - headerOffset), behavior:'smooth'});
+}
+
+// ================= DETAIL PANEL =================
+const panel = document.getElementById('detail-panel');
+const backdrop = document.getElementById('panel-backdrop');
+const panelTitle = document.getElementById('panel-title');
+const panelPill = document.getElementById('panel-pill');
+const panelSubtitle = document.getElementById('panel-subtitle');
+const panelBody = document.getElementById('panel-body');
+document.getElementById('panel-close').addEventListener('click', closePanel);
+backdrop.addEventListener('click', closePanel);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closePanel(); });
+
+function openPanel(){
+  panel.classList.add('open');
+  backdrop.classList.add('open');
+  panelBody.scrollTop = 0;
+}
+function closePanel(){
+  panel.classList.remove('open');
+  backdrop.classList.remove('open');
+}
+
+function openEraPanel(era){
+  panelPill.textContent = era.side === 'world' ? '세계 · ' + ERA_CATEGORIES[era.cat].label : '한국 · ' + ERA_CATEGORIES[era.cat].label;
+  panelTitle.textContent = era.name;
+  panelSubtitle.textContent = formatRange(era.start, era.end);
+
+  const highlightsHtml = era.highlights.map(h => `<li>${h}</li>`).join('');
+  const keywordsHtml = (era.keywords||[]).map(k => `<span class="panel-keyword">#${k}</span>`).join('');
+
+  // Related events in this era
+  const related = EVENTS
+    .filter(ev => ev.side === era.side && ev.year >= era.start && ev.year <= era.end)
+    .sort((a,b) => a.year - b.year);
+
+  const relatedHtml = related.length ? `
+    <h3>같은 시기의 주요 사건</h3>
+    <ul>
+      ${related.map(r => `<li><strong>${formatYearShort(r.year)}</strong> &nbsp;${r.title}</li>`).join('')}
+    </ul>
+  ` : '';
+
+  panelBody.innerHTML = `
+    <dl class="panel-meta">
+      <dt>지역</dt><dd>${era.side === 'world' ? '세계사' : '한국사'}</dd>
+      <dt>시대</dt><dd>${ERA_CATEGORIES[era.cat].label}</dd>
+      <dt>기간</dt><dd>${formatRange(era.start, era.end)} (${era.end - era.start}년)</dd>
+    </dl>
+    <h3>개요</h3>
+    <p>${era.desc}</p>
+    <h3>주요 특징</h3>
+    <ul>${highlightsHtml}</ul>
+    ${relatedHtml}
+    <div class="panel-keywords">${keywordsHtml}</div>
+  `;
+  openPanel();
+}
+
+function openEventPanel(ev){
+  // Find which era this event belongs to
+  const matchingEra = ERAS.find(er => er.side === ev.side && ev.year >= er.start && ev.year <= er.end);
+  panelPill.textContent = (ev.side === 'world' ? '세계사' : '한국사') + (matchingEra ? ' · ' + matchingEra.name : '');
+  panelTitle.textContent = ev.title;
+  panelSubtitle.textContent = formatYear(ev.year);
+
+  const tagsHtml = (ev.tags||[]).map(t => `<span class="panel-keyword">#${t}</span>`).join('');
+  const eraBlock = matchingEra ? `
+    <h3>배경 시대</h3>
+    <p><strong>${matchingEra.name}</strong> (${formatRange(matchingEra.start, matchingEra.end)})<br>${matchingEra.desc}</p>
+    <button class="era-btn" style="background:var(--navy);color:var(--cream);border-color:var(--navy);margin-top:4px" onclick="window._openEra('${matchingEra.id}')">→ 시대 자세히 보기</button>
+  ` : '';
+
+  panelBody.innerHTML = `
+    <h3>사건 개요</h3>
+    <p>${ev.detail || ev.title}</p>
+    ${eraBlock}
+    <div class="panel-keywords" style="margin-top:20px">${tagsHtml}</div>
+  `;
+  openPanel();
+}
+
+window._openEra = function(id){
+  const era = ERAS.find(e => e.id === id);
+  if(era) openEraPanel(era);
+};
+
+// ================= TOOLTIP =================
+const tooltip = document.getElementById('tooltip');
+const tooltipText = tooltip.querySelector('.tooltip-text');
+let tooltipTimer;
+
+function showTooltip(el, ev){
+  clearTimeout(tooltipTimer);
+  if(!ev.detail) return;
+  // Truncate to short preview
+  const preview = ev.detail.length > 80 ? ev.detail.slice(0, 78) + '…' : ev.detail;
+  tooltipText.textContent = preview;
+  tooltip.classList.remove('above','below');
+
+  const rect = el.getBoundingClientRect();
+  tooltip.style.visibility = 'hidden';
+  tooltip.classList.add('show');
+  const tipRect = tooltip.getBoundingClientRect();
+
+  const spaceBelow = window.innerHeight - rect.bottom;
+  let top, placement;
+  if(spaceBelow > tipRect.height + 20){
+    top = rect.bottom + 8;
+    placement = 'below';
+  } else {
+    top = rect.top - tipRect.height - 8;
+    placement = 'above';
+  }
+  let left = rect.left + rect.width/2 - tipRect.width/2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+  tooltip.style.top = top + 'px';
+  tooltip.style.left = left + 'px';
+  tooltip.classList.add(placement);
+  tooltip.style.visibility = 'visible';
+}
+function hideTooltip(){
+  clearTimeout(tooltipTimer);
+  tooltipTimer = setTimeout(() => tooltip.classList.remove('show'), 80);
+}
+
+// ================= SCROLL HINT =================
+const scrollHint = document.getElementById('scroll-hint');
+let hintShown = false;
+setTimeout(() => {
+  if(!hintShown && window.scrollY < 100){
+    scrollHint.classList.add('show');
+    setTimeout(() => scrollHint.classList.remove('show'), 2800);
+  }
+}, 1500);
+window.addEventListener('scroll', () => { hintShown = true; scrollHint.classList.remove('show'); }, {once:true});
+</script>
+</body>
+</html>
