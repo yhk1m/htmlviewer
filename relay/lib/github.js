@@ -107,15 +107,17 @@ export async function putFile(n, html, sha) {
   return r.content.sha;
 }
 
-/** 다음 번호로 새 페이지를 만든다. 수업 중 여러 명이 동시에 눌러도 번호가 겹치지 않게 재시도 */
+/** 비어 있는 가장 작은 번호(1부터)로 새 페이지를 만든다. 수업 중 여러 명이 동시에 눌러도 번호가 겹치지 않게 재시도 */
 export async function createPage(html) {
-  let n = Math.max(0, ...(await listNumbers())) + 1;
+  const taken = new Set(await listNumbers());
+  const nextFree = () => { let k = 1; while (taken.has(k)) k++; return k; };
+  let n = nextFree();
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       const sha = await putFile(n, html);
       return { n, sha };
     } catch (e) {
-      if (e.status === 422) { n++; continue; }                       // 그새 이 번호가 찼음
+      if (e.status === 422) { taken.add(n); n = nextFree(); continue; } // 그새 이 번호가 찼음
       if (e.status === 409) { await sleep(jitter(400)); continue; }  // 동시 커밋 충돌
       throw e;
     }
