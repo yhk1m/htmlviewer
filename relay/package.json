@@ -1,0 +1,6 @@
+{
+  "name": "htmlviewer-relay",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" }
+}

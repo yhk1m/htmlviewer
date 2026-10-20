@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    { "source": "/", "destination": "https://yhk1m.github.io/htmlviewer/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/admin", "destination": "https://yhk1m.github.io/htmlviewer/admin.html" },
+    { "source": "/app.css", "destination": "https://yhk1m.github.io/htmlviewer/app.css" },
+    { "source": "/core.js", "destination": "https://yhk1m.github.io/htmlviewer/core.js" },
+    { "source": "/config.js", "destination": "https://yhk1m.github.io/htmlviewer/config.js" }
+  ],
+  "headers": [
+    { "source": "/admin", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }
+  ]
+}

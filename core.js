@@ -1,4 +1,4 @@
-/* 편집기(index.html)와 관리자(admin.html)가 함께 쓰는 GitHub 연결 로직 */
+/* 편집기(index.html)와 관리자(admin.html)가 함께 쓰는 공통 로직 — GitHub 직접 연결은 관리자만 쓴다 */
 window.HP = (() => {
   'use strict';
   const KEYS = { cfg: 'hp.config', token: 'hp.token' };
@@ -23,7 +23,9 @@ window.HP = (() => {
     }
     return out;
   }
+  const site = window.HP_CONFIG || {}; // config.js
   let cfg = { branch: 'main', ...guessFromLocation() };
+  for (const k of ['owner', 'repo', 'branch', 'baseUrl']) if (site[k]) cfg[k] = site[k];
   try { Object.assign(cfg, JSON.parse(local.get(KEYS.cfg) || '{}')); } catch {}
 
   const getToken = () => session.get(KEYS.token) || local.get(KEYS.token) || '';
@@ -205,7 +207,7 @@ window.HP = (() => {
             <input type="password" name="token" placeholder="github_pat_…" autocomplete="off">
           </label>
           <label class="check"><input type="checkbox" name="remember"> 이 브라우저에 토큰 기억하기</label>
-          <p class="hint">끄면 탭을 닫을 때 토큰이 지워져요. 다른 사람이 만든 HTML을 배포할 계획이라면 꺼 두세요(같은 주소 아래 배포된 페이지가 저장된 토큰을 읽을 수 있어요).</p>
+          <p class="hint">끄면 탭을 닫을 때 토큰이 지워져요. 공용 컴퓨터에서는 꺼 두세요.</p>
           <p class="hint" data-msg></p>
         </div>
         <div class="dlg-foot">
