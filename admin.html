@@ -7,9 +7,13 @@
 <script src="config.js"></script>
 <script>
   // 관리자는 배포 페이지와 다른 주소(중계 서버)에서만 연다 — 수강생이 올린 페이지의 스크립트가 토큰을 못 읽게
-  if (location.hostname.endsWith('.github.io') && window.HP_CONFIG && HP_CONFIG.adminUrl) {
-    location.replace(HP_CONFIG.adminUrl + location.search);
-  }
+  (() => {
+    const admin = window.HP_CONFIG && HP_CONFIG.adminUrl && new URL(HP_CONFIG.adminUrl);
+    if (!admin) return;
+    if (location.protocol === 'https:' && location.origin !== admin.origin) location.replace(admin.href + location.search);
+    // 중계 서버 주소에서 열렸으면 비밀번호 로그인 + 서버가 GitHub 요청을 대신 보냄
+    window.HP_ADMIN_RELAY = location.origin === admin.origin;
+  })();
 </script>
 <title>배포 페이지 관리</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -66,6 +70,16 @@
     .item .acts { grid-column: 1 / -1; justify-content: flex-start; }
   }
 
+  /* 비밀번호 화면 */
+  .gate { position: fixed; inset: 0; z-index: 10; background: var(--bg); display: flex; flex-direction: column; }
+  .gate[hidden] { display: none; }
+  .gate form { flex: 1; width: 100%; max-width: 1600px; margin: 0 auto; padding: 0 40px; display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+  .gate h2 { margin: 0; font-size: 56px; font-weight: 300; line-height: 1.15; letter-spacing: -1.6px; }
+  .gate .row { display: flex; gap: 12px; align-items: flex-end; max-width: 460px; }
+  .gate input[type=password] { font-size: 18px; }
+  .gate button { padding: 10px 24px; }
+  @media (max-width: 760px) { .gate form { padding: 0 16px; } .gate h2 { font-size: 36px; letter-spacing: -1px; } }
+
   /* 수정 창 */
   dialog.editor { width: min(1400px, calc(100vw - 24px)); height: calc(100vh - 24px); max-height: none; }
   dialog.editor[open] { display: flex; flex-direction: column; }
@@ -92,6 +106,18 @@
     <button id="btnSettings">설정</button>
   </nav>
 </header>
+
+<div class="gate" id="gate" hidden>
+  <header class="top"><span class="brand"><b>HTML 뷰어</b><span>Admin</span></span></header>
+  <form id="gateForm">
+    <h2>Admin<br>Sign in</h2>
+    <div class="row">
+      <label class="field" style="flex:1">비밀번호<input type="password" id="gatePw" autocomplete="current-password" required></label>
+      <button type="submit" class="primary">들어가기</button>
+    </div>
+    <p class="hint" id="gateMsg"></p>
+  </form>
+</div>
 
 <main class="wrap">
   <section class="inner hero">
@@ -280,7 +306,7 @@
       render();
       loadTitles(seq);
     } catch (e) {
-      status(`목록을 불러오지 못했어요. ${HP.errorText(e)}`, 'err');
+      status(`목록을 불러오지 못했어요. ${errText(e)}`, 'err');
     }
   }
 
@@ -303,7 +329,7 @@
       status(`${done.length}개 페이지를 삭제했어요. 실제 주소에서 사라지기까지 1~2분 걸릴 수 있어요.`, 'ok');
       return true;
     } catch (e) {
-      status(`${done.length ? `${done.length}개 삭제 후 ` : ''}중단됐어요. ${HP.errorText(e)}`, 'err');
+      status(`${done.length ? `${done.length}개 삭제 후 ` : ''}중단됐어요. ${errText(e)}`, 'err');
       return false;
     } finally { syncSelection(); }
   }
@@ -315,8 +341,47 @@
   };
   q.addEventListener('input', render);
   $('#btnRefresh').onclick = load;
-  $('#btnSettings').onclick = HP.openSettings;
   HP.onConfigChange(() => { pages = []; selected.clear(); load(); });
+
+  // ---------- 비밀번호 로그인 (중계 서버 주소에서 열렸을 때) ----------
+  const gate = $('#gate');
+  const gateMsg = $('#gateMsg');
+  function showLogin(msg = '') {
+    gate.hidden = false;
+    gateMsg.className = 'hint err'; gateMsg.textContent = msg;
+    $('#gatePw').value = ''; $('#gatePw').focus();
+  }
+  // 로그인이 풀린 상태(401)면 로그인 화면을 다시 띄움
+  function errText(e) {
+    if (HP.viaRelay && e.status === 401) { showLogin('로그인이 만료됐어요. 다시 들어가 주세요.'); return '로그인이 필요해요.'; }
+    return HP.errorText(e);
+  }
+  let afterLogin = () => {};
+  $('#gateForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    gateMsg.className = 'hint'; gateMsg.textContent = '확인 중…';
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ password: $('#gatePw').value }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) return showLogin(data.error || '들어가지 못했어요.');
+      gate.hidden = true;
+      afterLogin();
+    } catch { showLogin('서버에 연결하지 못했어요.'); }
+  });
+
+  if (HP.viaRelay) {
+    $('#btnSettings').textContent = '로그아웃';
+    $('#btnSettings').onclick = async () => {
+      await fetch('/api/login', { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
+      pages = []; selected.clear(); render();
+      showLogin();
+    };
+  } else {
+    $('#btnSettings').onclick = HP.openSettings;
+  }
 
   // ---------- 수정 창 ----------
   const dlg = $('#dlgEdit');
@@ -356,7 +421,7 @@
       edState('');
       edCode.focus(); edCode.setSelectionRange(0, 0); edCode.scrollTop = 0;
     } catch (e) {
-      edState(`불러오지 못했어요. ${HP.errorText(e)}`, 'err');
+      edState(`불러오지 못했어요. ${errText(e)}`, 'err');
     }
   }
 
@@ -399,7 +464,7 @@
         edState(live ? '반영 완료' : '저장은 됐는데 아직 반영 확인이 안 됐어요. 잠시 뒤 열어보세요.', live ? 'ok' : 'warn', HP.pageUrl(n));
       }
     } catch (e) {
-      edState(HP.errorText(e), 'err');
+      edState(errText(e), 'err');
     } finally {
       delete edSave.dataset.busy; edSave.disabled = false;
     }
@@ -427,10 +492,18 @@
 
   // ---------- 시작 ----------
   // admin?edit=3 으로 들어오면 바로 3번 수정 창을 엶
-  load().then(() => {
+  const start = () => load().then(() => {
     const n = Number(new URLSearchParams(location.search).get('edit'));
-    if (n && HP.ready()) openEditor(n);
+    if (n && HP.ready() && gate.hidden) openEditor(n);
   });
+  if (HP.viaRelay) {
+    afterLogin = start;
+    fetch('/api/login', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => r.json()).then((d) => (d.ok ? start() : showLogin()))
+      .catch(() => showLogin('서버에 연결하지 못했어요.'));
+  } else {
+    start();
+  }
 })();
 </script>
 </body>

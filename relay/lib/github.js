@@ -14,7 +14,7 @@ const jitter = (base) => base + Math.floor(Math.random() * base);
 // ---------- CORS ----------
 /** 허용된 출처면 CORS 헤더를 붙이고 true. OPTIONS 요청은 여기서 끝낸다 */
 export function cors(req, res) {
-  const allowed = env('ALLOWED_ORIGINS', 'https://yhk1m.github.io').split(',').map((s) => s.trim());
+  const allowed = env('ALLOWED_ORIGINS', 'https://html.bgnl.kr,https://yhk1m.github.io').split(',').map((s) => s.trim());
   const origin = req.headers.origin || '';
   if (allowed.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -129,4 +129,31 @@ export function fail(res, e) {
   // GitHub 쪽 인증·권한 오류는 수강생 탓이 아니므로 서버 문제로 알린다
   const message = [401, 403, 404].includes(status) ? '배포 서버 설정에 문제가 있어요. 선생님께 알려 주세요.' : e.message;
   send(res, status === 401 || status === 403 || status === 404 ? 502 : status, { error: message });
+}
+
+// ---------- 관리자 로그인 ----------
+// 비밀번호(ADMIN_PASSWORD)는 서버 환경변수에만 둔다. 로그인하면 서명된 쿠키를 주고,
+// 관리자 페이지의 GitHub 요청은 서버 토큰으로 대신 보낸다 (브라우저에는 토큰이 없음).
+const COOKIE = 'hv_admin';
+const SESSION_SEC = 12 * 3600;
+const sign = (v) => createHmac('sha256', `admin:${env('EDIT_SECRET')}`).update(v).digest('base64url');
+
+export function passwordMatches(pw) {
+  const want = Buffer.from(env('ADMIN_PASSWORD'));
+  const got = Buffer.from(String(pw || ''));
+  return want.length > 0 && want.length === got.length && timingSafeEqual(want, got);
+}
+export function sessionCookie() {
+  const exp = String(Math.floor(Date.now() / 1000) + SESSION_SEC);
+  return `${COOKIE}=${exp}.${sign(exp)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SEC}`;
+}
+export const clearCookie = () => `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+export function isAdmin(req) {
+  const m = (req.headers.cookie || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`));
+  if (!m) return false;
+  const [exp, sig] = m[1].split('.');
+  if (!exp || !sig || Number(exp) < Date.now() / 1000) return false;
+  const want = Buffer.from(sign(exp));
+  const got = Buffer.from(sig);
+  return want.length === got.length && timingSafeEqual(want, got);
 }

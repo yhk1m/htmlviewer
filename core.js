@@ -28,12 +28,14 @@ window.HP = (() => {
   for (const k of ['owner', 'repo', 'branch', 'baseUrl']) if (site[k]) cfg[k] = site[k];
   try { Object.assign(cfg, JSON.parse(local.get(KEYS.cfg) || '{}')); } catch {}
 
+  // 관리자 페이지가 중계 서버 주소에서 열리면 GitHub 요청을 서버(/api/gh)가 대신 보낸다 — 토큰 대신 로그인
+  const viaRelay = Boolean(window.HP_ADMIN_RELAY);
   const getToken = () => session.get(KEYS.token) || local.get(KEYS.token) || '';
   const branch = () => (cfg.branch || 'main').trim();
-  const ready = () => Boolean(cfg.owner && cfg.repo && getToken());
+  const ready = () => viaRelay || Boolean(cfg.owner && cfg.repo && getToken());
 
   function baseUrl() {
-    let b = (cfg.baseUrl || '').trim();
+    let b = (cfg.baseUrl || site.baseUrl || '').trim();
     if (!b && location.protocol.startsWith('http') && location.hostname.endsWith('.github.io')) {
       b = location.origin + location.pathname.replace(/[^/]*$/, '');
     }
@@ -60,13 +62,16 @@ window.HP = (() => {
 
   // ---------- GitHub API ----------
   async function gh(path, opts = {}) {
-    const res = await fetch(`https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}${path}`, {
+    const url = viaRelay
+      ? `/api/gh?p=${encodeURIComponent(path)}`
+      : `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}${path}`;
+    const res = await fetch(url, {
       ...opts,
       cache: 'no-store',
+      credentials: 'same-origin',
       headers: {
         Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${getToken()}`,
-        'X-GitHub-Api-Version': '2022-11-28',
+        ...(viaRelay ? {} : { Authorization: `Bearer ${getToken()}`, 'X-GitHub-Api-Version': '2022-11-28' }),
         ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
       },
     });
@@ -286,7 +291,7 @@ window.HP = (() => {
 
   return {
     local, session,
-    get cfg() { return cfg; },
+    get cfg() { return cfg; }, viaRelay,
     getToken, ready, baseUrl, pageUrl,
     gh, listNumbers, getFile, putFile, deleteFile, waitLive, fetchTitle,
     b64encode, b64decode, sleep,

@@ -4,13 +4,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTML 미리보기 · 배포</title>
+<script>
+  // github.io 주소로 들어오면 대표 주소(html.bgnl.kr)로 옮김
+  if (location.hostname.endsWith('.github.io')) location.replace('https://html.bgnl.kr/' + location.search);
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="app.css">
 <style>
   body { display: flex; flex-direction: column; }
-  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
-  .pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-  .pane + .pane { border-left: 1px solid var(--line); }
+  main { flex: 1; display: grid; grid-template-columns: var(--split, 50%) 9px minmax(0, 1fr); min-height: 0; }
+  .pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--bg); container-type: inline-size; }
+  @container (max-width: 480px) {
+    .pane .bar { flex-wrap: nowrap; padding-left: 16px; padding-right: 12px; }
+    .bar .label small, .btn-icon .txt { display: none; }
+    .pane .bar button { padding-left: 10px; padding-right: 10px; }
+  }
+
+  /* 가운데 크기 조절 막대 */
+  .divider { position: relative; cursor: col-resize; touch-action: none; outline: none; }
+  .divider::before { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; background: var(--line); transition: background-color .15s, width .15s, left .15s; }
+  .divider:hover::before, .divider:focus-visible::before, body.resizing .divider::before { left: 3px; width: 3px; background: var(--text); }
+  body.resizing { cursor: col-resize; user-select: none; }
+  body.resizing iframe { pointer-events: none; } /* 끄는 중에 미리보기가 마우스를 가로채지 않게 */
+
+  /* 전체화면 — 브라우저 전체화면을 못 쓰면(아이폰 등) 화면을 덮는 방식으로 */
+  .pane:fullscreen { width: 100%; height: 100%; }
+  .pane.max { position: fixed; inset: 0; z-index: 50; }
+  .btn-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .bar {
     display: flex; align-items: center; gap: 6px; padding: 12px 24px; min-height: 58px;
     border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap;
@@ -26,7 +46,7 @@
   .tabs { display: none; }
   @media (max-width: 760px) {
     main { grid-template-columns: 1fr; }
-    .pane + .pane { border-left: 0; }
+    .divider { display: none; }
     main[data-view="edit"] #previewPane { display: none; }
     main[data-view="preview"] #editPane { display: none; }
     .tabs { display: contents; }
@@ -57,16 +77,19 @@
       <span class="label"><em>Source</em><small id="editingLabel">새 페이지</small></span>
       <button id="btnOpen">파일 열기</button>
       <button id="btnNew">새로 쓰기</button>
+      <button class="btn-icon" data-full="editPane"></button>
       <input type="file" id="file" accept=".html,.htm,text/html" hidden>
     </div>
     <textarea class="code" id="code" spellcheck="false" autocapitalize="off" autocomplete="off"
       placeholder="여기에 HTML을 붙여넣거나 .html 파일을 끌어다 놓으세요."></textarea>
   </section>
+  <div class="divider" id="divider" role="separator" aria-orientation="vertical" aria-label="편집·미리보기 너비 조절" tabindex="0" title="끌어서 너비 조절 · 두 번 누르면 반반"></div>
   <section class="pane" id="previewPane">
     <div class="bar">
       <span class="label"><em>Preview</em><small>미리보기</small></span>
       <button id="btnWidth">모바일 폭</button>
       <button id="btnReload">새로고침</button>
+      <button class="btn-icon" data-full="previewPane"></button>
     </div>
     <div class="stage" id="stage">
       <iframe id="preview" title="미리보기"
@@ -232,6 +255,82 @@
     }
     finally { busy(false); }
   };
+
+  // ---------- 가운데 막대로 너비 조절 ----------
+  const SPLIT = 'hp.split';
+  const mainEl = $('#main');
+  const divider = $('#divider');
+  const setSplit = (pct, save = true) => {
+    const w = mainEl.getBoundingClientRect().width || 1;
+    const min = Math.min(45, (300 / w) * 100); // 양쪽 모두 최소 300px
+    pct = Math.min(100 - min, Math.max(min, pct));
+    mainEl.style.setProperty('--split', `${pct}%`);
+    divider.setAttribute('aria-valuenow', Math.round(pct));
+    if (save) HP.local.set(SPLIT, String(pct));
+  };
+  const savedSplit = Number(HP.local.get(SPLIT));
+  if (savedSplit) setSplit(savedSplit, false);
+  divider.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    divider.setPointerCapture(e.pointerId);
+    document.body.classList.add('resizing');
+    const rect = mainEl.getBoundingClientRect();
+    const move = (ev) => setSplit(((ev.clientX - rect.left) / rect.width) * 100, false);
+    const up = (ev) => {
+      divider.removeEventListener('pointermove', move);
+      divider.removeEventListener('pointerup', up);
+      divider.removeEventListener('pointercancel', up);
+      document.body.classList.remove('resizing');
+      setSplit(((ev.clientX - rect.left) / rect.width) * 100);
+    };
+    divider.addEventListener('pointermove', move);
+    divider.addEventListener('pointerup', up);
+    divider.addEventListener('pointercancel', up);
+  });
+  divider.addEventListener('dblclick', () => setSplit(50));
+  divider.addEventListener('keydown', (e) => {
+    const cur = parseFloat(mainEl.style.getPropertyValue('--split')) || 50;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); setSplit(cur - 2); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); setSplit(cur + 2); }
+  });
+
+  // ---------- 전체화면 (편집 / 미리보기 각각) ----------
+  const ICON_ENTER = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
+  const ICON_EXIT = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg>';
+  const fullButtons = document.querySelectorAll('[data-full]');
+  const fullPane = () => document.fullscreenElement || document.querySelector('.pane.max');
+  function syncFull() {
+    const cur = fullPane();
+    fullButtons.forEach((b) => {
+      const on = cur && cur.id === b.dataset.full;
+      b.innerHTML = (on ? ICON_EXIT : ICON_ENTER) + `<span class="txt">${on ? '나가기' : '전체화면'}</span>`;
+      b.title = on ? '전체화면 나가기 (Esc)' : '전체화면';
+    });
+  }
+  async function toggleFull(pane) {
+    const cur = fullPane();
+    if (cur) {
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+      document.querySelectorAll('.pane.max').forEach((p) => p.classList.remove('max'));
+      if (cur === pane) return syncFull();
+    }
+    try {
+      if (!pane.requestFullscreen) throw new Error('unsupported');
+      await pane.requestFullscreen();
+    } catch {
+      pane.classList.add('max');
+    }
+    syncFull();
+  }
+  fullButtons.forEach((b) => { b.onclick = () => toggleFull(document.getElementById(b.dataset.full)); });
+  document.addEventListener('fullscreenchange', syncFull);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.querySelector('.pane.max')) {
+      document.querySelectorAll('.pane.max').forEach((p) => p.classList.remove('max'));
+      syncFull();
+    }
+  });
+  syncFull();
 
   // ---------- 시작 ----------
   // 예전 방식에서 이 주소에 저장해 둔 토큰은 지운다 (배포된 페이지가 같은 주소라 읽을 수 있음)

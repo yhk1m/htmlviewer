@@ -1,0 +1,12 @@
+{
+  "redirects": [
+    { "source": "/admin", "destination": "https://htmlviewer-relay.vercel.app/admin", "permanent": false },
+    { "source": "/admin.html", "destination": "https://htmlviewer-relay.vercel.app/admin", "permanent": false },
+    { "source": "/:n([0-9]+)", "destination": "/:n/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "https://yhk1m.github.io/htmlviewer/" },
+    { "source": "/:n([0-9]+)/", "destination": "https://yhk1m.github.io/htmlviewer/:n/index.html" },
+    { "source": "/:path*", "destination": "https://yhk1m.github.io/htmlviewer/:path*" }
+  ]
+}
