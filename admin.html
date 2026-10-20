@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>배포 페이지 관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  main.wrap { flex: 1; overflow: auto; display: flex; flex-direction: column; }
+  .inner { width: 100%; max-width: 1600px; margin: 0 auto; padding-left: 40px; padding-right: 40px; }
+
+  .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; padding-top: 72px; padding-bottom: 48px; flex-wrap: wrap; }
+  .hero h2 { margin: 0; font-size: 56px; font-weight: 300; line-height: 1.15; letter-spacing: -1.6px; }
+  .hero p { margin: 0; font-size: 15px; line-height: 1.75; color: var(--text); max-width: 320px; }
+  .hero p span { color: var(--muted); }
+
+  .toolbar-wrap { position: sticky; top: 0; z-index: 2; background: var(--bg); }
+  .toolbar {
+    display: flex; align-items: center; gap: 16px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--text);
+  }
+  .toolbar input[type=search] { flex: 1; min-width: 180px; width: auto; border-bottom: 0; font-size: 16px; }
+  .toolbar .count { font-size: 13px; color: var(--muted); }
+  #status { padding-top: 12px; flex: 0 0 auto; }
+  #status:empty { display: none; }
+
+  .list { padding-bottom: 80px; }
+  main.wrap > .inner:has(.list) { flex: 1; }
+  .item {
+    display: grid; grid-template-columns: auto 4.2em 1fr auto; align-items: center; gap: 16px;
+    padding: 18px 4px; border-bottom: 1px solid var(--line);
+  }
+  .item:hover { background: var(--hover); }
+  .item.sel { background: var(--hover); box-shadow: inset 2px 0 0 var(--text); }
+  .item .num { font-size: 30px; font-weight: 200; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .item .info { min-width: 0; }
+  .item .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 500; }
+  .item .title.pending { color: var(--warn); font-weight: 400; }
+  .item .title.dim { color: var(--faint); font-weight: 400; }
+  .item .url { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .acts { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .empty { text-align: center; color: var(--muted); padding: 80px 16px; display: grid; gap: 16px; justify-items: center; }
+
+  footer.site { flex: 0 0 auto; }
+  footer.site .inner { display: flex; gap: 24px; justify-content: space-between; align-items: flex-start; padding-top: 40px; padding-bottom: 48px; flex-wrap: wrap; }
+  footer.site b { font-size: 21px; font-weight: 700; letter-spacing: -0.8px; }
+  footer.site p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.8; }
+  footer.site a { color: var(--text); text-underline-offset: 3px; }
+
+  @media (max-width: 760px) {
+    .inner { padding-left: 16px; padding-right: 16px; }
+    .hero { padding-top: 40px; padding-bottom: 28px; gap: 16px; }
+    .hero h2 { font-size: 36px; letter-spacing: -1px; }
+    .item { grid-template-columns: auto 2.8em 1fr; gap: 12px; padding: 14px 2px; }
+    .item .num { font-size: 24px; }
+    .item .acts { grid-column: 1 / -1; justify-content: flex-start; }
+  }
+
+  /* 수정 창 */
+  dialog.editor { width: min(1400px, calc(100vw - 24px)); height: calc(100vh - 24px); max-height: none; }
+  dialog.editor[open] { display: flex; flex-direction: column; }
+  .ed-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 0; }
+  .ed-body > * { min-height: 0; min-width: 0; }
+  .ed-body .stage { border-left: 1px solid var(--line); }
+  .ed-tabs { display: none; gap: 4px; }
+  #edStatus { min-width: 0; }
+  @media (max-width: 760px) {
+    .ed-body { grid-template-columns: 1fr; }
+    .ed-body .stage { border-left: 0; }
+    .ed-body[data-view="edit"] .stage { display: none; }
+    .ed-body[data-view="preview"] textarea { display: none; }
+    .ed-tabs { display: flex; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./"><b>HTML 뷰어</b><span>Paste · Preview · Publish</span></a>
+  <nav class="gnb">
+    <a href="./">편집기</a>
+    <a class="on" href="admin.html">관리자</a>
+    <button id="btnSettings">설정</button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="inner hero">
+    <h2>Published<br>Pages</h2>
+    <p>배포한 페이지를 번호순으로 모았습니다.<br><span>제목·번호로 찾고, 바로 고치거나 지울 수 있습니다.</span></p>
+  </section>
+  <div class="inner toolbar-wrap"><div class="toolbar">
+    <input type="search" id="q" placeholder="번호나 제목으로 찾기" autocomplete="off">
+    <span class="count" id="count"></span>
+    <label class="check"><input type="checkbox" id="selAll"> 전체 선택</label>
+    <button id="btnBulkDelete" class="danger" disabled>선택 삭제</button>
+    <button id="btnRefresh">새로고침</button>
+  </div></div>
+  <div class="inner"><div id="status" class="status"></div></div>
+  <div class="inner"><div class="list" id="list"></div></div>
+
+  <footer class="site foot-dark">
+    <div class="inner">
+      <b>HTML 뷰어</b>
+      <p>배포 주소 <a id="baseLink" target="_blank" rel="noopener"></a><br>번호 폴더(/1/, /2/ …) 하나가 페이지 하나입니다.</p>
+    </div>
+  </footer>
+</main>
+
+<dialog class="editor" id="dlgEdit">
+  <div class="dlg-head">
+    <h2 id="edTitle">수정</h2>
+    <div class="ed-tabs">
+      <button class="small on" data-view="edit">편집</button>
+      <button class="small" data-view="preview">미리보기</button>
+    </div>
+    <a class="btn small" id="edOpen" target="_blank" rel="noopener">열기</a>
+    <button class="small" id="edWidth">모바일 폭</button>
+    <button class="small" id="edClose">닫기</button>
+  </div>
+  <div class="ed-body" id="edBody" data-view="edit">
+    <textarea class="code" id="edCode" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    <div class="stage" id="edStage">
+      <iframe id="edPreview" title="미리보기"
+        sandbox="allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox"></iframe>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <div class="status" id="edStatus"></div>
+    <button class="danger" id="edDelete">삭제</button>
+    <button class="primary" id="edSave">저장 (덮어쓰기)</button>
+  </div>
+</dialog>
+
+<script src="core.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const listEl = $('#list');
+  const statusEl = $('#status');
+  const q = $('#q');
+  const selAll = $('#selAll');
+  const btnBulk = $('#btnBulkDelete');
+
+  /** @type {{n:number, title:(string|null|undefined), row?:HTMLElement}[]} */
+  let pages = [];
+  const selected = new Set();
+  let loadSeq = 0;
+
+  const status = (text, kind, url) => HP.setStatus(statusEl, text, kind, url);
+  const clearStatus = () => { statusEl.textContent = ''; statusEl.className = 'status'; };
+
+  // ---------- 목록 ----------
+  function matches(p) {
+    const s = q.value.trim().toLowerCase();
+    if (!s) return true;
+    return String(p.n) === s || String(p.n).startsWith(s) || (p.title || '').toLowerCase().includes(s);
+  }
+  function visible() { return pages.filter(matches); }
+
+  function titleView(el, p) {
+    el.className = 'title';
+    if (p.title === undefined) { el.textContent = '제목 불러오는 중…'; el.classList.add('dim'); }
+    else if (p.title === null) { el.textContent = '아직 반영 전이거나 열 수 없음'; el.classList.add('pending'); }
+    else if (!p.title) { el.textContent = '(제목 없음)'; el.classList.add('dim'); }
+    else el.textContent = p.title;
+  }
+
+  function buildRow(p) {
+    const row = document.createElement('div');
+    row.className = 'item';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.setAttribute('aria-label', `${p.n}번 선택`);
+    cb.onchange = () => { cb.checked ? selected.add(p.n) : selected.delete(p.n); syncSelection(); };
+
+    const num = document.createElement('div'); num.className = 'num'; num.textContent = p.n;
+    const info = document.createElement('div'); info.className = 'info';
+    const title = document.createElement('div');
+    const url = document.createElement('div'); url.className = 'url'; url.textContent = HP.pageUrl(p.n);
+    info.append(title, url);
+
+    const acts = document.createElement('div'); acts.className = 'acts';
+    const open = document.createElement('a');
+    open.className = 'btn small'; open.href = HP.pageUrl(p.n); open.target = '_blank'; open.rel = 'noopener'; open.textContent = '열기';
+    const edit = document.createElement('button'); edit.className = 'small'; edit.textContent = '수정';
+    edit.onclick = () => openEditor(p.n);
+    const del = document.createElement('button'); del.className = 'small danger'; del.textContent = '삭제';
+    del.onclick = () => removePages([p.n]);
+    acts.append(open, HP.copyButton(HP.pageUrl(p.n), '링크 복사'), edit, del);
+
+    row.append(cb, num, info, acts);
+    row._cb = cb; row._title = title;
+    titleView(title, p);
+    return row;
+  }
+
+  function render() {
+    listEl.textContent = '';
+    const vis = visible();
+    $('#count').textContent = pages.length ? `${vis.length} / ${pages.length}개` : '';
+    if (!pages.length) {
+      const box = document.createElement('div'); box.className = 'empty';
+      box.textContent = '아직 배포된 페이지가 없어요.';
+      const a = document.createElement('a'); a.className = 'btn primary'; a.href = './'; a.textContent = '편집기에서 배포하기';
+      box.append(a); listEl.append(box);
+    } else if (!vis.length) {
+      const box = document.createElement('div'); box.className = 'empty'; box.textContent = '검색 결과가 없어요.';
+      listEl.append(box);
+    }
+    for (const p of vis) {
+      if (!p.row) p.row = buildRow(p);
+      p.row._cb.checked = selected.has(p.n);
+      p.row.classList.toggle('sel', selected.has(p.n));
+      listEl.append(p.row);
+    }
+    syncSelection();
+  }
+
+  function syncSelection() {
+    for (const p of pages) if (p.row) p.row.classList.toggle('sel', selected.has(p.n));
+    const vis = visible();
+    const selVis = vis.filter((p) => selected.has(p.n)).length;
+    selAll.checked = vis.length > 0 && selVis === vis.length;
+    selAll.indeterminate = selVis > 0 && selVis < vis.length;
+    btnBulk.disabled = selected.size === 0;
+    btnBulk.textContent = selected.size ? `선택 삭제 (${selected.size})` : '선택 삭제';
+  }
+
+  async function loadTitles(seq) {
+    const queue = pages.slice();
+    const worker = async () => {
+      while (queue.length) {
+        const p = queue.shift();
+        const t = await HP.fetchTitle(p.n);
+        if (seq !== loadSeq) return;
+        p.title = t;
+        if (p.row) titleView(p.row._title, p);
+        if (q.value.trim()) render();
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, worker));
+  }
+
+  async function load() {
+    const seq = ++loadSeq;
+    const base = HP.baseUrl();
+    $('#baseLink').textContent = base || '설정에서 연결하면 표시돼요';
+    if (base) $('#baseLink').href = base; else $('#baseLink').removeAttribute('href');
+    if (!HP.ready()) {
+      pages = []; selected.clear();
+      listEl.textContent = '';
+      const box = document.createElement('div'); box.className = 'empty';
+      box.textContent = '관리하려면 먼저 GitHub 저장소와 토큰을 연결하세요.';
+      const b = document.createElement('button'); b.className = 'primary'; b.textContent = '설정 열기';
+      b.onclick = HP.openSettings;
+      box.append(b); listEl.append(box);
+      $('#count').textContent = '';
+      return;
+    }
+    status('목록 불러오는 중…');
+    try {
+      const nums = (await HP.listNumbers()).reverse();
+      if (seq !== loadSeq) return;
+      const old = new Map(pages.map((p) => [p.n, p]));
+      pages = nums.map((n) => old.get(n) || { n, title: undefined });
+      for (const n of [...selected]) if (!nums.includes(n)) selected.delete(n);
+      clearStatus();
+      render();
+      loadTitles(seq);
+    } catch (e) {
+      status(`목록을 불러오지 못했어요. ${HP.errorText(e)}`, 'err');
+    }
+  }
+
+  // ---------- 삭제 ----------
+  async function removePages(nums) {
+    nums = [...nums].sort((a, b) => b - a);
+    const label = nums.length === 1 ? `${nums[0]}번 페이지를` : `${nums.length}개 페이지(${nums.join(', ')}번)를`;
+    if (!confirm(`${label} 삭제할까요?\n삭제한 페이지의 링크는 더 이상 열리지 않아요.`)) return false;
+    btnBulk.disabled = true;
+    const done = [];
+    try {
+      for (const n of nums) {
+        status(nums.length > 1 ? `삭제 중… (${done.length + 1}/${nums.length}) ${n}번` : `${n}번 삭제 중…`);
+        await HP.deleteFile(n);
+        done.push(n);
+        selected.delete(n);
+        pages = pages.filter((p) => p.n !== n);
+        render();
+      }
+      status(`${done.length}개 페이지를 삭제했어요. 실제 주소에서 사라지기까지 1~2분 걸릴 수 있어요.`, 'ok');
+      return true;
+    } catch (e) {
+      status(`${done.length ? `${done.length}개 삭제 후 ` : ''}중단됐어요. ${HP.errorText(e)}`, 'err');
+      return false;
+    } finally { syncSelection(); }
+  }
+
+  btnBulk.onclick = () => removePages(selected);
+  selAll.onchange = () => {
+    for (const p of visible()) selAll.checked ? selected.add(p.n) : selected.delete(p.n);
+    render();
+  };
+  q.addEventListener('input', render);
+  $('#btnRefresh').onclick = load;
+  $('#btnSettings').onclick = HP.openSettings;
+  HP.onConfigChange(() => { pages = []; selected.clear(); load(); });
+
+  // ---------- 수정 창 ----------
+  const dlg = $('#dlgEdit');
+  const edCode = $('#edCode');
+  const edPreview = $('#edPreview');
+  const edStatus = $('#edStatus');
+  const edSave = $('#edSave');
+  let ed = null; // { n, sha, original }
+  let timer = 0;
+
+  HP.enableTab(edCode);
+  const edRender = () => { edPreview.srcdoc = edCode.value; };
+  const dirty = () => ed && edCode.value !== ed.original;
+  const edState = (text, kind, url) => HP.setStatus(edStatus, text, kind, url);
+
+  edCode.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(edRender, 300);
+    if (ed && !edSave.dataset.busy) edState(dirty() ? '저장하지 않은 변경 사항이 있어요.' : '', dirty() ? 'warn' : '');
+  });
+
+  async function openEditor(n) {
+    ed = null;
+    $('#edTitle').textContent = `${n}번 수정`;
+    $('#edOpen').href = HP.pageUrl(n);
+    edCode.value = ''; edCode.disabled = true; edSave.disabled = true; $('#edDelete').disabled = true;
+    edPreview.srcdoc = '';
+    edState('불러오는 중…');
+    $('#edBody').dataset.view = 'edit';
+    document.querySelectorAll('.ed-tabs button').forEach((b) => b.classList.toggle('on', b.dataset.view === 'edit'));
+    dlg.showModal();
+    try {
+      const { text, sha } = await HP.getFile(n);
+      ed = { n, sha, original: text };
+      edCode.value = text; edCode.disabled = false; edSave.disabled = false; $('#edDelete').disabled = false;
+      edRender();
+      edState('');
+      edCode.focus(); edCode.setSelectionRange(0, 0); edCode.scrollTop = 0;
+    } catch (e) {
+      edState(`불러오지 못했어요. ${HP.errorText(e)}`, 'err');
+    }
+  }
+
+  function closeEditor() {
+    if (edSave.dataset.busy) return;
+    if (dirty() && !confirm('저장하지 않은 변경 사항이 있어요. 닫을까요?')) return;
+    clearTimeout(timer);
+    dlg.close();
+  }
+  $('#edClose').onclick = closeEditor;
+  dlg.addEventListener('cancel', (e) => { e.preventDefault(); closeEditor(); });
+
+  edSave.onclick = async () => {
+    if (!ed) return;
+    const html = edCode.value;
+    if (!html.trim()) return edState('내용이 비어 있어요. 페이지를 지우려면 삭제를 누르세요.', 'err');
+    if (!dirty()) return edState('바뀐 내용이 없어요.');
+    const { n } = ed;
+    edSave.disabled = true; edSave.dataset.busy = '1';
+    try {
+      edState('저장 중…');
+      let r;
+      try { r = await HP.putFile(n, html, ed.sha); }
+      catch (e) {
+        if (e.status !== 409 && e.status !== 422) throw e;
+        const latest = await HP.getFile(n);
+        if (!confirm(`${n}번이 다른 곳에서 바뀌었어요. 그래도 지금 내용으로 덮어쓸까요?`)) { edState('저장을 취소했어요.'); return; }
+        r = await HP.putFile(n, html, latest.sha);
+      }
+      ed.sha = r.content.sha; ed.original = html;
+      const p = pages.find((x) => x.n === n);
+      if (p) {
+        const t = new DOMParser().parseFromString(html, 'text/html').title.trim();
+        p.title = t; if (p.row) titleView(p.row._title, p);
+      }
+      edState('저장됨. GitHub Pages 반영 중… (보통 30초~2분)', '', HP.pageUrl(n));
+      delete edSave.dataset.busy; edSave.disabled = false;
+      const live = await HP.waitLive(n, html);
+      if (ed && ed.n === n && ed.original === html) {
+        edState(live ? '반영 완료' : '저장은 됐는데 아직 반영 확인이 안 됐어요. 잠시 뒤 열어보세요.', live ? 'ok' : 'warn', HP.pageUrl(n));
+      }
+    } catch (e) {
+      edState(HP.errorText(e), 'err');
+    } finally {
+      delete edSave.dataset.busy; edSave.disabled = false;
+    }
+  };
+
+  $('#edDelete').onclick = async () => {
+    if (!ed) return;
+    const n = ed.n;
+    const ok = await removePages([n]);
+    if (ok) { ed = null; dlg.close(); }
+  };
+
+  $('#edWidth').onclick = (e) => {
+    const on = $('#edStage').classList.toggle('mobile');
+    e.currentTarget.classList.toggle('on', on);
+  };
+  document.querySelectorAll('.ed-tabs button').forEach((b) => {
+    b.onclick = () => {
+      $('#edBody').dataset.view = b.dataset.view;
+      document.querySelectorAll('.ed-tabs button').forEach((x) => x.classList.toggle('on', x === b));
+      if (b.dataset.view === 'preview') edRender();
+    };
+  });
+  window.addEventListener('beforeunload', (e) => { if (dlg.open && dirty()) e.preventDefault(); });
+
+  // ---------- 시작 ----------
+  // admin.html?edit=3 으로 들어오면 바로 3번 수정 창을 엶
+  load().then(() => {
+    const n = Number(new URLSearchParams(location.search).get('edit'));
+    if (n && HP.ready()) openEditor(n);
+  });
+})();
+</script>
+</body>
+</html>
