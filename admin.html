@@ -81,7 +81,7 @@
   <a class="brand" href="./"><b>HTML 뷰어</b><span>Paste · Preview · Publish</span></a>
   <nav class="gnb">
     <a href="./">편집기</a>
-    <a class="on" href="admin.html">관리자</a>
+    <a class="on" href="admin">관리자</a>
     <button id="btnSettings">설정</button>
   </nav>
 </header>
@@ -419,7 +419,7 @@
   window.addEventListener('beforeunload', (e) => { if (dlg.open && dirty()) e.preventDefault(); });
 
   // ---------- 시작 ----------
-  // admin.html?edit=3 으로 들어오면 바로 3번 수정 창을 엶
+  // admin?edit=3 으로 들어오면 바로 3번 수정 창을 엶
   load().then(() => {
     const n = Number(new URLSearchParams(location.search).get('edit'));
     if (n && HP.ready()) openEditor(n);
