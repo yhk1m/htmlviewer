@@ -2,8 +2,8 @@
 // 관리자 전용 GitHub 중계 — ?p=/contents/3/index.html 처럼 저장소 API 경로를 받아 서버 토큰으로 대신 보낸다
 import { isAdmin, gh, send } from '../lib/github.js';
 
-// 관리자 페이지가 쓰는 경로만 허용: 루트 목록, 번호 페이지, 큰 파일 blob, 브랜치 확인
-const ALLOWED = /^\/(contents|contents\/\d+\/index\.html|git\/blobs\/[0-9a-f]{40}|branches\/[\w.-]+)?$/;
+// 관리자 페이지가 쓰는 경로만 허용: 루트 목록, 번호 페이지, 번호표, 큰 파일 blob, 브랜치 확인
+const ALLOWED = /^\/(contents|contents\/\d+\/index\.html|contents\/counter\.json|git\/blobs\/[0-9a-f]{40}|branches\/[\w.-]+)?$/;
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');

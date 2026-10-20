@@ -107,18 +107,48 @@ export async function putFile(n, html, sha) {
   return r.content.sha;
 }
 
-/** 비어 있는 가장 작은 번호(1부터)로 새 페이지를 만든다. 수업 중 여러 명이 동시에 눌러도 번호가 겹치지 않게 재시도 */
+// ---------- 번호표 (counter.json) ----------
+// 한 번 쓴 번호는 페이지를 지워도 다시 쓰지 않도록, 다음 번호를 저장소의 counter.json 에 적어 둔다.
+// 관리자 페이지의 「1번부터 시작」은 이 파일을 { "next": 1 } 로 되돌린다.
+const COUNTER = 'counter.json';
+
+async function readCounter() {
+  try {
+    const r = await gh(`/contents/${COUNTER}${refQ()}`);
+    const next = Number(JSON.parse(Buffer.from(r.content, 'base64').toString('utf8')).next);
+    return { next: Number.isInteger(next) && next > 0 ? next : null, sha: r.sha };
+  } catch (e) {
+    if (e.status === 404) return { next: null, sha: null };
+    throw e;
+  }
+}
+
+/** 번호표에서 번호를 하나 받아 새 페이지를 만든다.
+ *  번호표 갱신이 sha 잠금이라, 여러 명이 동시에 눌러도 같은 번호를 두 사람이 받지 않는다 */
 export async function createPage(html) {
-  const taken = new Set(await listNumbers());
-  const nextFree = () => { let k = 1; while (taken.has(k)) k++; return k; };
-  let n = nextFree();
-  for (let attempt = 0; attempt < 10; attempt++) {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const [{ next, sha }, nums] = await Promise.all([readCounter(), listNumbers()]);
+    const taken = new Set(nums);
+    let n = next || Math.max(0, ...nums) + 1;   // 번호표가 없으면 남은 최대 번호 다음부터
+    while (taken.has(n)) n++;                    // 1번부터 다시 시작한 뒤 남아 있는 페이지 번호는 건너뜀
     try {
-      const sha = await putFile(n, html);
-      return { n, sha };
+      await gh(`/contents/${COUNTER}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `Claim page ${n}`,
+          content: Buffer.from(`${JSON.stringify({ next: n + 1 })}\n`).toString('base64'),
+          branch: BRANCH(),
+          ...(sha ? { sha } : {}),
+        }),
+      });
     } catch (e) {
-      if (e.status === 422) { taken.add(n); n = nextFree(); continue; } // 그새 이 번호가 찼음
-      if (e.status === 409) { await sleep(jitter(400)); continue; }  // 동시 커밋 충돌
+      if (e.status === 409 || e.status === 422) { await sleep(jitter(300)); continue; } // 다른 사람이 먼저 받음
+      throw e;
+    }
+    try {
+      return { n, sha: await putFile(n, html) };
+    } catch (e) {
+      if (e.status === 422 || e.status === 409) continue; // 받은 번호를 못 쓰면 그 번호는 건너뛰고 다음 번호로
       throw e;
     }
   }
