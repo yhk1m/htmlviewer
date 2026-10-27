@@ -103,6 +103,7 @@
 
 <footer class="deploy foot-dark">
   <div class="status" id="status"></div>
+  <button id="btnSave" title="지금 코드를 내 컴퓨터에 .html 파일로 내려받기">HTML 파일로 저장</button>
   <button id="btnUpdate" hidden>덮어쓰기</button>
   <button id="btnDeploy" class="primary">새 페이지로 배포</button>
 </footer>
@@ -268,6 +269,21 @@
     if (code.value.trim() && !confirm('지금 내용을 지우고 새로 쓸까요?')) return;
     loadText('');
     idleStatus();
+  };
+
+  // ---------- HTML 파일로 저장 (내려받기) ----------
+  $('#btnSave').onclick = () => {
+    const html = code.value;
+    if (!html.trim()) return setStatus('저장할 HTML이 비어 있어요.', 'err');
+    // 파일 이름은 <title> → 이어서 수정 중인 번호 → page
+    const t = (new DOMParser().parseFromString(html, 'text/html').title || '').trim();
+    const name = (t || (editing ? `page-${editing.n}` : 'page')).replace(/[\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'page';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+    a.download = `${name}.html`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setStatus(`${name}.html 로 저장했어요.`, 'ok');
   };
 
   // ---------- 배포 (중계 서버가 대신 커밋 — 수강생 브라우저에는 토큰이 없음) ----------
