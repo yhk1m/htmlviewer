@@ -88,6 +88,8 @@
   <section class="pane" id="previewPane">
     <div class="bar">
       <span class="label"><em>Preview</em><small>미리보기</small></span>
+      <button id="btnVisual" title="미리보기 글자·그림을 눌러서 바로 고치기">직접 수정</button>
+      <button id="btnUndo" hidden disabled title="직접 수정한 것 하나 되돌리기">되돌리기</button>
       <button id="btnWidth">모바일 폭</button>
       <button id="btnReload">새로고침</button>
       <button class="btn-icon" data-full="previewPane"></button>
@@ -107,6 +109,7 @@
 
 <script src="config.js"></script>
 <script src="core.js"></script>
+<script src="visual-edit.js?v=1"></script>
 <script>
 (() => {
   'use strict';
@@ -145,8 +148,62 @@
 
   // ---------- 미리보기 ----------
   let timer = 0;
-  const render = () => { preview.srcdoc = code.value; };
+  async function render() {
+    if (!ve.on) { preview.srcdoc = code.value; return; }
+    const src = code.value;
+    try {
+      await HPVE.load();
+      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=1')).text();
+    } catch {
+      setVisual(false);
+      setStatus('직접 수정 기능을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.', 'err');
+      return;
+    }
+    if (src !== code.value) return; // 그새 바뀜 — 다음 render 가 그림
+    const { html, map } = HPVE.instrument(src);
+    ve.map = map; ve.src = src;
+    preview.srcdoc = html + '\n<script>' + ve.frame + '<\/script>';
+  }
+
+  // ---------- 미리보기에서 직접 수정 ----------
+  // 미리보기(iframe)가 고친 요소 번호와 새 내용을 보내면, 코드에서 그 요소 구간만 바꾼다.
+  const ve = { on: false, map: null, src: null, frame: null, hist: [] };
+  const btnVisual = $('#btnVisual');
+  const btnUndo = $('#btnUndo');
+  function setVisual(on) {
+    ve.on = on;
+    btnVisual.classList.toggle('on', on);
+    btnUndo.hidden = !on;
+    render();
+  }
+  function syncUndo() { btnUndo.disabled = !ve.hist.length; }
+  btnVisual.onclick = () => setVisual(!ve.on);
+  btnUndo.onclick = () => {
+    if (!ve.hist.length) return;
+    code.value = ve.hist.pop();
+    HP.local.set(DRAFT, code.value);
+    syncUndo();
+    render();
+  };
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!ve.on || e.source !== preview.contentWindow || !d || d.hpve !== 1) return;
+    if (code.value !== ve.src) return render(); // 코드를 직접 고치는 중 — 번호가 안 맞음
+    let out = null;
+    if (d.type === 'inner') out = HPVE.applyInner(ve.src, ve.map, String(d.id), String(d.html));
+    else if (d.type === 'attr' && d.name === 'src') out = HPVE.applyAttr(ve.src, ve.map, String(d.id), 'src', String(d.value));
+    if (out == null) return render();
+    ve.hist.push(ve.src);
+    if (ve.hist.length > 100) ve.hist.shift();
+    const top = code.scrollTop;
+    code.value = ve.src = out;
+    code.scrollTop = top;
+    HP.local.set(DRAFT, out);
+    syncUndo();
+  });
+
   code.addEventListener('input', () => {
+    ve.hist = []; syncUndo();
     clearTimeout(timer);
     timer = setTimeout(() => { render(); HP.local.set(DRAFT, code.value); }, 300);
   });
@@ -167,6 +224,7 @@
   // ---------- 파일 열기 / 드래그 ----------
   function loadText(text) {
     code.value = text;
+    ve.hist = []; syncUndo();
     editing = null; updateEditingUI();
     render(); HP.local.set(DRAFT, text);
   }

@@ -27,6 +27,7 @@ HTML을 붙여넣으면 바로 미리보기가 되고, 버튼 하나로 GitHub P
 | `index.html` | 편집기 — HTML 작성·미리보기·배포 (중계 서버 사용) |
 | `admin.html` | 관리자 — 목록·검색·수정·삭제 (토큰으로 GitHub 직접) |
 | `config.js` | 저장소·주소·중계 서버 주소 설정 |
+| `visual-edit.js`, `visual-edit-frame.js` | 「직접 수정」 — 미리보기에서 글자·서식·그림을 고치면 코드의 그 요소 구간만 바꿈 (parse5 위치 정보, 미리보기와는 postMessage) |
 | `core.js`, `app.css` | 공통 로직·스타일 |
 | `relay/` | 중계 서버 (Vercel 함수 `/api/deploy`, `/api/update`, 관리자 페이지 프록시) |
 
