@@ -25,7 +25,12 @@
   .divider::before { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; background: var(--line); transition: background-color .15s, width .15s, left .15s; }
   .divider:hover::before, .divider:focus-visible::before, body.resizing .divider::before { left: 3px; width: 3px; background: var(--text); }
   body.resizing { cursor: col-resize; user-select: none; }
-  body.resizing iframe { pointer-events: none; } /* 끄는 중에 미리보기가 마우스를 가로채지 않게 */
+  body.resizing iframe { pointer-events: none; }
+
+  /* 직접 수정 — 미리보기에서 누른 요소의 코드 줄 강조 (입력칸 선택은 포커스가 없으면 안 보여서 따로 그림) */
+  .code-wrap { flex: 1; position: relative; display: flex; min-height: 0; overflow: hidden; }
+  .code-mark { position: absolute; left: 0; right: 0; pointer-events: none; display: none;
+    background: color-mix(in srgb, var(--text) 9%, transparent); border-left: 3px solid var(--text); } /* 끄는 중에 미리보기가 마우스를 가로채지 않게 */
 
   /* 전체화면 — 한쪽 칸이 가로로 가득 참 (머리줄·바닥줄은 그대로) */
   main[data-full] { grid-template-columns: minmax(0, 1fr); }
@@ -81,8 +86,11 @@
       <button class="btn-icon" data-full="editPane"></button>
       <input type="file" id="file" accept=".html,.htm,text/html" hidden>
     </div>
-    <textarea class="code" id="code" spellcheck="false" autocapitalize="off" autocomplete="off"
-      placeholder="여기에 HTML을 붙여넣거나 .html 파일을 끌어다 놓으세요."></textarea>
+    <div class="code-wrap">
+      <textarea class="code" id="code" spellcheck="false" autocapitalize="off" autocomplete="off"
+        placeholder="여기에 HTML을 붙여넣거나 .html 파일을 끌어다 놓으세요."></textarea>
+      <div class="code-mark" id="codeMark"></div>
+    </div>
   </section>
   <div class="divider" id="divider" role="separator" aria-orientation="vertical" aria-label="편집·미리보기 너비 조절" tabindex="0" title="끌어서 너비 조절 · 두 번 누르면 반반"></div>
   <section class="pane" id="previewPane">
@@ -150,11 +158,12 @@
   // ---------- 미리보기 ----------
   let timer = 0;
   async function render() {
+    setMark(null);
     if (!ve.on) { preview.srcdoc = code.value; return; }
     const src = code.value;
     try {
       await HPVE.load();
-      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=2')).text();
+      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=3')).text();
     } catch {
       setVisual(false);
       setStatus('직접 수정 기능을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.', 'err');
@@ -190,7 +199,7 @@
     const d = e.data;
     if (!ve.on || e.source !== preview.contentWindow || !d || d.hpve !== 1) return;
     if (code.value !== ve.src) return render(); // 코드를 직접 고치는 중 — 번호가 안 맞음
-    if (d.type === 'locate') return locate(ve.map[String(d.id)], String(d.text || ''));
+    if (d.type === 'locate') return locate(String(d.id), String(d.text || ''), !!d.focus);
     let out = null;
     if (d.type === 'inner') out = HPVE.applyInner(ve.src, ve.map, String(d.id), String(d.html));
     else if (d.type === 'attr' && d.name === 'src') out = HPVE.applyAttr(ve.src, ve.map, String(d.id), 'src', String(d.value));
@@ -202,26 +211,57 @@
     code.scrollTop = top;
     HP.local.set(DRAFT, out);
     syncUndo();
+    const mk = ve.markId && ve.map[ve.markId];
+    if (mk) { code.setSelectionRange(mk.start, mk.end); setMark(mk.start, mk.end); } else setMark(null);
   });
 
-  // 스크립트가 만든 부분을 누르면 — 그 글자가 코드에 있으면 거기로, 없으면 감싼 요소의 시작 태그로
-  function locate(m, text) {
+  // 미리보기에서 누른 부분을 코드에서 보여 줌.
+  // 스크립트가 만든 부분(focus) — 그 글자가 코드에 있으면 거기로, 없으면 감싼 요소의 시작 태그로, 코드 칸으로 넘어감.
+  // 고치는 부분 — 요소 전체를 선택해 그 줄로 스크롤만 함 (포커스를 가져오면 미리보기 편집이 끊김)
+  const measure = document.createElement('canvas').getContext('2d');
+  const codeMark = $('#codeMark');
+  let markRange = null; // [a, b] 원본 글자 위치
+  function drawMark() {
+    if (!markRange || !ve.on) { codeMark.style.display = 'none'; return; }
+    const cs = getComputedStyle(code);
+    const lh = parseFloat(cs.lineHeight);
+    const lineOf = (o) => code.value.slice(0, o).split('\n').length - 1;
+    const l1 = lineOf(markRange[0]), l2 = lineOf(Math.max(markRange[0], markRange[1] - 1));
+    codeMark.style.display = 'block';
+    codeMark.style.top = `${parseFloat(cs.paddingTop) + l1 * lh - code.scrollTop}px`;
+    codeMark.style.height = `${(l2 - l1 + 1) * lh}px`;
+  }
+  function setMark(a, b) { markRange = a == null ? null : [a, b]; drawMark(); }
+  code.addEventListener('scroll', drawMark);
+  function scrollCodeTo(a) {
+    const cs = getComputedStyle(code);
+    const before = code.value.slice(0, a);
+    const line = before.split('\n').length - 1;
+    measure.font = cs.font;
+    const x = measure.measureText(before.slice(before.lastIndexOf('\n') + 1).replace(/\t/g, '  ')).width;
+    code.scrollTop = Math.max(0, line * parseFloat(cs.lineHeight) - code.clientHeight / 3);
+    code.scrollLeft = x < code.clientWidth * 0.6 ? 0 : x - code.clientWidth / 3;
+  }
+  function locate(id, text, focus) {
+    const m = ve.map[id];
     let a = -1, b = -1;
     if (text.length >= 2) {
       a = m ? code.value.indexOf(text, m.start) : -1;
       if (a < 0) a = code.value.indexOf(text);
       if (a >= 0) b = a + text.length;
     }
-    if (a < 0 && m) { a = m.start; b = m.tagEnd; }
+    if (a < 0 && m) { a = m.start; b = focus ? m.tagEnd : m.end; }
     if (a < 0) return;
-    if (mainEl.dataset.full === 'previewPane') setFull(null);
-    const editTab = document.querySelector('.tabs button[data-view="edit"]');
-    if (mainEl.dataset.view === 'preview' && editTab.getClientRects().length) editTab.click();
-    // 커서를 앞에 두고 포커스하면 브라우저가 그 줄로 스크롤 — 그다음 구간 선택
-    code.blur();
-    code.setSelectionRange(a, a);
-    code.focus();
+    if (focus) {
+      if (mainEl.dataset.full === 'previewPane') setFull(null);
+      const editTab = document.querySelector('.tabs button[data-view="edit"]');
+      if (mainEl.dataset.view === 'preview' && editTab.getClientRects().length) editTab.click();
+      code.focus({ preventScroll: true });
+    }
     code.setSelectionRange(a, b);
+    scrollCodeTo(a);
+    ve.markId = focus ? null : id; // 고치는 동안 범위가 바뀌면 강조도 따라감
+    setMark(a, b);
   }
 
   code.addEventListener('input', () => {
