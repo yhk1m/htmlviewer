@@ -119,7 +119,7 @@
 
 <script src="config.js"></script>
 <script src="core.js"></script>
-<script src="visual-edit.js?v=2"></script>
+<script src="visual-edit.js?v=3"></script>
 <script>
 (() => {
   'use strict';
@@ -158,27 +158,55 @@
 
   // ---------- 미리보기 ----------
   let timer = 0;
-  // 코드에서 고친 곳을 미리보기에서 보여 주는 스크립트 (미리보기가 다시 그려지면 맨 위로 가므로)
-  const revealScript = (sel) => `<script>(() => {
+  // 코드 칸 커서가 있는 요소로 미리보기를 옮기는 스크립트 — 미리보기 끝에 붙고 곧바로 자기 태그는 지움.
+  // 편집기가 요소까지의 경로(자식 순번 목록)를 보내면 그 요소로 스크롤한다.
+  const REVEAL = `<script>(() => {
     document.currentScript.remove();
-    const go = () => { const e = document.querySelector('${sel}'); if (!e) return;
-      e.scrollIntoView({ block: e.getBoundingClientRect().height > innerHeight * 0.8 ? 'start' : 'center' }); };
-    go();
-    addEventListener('load', () => { go(); const e = document.querySelector('[data-hpe-goto]'); if (e) e.removeAttribute('data-hpe-goto'); }, { once: true });
+    let last = null;
+    const go = (path, smooth) => {
+      let el = document;
+      for (const i of path) el = el && el.children[i];
+      if (!el || el === document.documentElement || el === document.body) return;
+      last = path;
+      el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: el.getBoundingClientRect().height > innerHeight * 0.8 ? 'start' : 'center' });
+    };
+    addEventListener('message', (e) => { const d = e.data; if (e.source === parent && d && d.hpveReveal) go(d.hpveReveal, d.smooth); });
+    addEventListener('load', () => { if (last) go(last); }, { once: true }); // 그림이 늦게 떠서 위치가 밀린 경우
+    parent.postMessage({ hpveReady: 1 }, '*');
   })()<\/script>`;
-  // reveal: 코드 칸 커서가 있는 요소로 미리보기를 옮김 (코드를 직접 고칠 때)
+  let revealPending = null; // 다시 그린 미리보기가 준비되면 보낼 경로
+  function revealAt(pos) {
+    if (!HPVE.ready()) return null;
+    const path = HPVE.pathAt(code.value, pos);
+    return path.length > 2 ? path : null; // html·body 자체면 옮길 곳 없음
+  }
+  window.addEventListener('message', (e) => {
+    if (e.source !== preview.contentWindow || !e.data || !e.data.hpveReady || !revealPending) return;
+    preview.contentWindow.postMessage({ hpveReveal: revealPending }, '*');
+    revealPending = null;
+  });
+  // 코드 칸에서 클릭하거나 화살표로 커서를 옮기면 — 다시 그리지 않고 스크롤만
+  let lastCaret = -1, caretTimer = 0;
+  const followCaret = () => {
+    clearTimeout(caretTimer);
+    caretTimer = setTimeout(() => {
+      const pos = code.selectionStart;
+      if (pos === lastCaret) return;
+      lastCaret = pos;
+      const path = revealAt(pos);
+      if (path) preview.contentWindow.postMessage({ hpveReveal: path, smooth: true }, '*');
+    }, 120);
+  };
+  code.addEventListener('click', followCaret);
+  code.addEventListener('keyup', (e) => { if (/^(Arrow|Page|Home|End)/.test(e.key)) followCaret(); });
+
+  // reveal: 다시 그린 뒤 코드 칸 커서가 있는 요소로 미리보기를 옮김 (코드를 직접 고칠 때)
   async function render(reveal = false) {
     setMark(null);
-    const pos = code.selectionStart;
+    revealPending = reveal ? revealAt(code.selectionStart) : null;
+    lastCaret = code.selectionStart;
     if (!ve.on) {
-      const src = code.value;
-      let html = src;
-      if (reveal && HPVE.ready()) {
-        const { map } = HPVE.instrument(src);
-        const id = HPVE.at(map, pos);
-        if (id) { const i = map[id].tagEnd - 1; html = src.slice(0, i) + ' data-hpe-goto' + src.slice(i) + '\n' + revealScript('[data-hpe-goto]'); }
-      }
-      preview.srcdoc = html;
+      preview.srcdoc = code.value + '\n' + REVEAL;
       return;
     }
     const src = code.value;
@@ -193,8 +221,7 @@
     if (src !== code.value) return; // 그새 바뀜 — 다음 render 가 그림
     const { html, map } = HPVE.instrument(src);
     ve.map = map; ve.src = src;
-    const id = reveal ? HPVE.at(map, pos) : null;
-    preview.srcdoc = html + '\n<script>' + ve.frame + '<\/script>' + (id ? revealScript(`[data-hpe="${id}"]`) : '');
+    preview.srcdoc = html + '\n<script>' + ve.frame + '<\/script>' + REVEAL;
   }
 
   // ---------- 미리보기에서 직접 수정 ----------

@@ -94,16 +94,30 @@
     return out;
   }
 
-  // 글자 위치 pos 를 감싼 가장 안쪽 요소 번호 (스크립트·스타일 안이면 그 바깥)
-  const SKIP = new Set(['script', 'style', 'noscript', 'template']);
-  function at(map, pos) {
-    let best = null;
-    for (const [id, m] of Object.entries(map)) {
-      if (SKIP.has(m.tag) || pos < m.start || pos > m.end) continue;
-      if (!best || m.start >= map[best].start) best = id;
+  const SKIP = new Set(['script', 'style', 'noscript', 'template']); // 이 안에 커서가 있으면 바깥 요소로
+
+  // 글자 위치 pos 를 감싼 가장 안쪽 요소까지의 경로 — 각 단계의 자식 요소 순번 (document.children[0] = html 부터)
+  // 브라우저도 같은 규칙으로 읽으므로 미리보기 DOM 에서 같은 요소를 찾는다 (스크립트가 앞쪽을 바꾸지 않았다면)
+  let cached = { src: null, doc: null };
+  function pathAt(src, pos) {
+    if (cached.src !== src) cached = { src, doc: parse(src, { sourceCodeLocationInfo: true }) };
+    const has = (n) => {
+      const l = n.sourceCodeLocation;
+      if (l && l.startTag) return pos >= l.startOffset && pos <= l.endOffset;
+      return (n.childNodes || []).some((c) => c.tagName && has(c)); // 시작 태그가 생략된 요소(tbody 등)
+    };
+    const path = [];
+    let node = cached.doc;
+    for (;;) {
+      const kids = (node.childNodes || []).filter((c) => c.tagName);
+      const i = kids.findIndex(has);
+      if (i < 0 || SKIP.has(kids[i].tagName)) break;
+      path.push(i);
+      node = kids[i];
+      if (NO_DESCEND.has(node.tagName)) break;
     }
-    return best;
+    return path;
   }
 
-  globalThis.HPVE = { load, ready: () => !!parse, instrument, applyInner, applyAttr, shift, at };
+  globalThis.HPVE = { load, ready: () => !!parse, instrument, applyInner, applyAttr, shift, pathAt };
 })();
