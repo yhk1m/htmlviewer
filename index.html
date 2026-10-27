@@ -153,7 +153,7 @@
     const src = code.value;
     try {
       await HPVE.load();
-      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=1')).text();
+      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=2')).text();
     } catch {
       setVisual(false);
       setStatus('직접 수정 기능을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.', 'err');
@@ -189,6 +189,7 @@
     const d = e.data;
     if (!ve.on || e.source !== preview.contentWindow || !d || d.hpve !== 1) return;
     if (code.value !== ve.src) return render(); // 코드를 직접 고치는 중 — 번호가 안 맞음
+    if (d.type === 'locate') return locate(ve.map[String(d.id)], String(d.text || ''));
     let out = null;
     if (d.type === 'inner') out = HPVE.applyInner(ve.src, ve.map, String(d.id), String(d.html));
     else if (d.type === 'attr' && d.name === 'src') out = HPVE.applyAttr(ve.src, ve.map, String(d.id), 'src', String(d.value));
@@ -201,6 +202,26 @@
     HP.local.set(DRAFT, out);
     syncUndo();
   });
+
+  // 스크립트가 만든 부분을 누르면 — 그 글자가 코드에 있으면 거기로, 없으면 감싼 요소의 시작 태그로
+  function locate(m, text) {
+    let a = -1, b = -1;
+    if (text.length >= 2) {
+      a = m ? code.value.indexOf(text, m.start) : -1;
+      if (a < 0) a = code.value.indexOf(text);
+      if (a >= 0) b = a + text.length;
+    }
+    if (a < 0 && m) { a = m.start; b = m.tagEnd; }
+    if (a < 0) return;
+    if (mainEl.dataset.full === 'previewPane') setFull(null);
+    const editTab = document.querySelector('.tabs button[data-view="edit"]');
+    if (mainEl.dataset.view === 'preview' && editTab.getClientRects().length) editTab.click();
+    // 커서를 앞에 두고 포커스하면 브라우저가 그 줄로 스크롤 — 그다음 구간 선택
+    code.blur();
+    code.setSelectionRange(a, a);
+    code.focus();
+    code.setSelectionRange(a, b);
+  }
 
   code.addEventListener('input', () => {
     ve.hist = []; syncUndo();

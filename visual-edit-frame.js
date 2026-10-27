@@ -155,7 +155,13 @@
     const k = kind(el);
     if (k === 'text') startEdit(el);
     else if (k === 'img') { e.preventDefault(); openImg(el); }
-    else if (k === 'lock') { stopEdit(); closeImg(); say('스크립트가 만든 부분이라 여기서는 못 고쳐요. 왼쪽 코드에서 고쳐 주세요.', true); }
+    else if (k === 'lock') {
+      stopEdit(); closeImg();
+      say('스크립트가 만든 부분이에요. 왼쪽 코드에서 해당 부분을 찾아 표시했어요.', true);
+      // 누른 글자를 코드에서 찾고, 못 찾으면 이 요소의 시작 태그로
+      const text = (e.target.textContent || '').trim().split('\n')[0].trim().slice(0, 40);
+      post({ type: 'locate', id: el.getAttribute('data-hpe'), text });
+    }
   }, true);
   // 편집하는 동안 링크 이동·폼 제출·페이지 자체 클릭 동작은 막음
   document.addEventListener('click', (e) => {
