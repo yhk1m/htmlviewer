@@ -28,6 +28,7 @@
   body.resizing iframe { pointer-events: none; }
 
   /* 직접 수정 — 미리보기에서 누른 요소의 코드 줄 강조 (입력칸 선택은 포커스가 없으면 안 보여서 따로 그림) */
+  textarea.code { white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: hidden; } /* 칸 너비에 맞춰 줄바꿈 */
   .code-wrap { flex: 1; position: relative; display: flex; min-height: 0; overflow: hidden; }
   .code-mark { position: absolute; left: 0; right: 0; pointer-events: none; display: none;
     background: color-mix(in srgb, var(--text) 9%, transparent); border-left: 3px solid var(--text); } /* 끄는 중에 미리보기가 마우스를 가로채지 않게 */
@@ -118,7 +119,7 @@
 
 <script src="config.js"></script>
 <script src="core.js"></script>
-<script src="visual-edit.js?v=1"></script>
+<script src="visual-edit.js?v=2"></script>
 <script>
 (() => {
   'use strict';
@@ -157,13 +158,33 @@
 
   // ---------- 미리보기 ----------
   let timer = 0;
-  async function render() {
+  // 코드에서 고친 곳을 미리보기에서 보여 주는 스크립트 (미리보기가 다시 그려지면 맨 위로 가므로)
+  const revealScript = (sel) => `<script>(() => {
+    document.currentScript.remove();
+    const go = () => { const e = document.querySelector('${sel}'); if (!e) return;
+      e.scrollIntoView({ block: e.getBoundingClientRect().height > innerHeight * 0.8 ? 'start' : 'center' }); };
+    go();
+    addEventListener('load', () => { go(); const e = document.querySelector('[data-hpe-goto]'); if (e) e.removeAttribute('data-hpe-goto'); }, { once: true });
+  })()<\/script>`;
+  // reveal: 코드 칸 커서가 있는 요소로 미리보기를 옮김 (코드를 직접 고칠 때)
+  async function render(reveal = false) {
     setMark(null);
-    if (!ve.on) { preview.srcdoc = code.value; return; }
+    const pos = code.selectionStart;
+    if (!ve.on) {
+      const src = code.value;
+      let html = src;
+      if (reveal && HPVE.ready()) {
+        const { map } = HPVE.instrument(src);
+        const id = HPVE.at(map, pos);
+        if (id) { const i = map[id].tagEnd - 1; html = src.slice(0, i) + ' data-hpe-goto' + src.slice(i) + '\n' + revealScript('[data-hpe-goto]'); }
+      }
+      preview.srcdoc = html;
+      return;
+    }
     const src = code.value;
     try {
       await HPVE.load();
-      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=3')).text();
+      if (!ve.frame) ve.frame = await (await fetch('visual-edit-frame.js?v=4')).text();
     } catch {
       setVisual(false);
       setStatus('직접 수정 기능을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.', 'err');
@@ -172,7 +193,8 @@
     if (src !== code.value) return; // 그새 바뀜 — 다음 render 가 그림
     const { html, map } = HPVE.instrument(src);
     ve.map = map; ve.src = src;
-    preview.srcdoc = html + '\n<script>' + ve.frame + '<\/script>';
+    const id = reveal ? HPVE.at(map, pos) : null;
+    preview.srcdoc = html + '\n<script>' + ve.frame + '<\/script>' + (id ? revealScript(`[data-hpe="${id}"]`) : '');
   }
 
   // ---------- 미리보기에서 직접 수정 ----------
@@ -218,29 +240,48 @@
   // 미리보기에서 누른 부분을 코드에서 보여 줌.
   // 스크립트가 만든 부분(focus) — 그 글자가 코드에 있으면 거기로, 없으면 감싼 요소의 시작 태그로, 코드 칸으로 넘어감.
   // 고치는 부분 — 요소 전체를 선택해 그 줄로 스크롤만 함 (포커스를 가져오면 미리보기 편집이 끊김)
-  const measure = document.createElement('canvas').getContext('2d');
-  const codeMark = $('#codeMark');
-  let markRange = null; // [a, b] 원본 글자 위치
-  function drawMark() {
-    if (!markRange || !ve.on) { codeMark.style.display = 'none'; return; }
+  // 코드 칸은 줄바꿈되므로, 같은 모양의 숨은 칸에 글자를 채워 그 위치의 높이를 잰다
+  const mirror = document.createElement('div');
+  mirror.setAttribute('aria-hidden', 'true');
+  mirror.style.cssText = 'position:absolute; left:-99999px; top:0; visibility:hidden; box-sizing:border-box; white-space:pre-wrap; overflow-wrap:anywhere;';
+  document.body.append(mirror);
+  function linesTop(offsets) { // 각 글자 위치가 든 줄의 윗변 (코드 칸 내용 기준 px)
     const cs = getComputedStyle(code);
-    const lh = parseFloat(cs.lineHeight);
-    const lineOf = (o) => code.value.slice(0, o).split('\n').length - 1;
-    const l1 = lineOf(markRange[0]), l2 = lineOf(Math.max(markRange[0], markRange[1] - 1));
-    codeMark.style.display = 'block';
-    codeMark.style.top = `${parseFloat(cs.paddingTop) + l1 * lh - code.scrollTop}px`;
-    codeMark.style.height = `${(l2 - l1 + 1) * lh}px`;
+    for (const k of ['font', 'letterSpacing', 'tabSize', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']) mirror.style[k] = cs[k];
+    mirror.style.width = `${code.clientWidth}px`;
+    mirror.textContent = '';
+    let prev = 0;
+    const marks = offsets.map((o) => {
+      mirror.append(code.value.slice(prev, o));
+      prev = o;
+      const s = document.createElement('span');
+      s.style.cssText = `display:inline-block; width:0; height:${cs.lineHeight}; vertical-align:top;`;
+      mirror.append(s);
+      return s;
+    });
+    const tops = marks.map((s) => s.offsetTop);
+    mirror.textContent = '';
+    return tops;
   }
-  function setMark(a, b) { markRange = a == null ? null : [a, b]; drawMark(); }
+  const codeMark = $('#codeMark');
+  let markRange = null, markBox = null; // 원본 글자 위치 [a, b], 잰 결과 { top, height }
+  function measureMark() {
+    if (!markRange) { markBox = null; return; }
+    const [a, b] = markRange;
+    const [t1, t2] = linesTop([a, Math.max(a, b - 1)]);
+    markBox = { top: t1, height: t2 - t1 + parseFloat(getComputedStyle(code).lineHeight) };
+  }
+  function drawMark() {
+    if (!markBox || !ve.on) { codeMark.style.display = 'none'; return; }
+    codeMark.style.display = 'block';
+    codeMark.style.top = `${markBox.top - code.scrollTop}px`;
+    codeMark.style.height = `${markBox.height}px`;
+  }
+  function setMark(a, b) { markRange = a == null ? null : [a, b]; measureMark(); drawMark(); }
   code.addEventListener('scroll', drawMark);
+  new ResizeObserver(() => { measureMark(); drawMark(); }).observe(code); // 칸 너비가 바뀌면 줄바꿈도 바뀜
   function scrollCodeTo(a) {
-    const cs = getComputedStyle(code);
-    const before = code.value.slice(0, a);
-    const line = before.split('\n').length - 1;
-    measure.font = cs.font;
-    const x = measure.measureText(before.slice(before.lastIndexOf('\n') + 1).replace(/\t/g, '  ')).width;
-    code.scrollTop = Math.max(0, line * parseFloat(cs.lineHeight) - code.clientHeight / 3);
-    code.scrollLeft = x < code.clientWidth * 0.6 ? 0 : x - code.clientWidth / 3;
+    code.scrollTop = Math.max(0, linesTop([a])[0] - code.clientHeight / 3);
   }
   function locate(id, text, focus) {
     const m = ve.map[id];
@@ -267,10 +308,10 @@
   code.addEventListener('input', () => {
     ve.hist = []; syncUndo();
     clearTimeout(timer);
-    timer = setTimeout(() => { render(); HP.local.set(DRAFT, code.value); }, 300);
+    timer = setTimeout(() => { render(true); HP.local.set(DRAFT, code.value); }, 300);
   });
   HP.enableTab(code);
-  $('#btnReload').onclick = render;
+  $('#btnReload').onclick = () => render();
   $('#btnWidth').onclick = (e) => {
     const on = $('#stage').classList.toggle('mobile');
     e.currentTarget.classList.toggle('on', on);
@@ -454,6 +495,7 @@
   // 예전 방식에서 이 주소에 저장해 둔 토큰은 지운다 (배포된 페이지가 같은 주소라 읽을 수 있음)
   HP.local.del('hp.token'); HP.session.del('hp.token');
   code.value = HP.local.get(DRAFT) || '';
+  HPVE.load().catch(() => {}); // 코드에서 고친 곳으로 미리보기 옮기기에 씀 — 못 불러오면 그 기능만 빠짐
   updateEditingUI();
   render();
   idleStatus();

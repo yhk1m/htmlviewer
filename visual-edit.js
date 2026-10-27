@@ -94,5 +94,16 @@
     return out;
   }
 
-  globalThis.HPVE = { load, instrument, applyInner, applyAttr, shift };
+  // 글자 위치 pos 를 감싼 가장 안쪽 요소 번호 (스크립트·스타일 안이면 그 바깥)
+  const SKIP = new Set(['script', 'style', 'noscript', 'template']);
+  function at(map, pos) {
+    let best = null;
+    for (const [id, m] of Object.entries(map)) {
+      if (SKIP.has(m.tag) || pos < m.start || pos > m.end) continue;
+      if (!best || m.start >= map[best].start) best = id;
+    }
+    return best;
+  }
+
+  globalThis.HPVE = { load, ready: () => !!parse, instrument, applyInner, applyAttr, shift, at };
 })();
