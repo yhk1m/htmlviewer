@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>고양이 지뢰찾기</title>
+<style>
+  :root{color-scheme:dark;--bg:#101010;--panel:#181818;--tile:#282828;--tile-hover:#383838;--line:#333;--muted:#999;--coral:#ff624f;--white:#f5f3ef}
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#2a1c1a 0,transparent 48%),var(--bg);color:var(--white);font-family:ui-sans-serif,system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;display:grid;place-items:center;padding:28px 16px}
+  button,select{font:inherit} .app{width:min(100%,520px)}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .eyebrow{font-size:11px;letter-spacing:.2em;color:var(--coral);font-weight:800;text-transform:uppercase;margin-bottom:7px}
+  h1{font-size:clamp(26px,6vw,36px);line-height:1.15;letter-spacing:-.055em;margin:0;font-weight:850}
+  .sub{margin:8px 0 0;color:var(--muted);font-size:13px}
+  .cat-mark{font-size:36px;filter:grayscale(1);opacity:.9;margin-top:3px}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:12px}
+  .stats{display:flex;gap:18px}.stat{min-width:58px}.label{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}.value{font-variant-numeric:tabular-nums;font-weight:750;font-size:19px}
+  .value.accent{color:var(--coral)} select,.reset,.save{height:38px;border:1px solid #414141;border-radius:9px;background:#222;color:var(--white);padding:0 11px;font-size:12px;font-weight:650;cursor:pointer} select:focus-visible,button:focus-visible{outline:2px solid var(--coral);outline-offset:2px}.reset{background:var(--coral);border-color:var(--coral);color:#17110f;font-weight:850;padding:0 13px}.reset:hover{filter:brightness(1.08)}.save:hover{border-color:var(--coral);color:var(--coral)}
+  .status{display:flex;justify-content:space-between;align-items:center;min-height:42px;padding:0 2px 9px;color:var(--muted);font-size:12px}.message{color:var(--white);font-weight:700}.message.win{color:var(--coral)}
+  .board-wrap{background:#171717;border:1px solid #343434;border-radius:17px;padding:12px;box-shadow:0 18px 55px #0008}
+  .board{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;touch-action:manipulation;user-select:none}
+  .cell{aspect-ratio:1;border:1px solid #3a3a3a;border-radius:7px;background:linear-gradient(145deg,#303030,#252525);padding:0;display:grid;place-items:center;color:var(--white);font-weight:850;font-size:clamp(14px,4.5vw,21px);cursor:pointer;transition:background .12s,transform .12s,border-color .12s}
+  .cell:not(.open):hover{background:var(--tile-hover);border-color:#555;transform:translateY(-1px)} .cell.open{background:#181818;border-color:#282828;cursor:default;transform:none}
+  .cell.flag{color:var(--coral);font-size:clamp(15px,4.5vw,21px)}.cell.mine{background:#3b211f;border-color:#71413b}.cell.exploded{background:var(--coral);border-color:var(--coral);color:#160e0d}
+  .n1{color:#82b7ff}.n2{color:#88d49b}.n3{color:var(--coral)}.n4{color:#c2a5ff}.n5{color:#f0a078}.n6{color:#7ddbd2}.n7{color:#efc766}.n8{color:#ddd}
+  .help{display:flex;justify-content:space-between;gap:15px;margin:13px 3px 0;color:#858585;font-size:11px;line-height:1.55}.help strong{color:#b9b9b9;font-weight:650}.help .key{color:var(--coral)}
+  .footer{border-top:1px solid #292929;margin-top:20px;padding-top:13px;color:#656565;font-size:10px;display:flex;justify-content:space-between;letter-spacing:.04em}
+  @media(max-width:420px){body{padding:22px 12px}.board-wrap{padding:9px}.board{gap:4px}.toolbar{padding:9px}.stats{gap:11px}.stat{min-width:49px}.help{font-size:10px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div><div class="eyebrow">A tiny feline challenge</div><h1>고양이 지뢰찾기</h1><p class="sub">조심조심, 고양이 얼굴을 찾아보세요.</p></div>
+    <div class="cat-mark" aria-hidden="true">🐈</div>
+  </header>
+  <section class="toolbar" aria-label="게임 설정과 점수">
+    <div class="stats">
+      <div class="stat"><span class="label">고양이</span><span class="value accent" id="mineCount">010</span></div>
+      <div class="stat"><span class="label">시간</span><span class="value" id="timer">000</span></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="difficulty" aria-label="난이도 선택"><option value="easy">쉬움 · 8마리</option><option value="normal" selected="">보통 · 10마리</option><option value="hard">어려움 · 14마리</option></select>
+      <button class="save" id="saveSource" type="button" aria-label="게임 HTML 파일 다운로드">HTML 저장</button>
+      <button class="reset" id="reset" type="button" aria-label="새 게임">새 게임</button>
+    </div>
+  </section>
+  <div class="status"><span class="message" id="message" aria-live="polite">첫 칸은 안전해요. 시작해 볼까요?</span><span>9 × 9</span></div>
+  <section class="board-wrap" aria-label="지뢰찾기 게임판"><div class="board" id="board" role="grid" aria-label="9 곱하기 9 게임판"></div></section>
+  <div class="help"><span>왼쪽 클릭 <strong>칸 열기</strong>　오른쪽 클릭 <strong class="key">깃발</strong></span><span>좌우 동시 클릭 <strong>주변 검사</strong></span></div>
+  <div class="footer"><span>숨은 고양이를 모두 피해서 빈칸을 열어주세요.</span><span>MEOW / MINE</span></div>
+</main>
+<script>
+(() => {
+  const SIZE=9, boardEl=document.getElementById('board'), mineEl=document.getElementById('mineCount'), timerEl=document.getElementById('timer'), msgEl=document.getElementById('message'), difficultyEl=document.getElementById('difficulty');
+  const mineSettings={easy:8,normal:10,hard:14};
+  let cells=[], mineTotal=10, started=false, ended=false, seconds=0, tick=null;
+  const around=(i)=>{const x=i%SIZE,y=Math.floor(i/SIZE),out=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const nx=x+dx,ny=y+dy;if(nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE)out.push(ny*SIZE+nx)}return out};
+  function fresh(){clearInterval(tick);tick=null;seconds=0;started=false;ended=false;mineTotal=mineSettings[difficultyEl.value];timerEl.textContent='000';mineEl.textContent=String(mineTotal).padStart(3,'0');msgEl.textContent='첫 칸은 안전해요. 시작해 볼까요?';msgEl.className='message';cells=Array.from({length:81},()=>({mine:false,open:false,flag:false,count:0}));boardEl.innerHTML='';cells.forEach((_,i)=>{const b=document.createElement('button');b.type='button';b.className='cell';b.setAttribute('role','gridcell');b.setAttribute('aria-label',`숨겨진 칸 ${Math.floor(i/9)+1}행 ${i%9+1}열`);b.dataset.i=i;b.addEventListener('click',e=>{if(e.buttons===3){chord(i);return}open(i)});b.addEventListener('contextmenu',e=>{e.preventDefault();toggleFlag(i)});b.addEventListener('mousedown',e=>{if(e.buttons===3){e.preventDefault();chord(i)}});boardEl.appendChild(b)});}
+  function seed(safe){const pool=Array.from({length:81},(_,i)=>i).filter(i=>i!==safe);for(let n=0;n<mineTotal;n++){const k=Math.floor(Math.random()*pool.length),i=pool.splice(k,1)[0];cells[i].mine=true}cells.forEach((c,i)=>{if(!c.mine)c.count=around(i).filter(j=>cells[j].mine).length});started=true;tick=setInterval(()=>{seconds++;timerEl.textContent=String(Math.min(seconds,999)).padStart(3,'0')},1000)}
+  function paint(i){const c=cells[i],b=boardEl.children[i];b.className='cell';b.textContent='';b.removeAttribute('aria-label');if(c.flag){b.classList.add('flag');b.textContent='⚑';b.setAttribute('aria-label','깃발');return}if(!c.open){b.setAttribute('aria-label','닫힌 칸');return}b.classList.add('open');if(c.mine){b.classList.add('mine');b.textContent='🐱';b.setAttribute('aria-label','고양이 지뢰')}else if(c.count){b.textContent=c.count;b.classList.add('n'+c.count);b.setAttribute('aria-label',`주변 고양이 ${c.count}마리`)}else b.setAttribute('aria-label','빈칸')}
+  function open(i){if(ended||cells[i].flag||cells[i].open)return;if(!started)seed(i);const c=cells[i];c.open=true;if(c.mine){finish(false,i);return}paint(i);if(c.count===0)around(i).forEach(j=>{if(!cells[j].open&&!cells[j].flag)open(j)});checkWin()}
+  function toggleFlag(i){if(ended||cells[i].open)return;cells[i].flag=!cells[i].flag;paint(i);const count=cells.filter(c=>c.flag).length;mineEl.textContent=String(Math.max(0,mineTotal-count)).padStart(3,'0')}
+  function chord(i){if(ended||!cells[i].open||!cells[i].count)return;const adj=around(i),flags=adj.filter(j=>cells[j].flag).length;if(flags!==cells[i].count)return;for(const j of adj){if(!cells[j].flag&&!cells[j].open){if(cells[j].mine){cells[j].open=true;finish(false,j);return}open(j)}}}
+  function finish(win,hit=-1){ended=true;clearInterval(tick);if(win){msgEl.textContent='성공! 고양이 지뢰를 모두 피했어요 🎉';msgEl.className='message win'}else{msgEl.textContent='앗, 고양이를 밟았어요! 새 게임으로 다시 도전해요.';msgEl.className='message';cells.forEach((c,i)=>{if(c.mine){c.open=true;paint(i)}});if(hit>=0){boardEl.children[hit].classList.add('exploded')}}}
+  function checkWin(){if(cells.every(c=>c.mine||c.open))finish(true)}
+  document.getElementById('saveSource').addEventListener('click',()=>{const copy=document.documentElement.cloneNode(true);copy.querySelector('#board').replaceChildren();copy.querySelector('#difficulty').value='normal';const source='<!doctype html>\n'+copy.outerHTML;const blob=new Blob([source],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='고양이-지뢰찾기.html';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+  document.getElementById('reset').addEventListener('click',fresh);difficultyEl.addEventListener('change',fresh);boardEl.addEventListener('contextmenu',e=>e.preventDefault());
+  fresh();
+})();
+</script>
+
+
+</body></html>
