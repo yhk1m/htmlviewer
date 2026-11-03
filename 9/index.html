@@ -1,0 +1,275 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>지구찾기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a survey map sheet — header strip with legend & counters, the grid as a map plate with lat/long ticks */
+:root{
+  --bg:#e9eef0; --sheet:#f7faf9; --ink:#1d2b33; --muted:#5d6f78;
+  --tile:#5c8a8f; --tile-hi:#7aa6aa; --tile-lo:#3f6a70; --open:#eef3ef; --grid:#c9d6d4;
+  --ocean:#2f78b7; --land:#4f9a4c; --boom:#d9483b; --flag:#e0a32a; --accent:#2f78b7;
+  --n1:#2565a8; --n2:#2e7d32; --n3:#c0392b; --n4:#4a2a8c; --n5:#8a3b12; --n6:#0f7c80; --n7:#222; --n8:#6b6b6b;
+  --f-display:"Black Han Sans","Noto Sans KR",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --cell:30px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10181d; --sheet:#16222a; --ink:#e3ecee; --muted:#93a6ae;
+  --tile:#355a60; --tile-hi:#4b767c; --tile-lo:#213c41; --open:#1c2a31; --grid:#2a3a42;
+  --ocean:#4a95d6; --land:#6bbd66; --boom:#e0584a; --flag:#f0b84a; --accent:#6aaee8;
+  --n1:#7cb4ff; --n2:#7fd17a; --n3:#ff8a7a; --n4:#c4a6ff; --n5:#f0a46a; --n6:#5fd4d6; --n7:#e8e8e8; --n8:#a8a8a8;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10181d; --sheet:#16222a; --ink:#e3ecee; --muted:#93a6ae;
+  --tile:#355a60; --tile-hi:#4b767c; --tile-lo:#213c41; --open:#1c2a31; --grid:#2a3a42;
+  --ocean:#4a95d6; --land:#6bbd66; --boom:#e0584a; --flag:#f0b84a; --accent:#6aaee8;
+  --n1:#7cb4ff; --n2:#7fd17a; --n3:#ff8a7a; --n4:#c4a6ff; --n5:#f0a46a; --n6:#5fd4d6; --n7:#e8e8e8; --n8:#a8a8a8;
+  color-scheme:dark}
+@media (max-width:520px){:root{--cell:28px}}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,6vw,52px);line-height:1;margin:0;letter-spacing:-.01em;display:flex;align-items:center;gap:12px}
+h1 svg{width:.9em;height:.9em}
+.sub{margin:6px 0 0;color:var(--muted);font-size:14px}
+.diff{display:flex;gap:6px;flex-wrap:wrap}
+.diff button,.tool{font:600 14px var(--f-body);color:var(--ink);background:var(--sheet);border:1.5px solid var(--grid);border-radius:999px;padding:8px 14px;cursor:pointer}
+.diff button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.diff small{font:500 11px var(--f-mono);opacity:.7;margin-left:4px}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel{background:var(--sheet);border:1.5px solid var(--grid);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.readouts{display:flex;gap:18px}
+.ro{display:flex;flex-direction:column;gap:2px}
+.ro span{font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.ro b{font:700 24px var(--f-mono);font-variant-numeric:tabular-nums;line-height:1}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.tool[aria-pressed="true"]{background:var(--flag);border-color:var(--flag);color:#1d1404}
+.status{min-height:22px;font-size:14px;color:var(--muted)}
+.status.win{color:var(--land);font-weight:600}.status.lose{color:var(--boom);font-weight:600}
+
+.plate{overflow-x:auto;padding:4px 2px 8px}
+.board{display:grid;gap:2px;width:max-content;margin:0 auto;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  padding:6px;background:var(--grid);border-radius:8px}
+.c{width:var(--cell);height:var(--cell);display:grid;place-items:center;border-radius:4px;cursor:pointer;
+  background:var(--tile);box-shadow:inset 2px 2px 0 var(--tile-hi),inset -2px -2px 0 var(--tile-lo);
+  font:700 calc(var(--cell)*.56) var(--f-mono);line-height:1}
+.c.p{background:var(--tile-lo);box-shadow:none}
+.c.o{background:var(--open);box-shadow:none;cursor:default}
+.c.o.x{background:var(--boom)}
+.c svg{width:72%;height:72%;display:block}
+.n1{color:var(--n1)}.n2{color:var(--n2)}.n3{color:var(--n3)}.n4{color:var(--n4)}.n5{color:var(--n5)}.n6{color:var(--n6)}.n7{color:var(--n7)}.n8{color:var(--n8)}
+.wrong{position:relative}.wrong::after{content:"";position:absolute;inset:18%;background:linear-gradient(45deg,transparent 45%,var(--boom) 45% 55%,transparent 55%),linear-gradient(-45deg,transparent 45%,var(--boom) 45% 55%,transparent 55%)}
+
+.help{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 24px;font-size:13.5px;color:var(--muted);line-height:1.55}
+.help b{color:var(--ink);font-weight:600}
+kbd{font:500 12px var(--f-mono);border:1px solid var(--grid);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--ink);background:var(--sheet)}
+@media (prefers-reduced-motion:no-preference){.c.o{transition:background .12s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#earth"/></svg>지구찾기</h1>
+      <p class="sub">지뢰 대신 지구가 숨어 있습니다. 숫자는 주변 8칸에 있는 지구의 수입니다.</p>
+    </div>
+    <div class="diff" role="group" aria-label="난이도">
+      <button id="d-low" data-d="low">하<small>9×9 · 10</small></button>
+      <button id="d-mid" data-d="mid">중<small>16×16 · 40</small></button>
+      <button id="d-high" data-d="high">상<small>16×30 · 99</small></button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="bar">
+      <div class="readouts">
+        <div class="ro"><span>남은 지구</span><b id="left">010</b></div>
+        <div class="ro"><span>시간</span><b id="time">000</b></div>
+        <div class="ro"><span>최고 기록</span><b id="best">—</b></div>
+      </div>
+      <div class="actions">
+        <button class="tool" id="flagmode" aria-pressed="false">깃발 모드</button>
+        <button class="tool" id="restart">새 게임</button>
+      </div>
+    </div>
+    <div class="status" id="status" aria-live="polite">첫 칸은 항상 안전합니다. 아무 칸이나 눌러 시작하세요.</div>
+    <div class="plate"><div class="board" id="board"></div></div>
+  </section>
+
+  <div class="help">
+    <div><b>칸 열기</b> · 마우스 왼쪽 클릭</div>
+    <div><b>깃발 꽂기</b> · 오른쪽 클릭 (휴대폰은 길게 누르기 또는 깃발 모드)</div>
+    <div><b>검사</b> · 열린 숫자 칸에서 <kbd>왼쪽+오른쪽</kbd> 동시 클릭 (가운데 버튼도 가능). 주변 깃발 수가 숫자와 같으면 나머지 칸을 한꺼번에 엽니다.</div>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="earth" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="var(--ocean)"/>
+      <path fill="var(--land)" d="M9 6.5c2.5-1 5-.6 6.2.8 1 1.2-.4 2.6.6 3.8 1.1 1.3 3.4.4 3.6 2.4.2 1.9-2.2 2.2-2.6 4-.4 1.8 1.2 3.4-.2 4.8-1.3 1.3-3 .2-3.6-1.6-.6-1.7-2.4-2-3.6-3.2C8 16.4 9.4 14.6 8 13.2 6.9 12 4.6 12.4 4.4 10.6 4.6 8.8 6.8 7.4 9 6.5Z"/>
+      <path fill="var(--land)" d="M21.5 5.6c1.8.4 3.4 1.6 4.4 3-1.2.6-2.6.2-3.6-.6-.7-.6-1.4-1.4-.8-2.4ZM22.6 19c1.6-.6 3.6.2 4.2 1.4-.6 2.2-2.2 4.2-4 5.4-.8-.8-.6-2.2-.8-3.4-.2-1.4-.8-2.8.6-3.4Z"/>
+      <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1.2"/>
+      <path d="M8 9a10 10 0 0 1 6-3.6" stroke="rgba(255,255,255,.55)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="flag" viewBox="0 0 32 32">
+      <rect x="9" y="5" width="2.6" height="22" rx="1" fill="var(--ink)"/>
+      <path d="M11.4 5.5 25 10.5 11.4 16Z" fill="var(--flag)"/>
+      <rect x="6" y="25" width="10" height="3" rx="1.2" fill="var(--ink)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+(()=>{
+const LEVELS={low:{r:9,c:9,m:10},mid:{r:16,c:16,m:40},high:{r:16,c:30,m:99}};
+const $=id=>document.getElementById(id);
+const boardEl=$('board'),leftEl=$('left'),timeEl=$('time'),statusEl=$('status'),bestEl=$('best');
+const EARTH='<svg viewBox="0 0 32 32"><use href="#earth"/></svg>';
+const FLAG='<svg viewBox="0 0 32 32"><use href="#flag"/></svg>';
+let lv='low',R,C,M,cells,mines,opened,flagged,started,over,t0,timer,elems,flagMode=false;
+
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const pad=n=>String(Math.max(-99,Math.min(999,n))).padStart(3,'0');
+function nbrs(i){const r=Math.floor(i/C),c=i%C,out=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const rr=r+dr,cc=c+dc;if(rr>=0&&rr<R&&cc>=0&&cc<C)out.push(rr*C+cc)}return out}
+
+function newGame(level){
+  if(level)lv=level;
+  ({r:R,c:C,m:M}=LEVELS[lv]);
+  cells=new Array(R*C).fill(0);mines=new Array(R*C).fill(false);
+  opened=new Array(R*C).fill(false);flagged=new Array(R*C).fill(false);
+  started=false;over=false;clearInterval(timer);timeEl.textContent='000';
+  document.querySelectorAll('.diff button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===lv));
+  boardEl.style.gridTemplateColumns=`repeat(${C},var(--cell))`;
+  boardEl.innerHTML='';elems=[];
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<R*C;i++){const d=document.createElement('div');d.className='c';d.dataset.i=i;frag.appendChild(d);elems.push(d)}
+  boardEl.appendChild(frag);
+  const b=store.get('earthsweep-best-'+lv);bestEl.textContent=b?pad(+b):'—';
+  setStatus('첫 칸은 항상 안전합니다. 아무 칸이나 눌러 시작하세요.');
+  updateLeft();
+}
+function plant(safe){
+  const ban=new Set([safe,...nbrs(safe)]);const pool=[];
+  for(let i=0;i<R*C;i++)if(!ban.has(i))pool.push(i);
+  for(let k=0;k<M;k++){const j=k+Math.floor(Math.random()*(pool.length-k));[pool[k],pool[j]]=[pool[j],pool[k]];mines[pool[k]]=true}
+  for(let i=0;i<R*C;i++)cells[i]=nbrs(i).filter(n=>mines[n]).length;
+  started=true;t0=Date.now();
+  timer=setInterval(()=>{timeEl.textContent=pad(Math.floor((Date.now()-t0)/1000))},250);
+}
+function setStatus(t,cls=''){statusEl.textContent=t;statusEl.className='status '+cls}
+function updateLeft(){leftEl.textContent=pad(M-flagged.filter(Boolean).length)}
+
+function render(i){
+  const e=elems[i];e.className='c';e.innerHTML='';
+  if(opened[i]){e.classList.add('o');
+    if(mines[i])e.innerHTML=EARTH;
+    else if(cells[i]){e.textContent=cells[i];e.classList.add('n'+cells[i])}
+  }else if(flagged[i])e.innerHTML=FLAG;
+}
+function reveal(i){
+  if(over||flagged[i]||opened[i])return;
+  if(!started)plant(i);
+  if(mines[i]){lose(i);return}
+  const stack=[i];
+  while(stack.length){const k=stack.pop();if(opened[k]||flagged[k])continue;opened[k]=true;render(k);
+    if(cells[k]===0)for(const n of nbrs(k))if(!opened[n]&&!mines[n])stack.push(n)}
+  checkWin();
+}
+function toggleFlag(i){
+  if(over||opened[i])return;
+  flagged[i]=!flagged[i];render(i);updateLeft();
+}
+function chord(i){
+  if(over||!opened[i]||!cells[i])return;
+  const ns=nbrs(i),f=ns.filter(n=>flagged[n]).length;
+  if(f!==cells[i]){setStatus(`검사 실패: 깃발 ${f}개, 숫자 ${cells[i]}. 깃발 수를 맞춰야 검사할 수 있습니다.`);return}
+  const hit=ns.find(n=>!flagged[n]&&!opened[n]&&mines[n]);
+  if(hit!==undefined){lose(hit);return}
+  ns.forEach(n=>{if(!flagged[n]&&!opened[n])reveal(n)});
+}
+function lose(i){
+  over=true;clearInterval(timer);
+  for(let k=0;k<R*C;k++){
+    if(mines[k]&&!flagged[k]){opened[k]=true;render(k)}
+    else if(flagged[k]&&!mines[k])elems[k].classList.add('wrong');
+  }
+  elems[i].classList.add('x');
+  setStatus('지구를 건드렸습니다. 새 게임을 눌러 다시 도전하세요.','lose');
+}
+function checkWin(){
+  if(over)return;
+  if(opened.filter(Boolean).length!==R*C-M)return;
+  over=true;clearInterval(timer);
+  const s=Math.floor((Date.now()-t0)/1000);timeEl.textContent=pad(s);
+  for(let k=0;k<R*C;k++)if(mines[k]&&!flagged[k]){flagged[k]=true;render(k)}
+  updateLeft();
+  const key='earthsweep-best-'+lv,b=store.get(key);
+  let msg=`지구 ${M}개를 모두 찾았습니다! ${s}초.`;
+  if(!b||s<+b){store.set(key,s);bestEl.textContent=pad(s);msg+=' 최고 기록입니다.'}
+  setStatus(msg,'win');
+}
+
+/* ---------- 마우스: 왼쪽=열기, 오른쪽=깃발, 왼쪽+오른쪽 동시(또는 가운데)=검사 ---------- */
+let hover=-1,chordMode=false,chordFired=false,btns=0,pressed=[];
+const cellAt=e=>{const el=e.target.closest&&e.target.closest('.c');return el?+el.dataset.i:-1};
+function showPress(){
+  pressed.forEach(k=>render(k));pressed=[];
+  if(over||hover<0||!btns)return;
+  let list=[];
+  if(chordMode)list=[hover,...nbrs(hover)];
+  else if(btns&1)list=[hover];
+  list.forEach(k=>{if(!opened[k]&&!flagged[k]){elems[k].classList.add('p');pressed.push(k)}});
+}
+boardEl.addEventListener('contextmenu',e=>e.preventDefault());
+boardEl.addEventListener('mousedown',e=>{
+  e.preventDefault();
+  btns=e.buttons;hover=cellAt(e);
+  if((btns&3)===3||e.button===1){chordMode=true}
+  showPress();
+});
+boardEl.addEventListener('mousemove',e=>{if(!btns)return;const h=cellAt(e);if(h!==hover){hover=h;showPress()}});
+window.addEventListener('mouseup',e=>{
+  if(!btns)return;
+  const i=hover;
+  if(chordMode){
+    if(!chordFired&&i>=0){chord(i);chordFired=true}
+  }else if(i>=0){
+    if(e.button===0){if(opened[i])chord(i);else if(flagMode)toggleFlag(i);else reveal(i)}
+    else if(e.button===2)toggleFlag(i);
+  }
+  btns=e.buttons;
+  if(!btns){chordMode=false;chordFired=false}
+  showPress();
+});
+
+/* ---------- 터치: 탭=열기(열린 숫자면 검사), 길게 누르기=깃발 ---------- */
+let lp=null,lpDone=false,tStart=-1;
+boardEl.addEventListener('touchstart',e=>{
+  const t=e.touches[0],el=document.elementFromPoint(t.clientX,t.clientY);
+  tStart=el&&el.closest('.c')?+el.closest('.c').dataset.i:-1;lpDone=false;
+  clearTimeout(lp);
+  if(tStart>=0)lp=setTimeout(()=>{lpDone=true;toggleFlag(tStart);if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}} ,420);
+},{passive:true});
+boardEl.addEventListener('touchmove',()=>clearTimeout(lp),{passive:true});
+boardEl.addEventListener('touchend',e=>{
+  clearTimeout(lp);e.preventDefault();
+  if(lpDone||tStart<0)return;
+  if(opened[tStart])chord(tStart);
+  else if(flagMode)toggleFlag(tStart);
+  else reveal(tStart);
+});
+
+$('flagmode').addEventListener('click',e=>{flagMode=!flagMode;e.currentTarget.setAttribute('aria-pressed',flagMode)});
+$('restart').addEventListener('click',()=>newGame());
+document.querySelectorAll('.diff button').forEach(b=>b.addEventListener('click',()=>{store.set('earthsweep-level',b.dataset.d);newGame(b.dataset.d)}));
+newGame(LEVELS[store.get('earthsweep-level')]?store.get('earthsweep-level'):'low');
+})();
+</script>
+
+</body></html>
