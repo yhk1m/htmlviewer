@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합사회 카드 짝 맞추기 — Airbnb Design System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rausch: {
+                            DEFAULT: '#FF385C',
+                            hover: '#E00B41',
+                            light: '#FFF0F3',
+                            subtle: '#FFEBEE'
+                        },
+                        airbnb: {
+                            black: '#222222',
+                            gray: '#717171',
+                            lightGray: '#B0B0B0',
+                            border: '#DDDDDD',
+                            borderSubtle: '#EBEBEB',
+                            bg: '#F7F7F7',
+                            emerald: '#008489',
+                            emeraldLight: '#E6F4F5',
+                            gold: '#FFB400'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Circular', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'Helvetica Neue', 'sans-serif']
+                    },
+                    boxShadow: {
+                        airbnb: '0 6px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
+                        'airbnb-hover': '0 12px 24px rgba(0, 0, 0, 0.14), 0 4px 8px rgba(0, 0, 0, 0.06)',
+                        pill: '0 3px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: Circular, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+            background-color: #F7F7F7;
+            color: #222222;
+            letter-spacing: -0.02em;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 3D Card Scene & Flip Effect */
+        .card-scene {
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        /* Card Back (Cover - Facedown) */
+        .card-front-cover {
+            background: linear-gradient(145deg, #FFFFFF, #F7F7F7);
+            border: 1px solid #DDDDDD;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .card-scene:hover .card-inner:not(.is-flipped) .card-front-cover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.04);
+            border-color: #B0B0B0;
+        }
+
+        /* Card Front (Content - Faceup) */
+        .card-back-content {
+            transform: rotateY(180deg);
+            background-color: #FFFFFF;
+            border: 1.5px solid #DDDDDD;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Error Shake Animation */
+        @keyframes airbnb-shake {
+            0%, 100% { transform: rotateY(180deg) translateX(0); }
+            20%, 60% { transform: rotateY(180deg) translateX(-6px); }
+            40%, 80% { transform: rotateY(180deg) translateX(6px); }
+        }
+
+        .animate-mismatch {
+            animation: airbnb-shake 0.4s ease-in-out;
+            border-color: #FF385C !important;
+            box-shadow: 0 0 16px rgba(255, 56, 92, 0.3) !important;
+        }
+
+        /* Matched Pulse Animation */
+        @keyframes airbnb-matched-pulse {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.04); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .animate-matched {
+            animation: airbnb-matched-pulse 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border-color: #008489 !important;
+            background-color: #F4FBFB !important;
+            box-shadow: 0 0 20px rgba(0, 132, 137, 0.25) !important;
+        }
+
+        /* Custom Scrollbar for Airbnb Modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #DDDDDD;
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B0B0B0;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 text-airbnb-black bg-airbnb-bg">
+
+    <!-- Airbnb Header Navigation Bar -->
+    <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        
+        <!-- Airbnb Brand Logo Area -->
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetGame()">
+            <!-- Custom Rausch Red Airbnb Symbol SVG -->
+            <div class="w-10 h-10 rounded-2xl bg-rausch flex items-center justify-center text-white shadow-md shadow-rausch/30">
+                <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 1C11.5 1 8 4.8 8 9.5C8 15.2 14.2 22.8 15.4 24.2C15.7 24.6 16.3 24.6 16.6 24.2C17.8 22.8 24 15.2 24 9.5C24 4.8 20.5 1 16 1ZM16 13C14.1 13 12.5 11.4 12.5 9.5C12.5 7.6 14.1 6 16 6C17.9 6 19.5 7.6 19.5 9.5C19.5 11.4 17.9 13 16 13Z" fill="white"/>
+                </svg>
+            </div>
+            <div>
+                <span class="text-xl font-black text-rausch tracking-tight flex items-center gap-1">
+                    airbnb <span class="text-xs px-2 py-0.5 rounded-full bg-rausch-light text-rausch font-bold border border-rausch/20">학습 매칭</span>
+                </span>
+                <p class="text-[11px] font-semibold text-airbnb-gray">통합사회 개념 • 짝맞추기 게임</p>
+            </div>
+        </div>
+
+        <!-- Iconic Airbnb Floating Search Bar Capsule (Metrics Dashboard) -->
+        <div class="bg-white border border-airbnb-border rounded-full py-2.5 px-6 shadow-pill flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-bold text-airbnb-black hover:shadow-airbnb transition cursor-default">
+            
+            <!-- Metric 1: Timer -->
+            <div class="flex items-center gap-2">
+                <span class="text-airbnb-gray font-normal text-xs">⏱️ 시간</span>
+                <span id="timer" class="font-mono text-sm sm:text-base text-airbnb-black font-bold">00:00</span>
+            </div>
+
+            <div class="w-px h-5 bg-airbnb-border"></div>
+
+            <!-- Metric 2: Moves -->
+            <div class="flex items-center gap-2">
+                <span class="text-airbnb-gray font-normal text-xs">🔄 시도</span>
+                <span id="attempts" class="text-sm sm:text-base text-airbnb-black font-bold">0회</span>
+            </div>
+
+            <div class="w-px h-5 bg-airbnb-border"></div>
+
+            <!-- Metric 3: Matched Pairs -->
+            <div class="flex items-center gap-2">
+                <span class="text-airbnb-gray font-normal text-xs">⭐ 완성</span>
+                <span id="matches" class="text-sm sm:text-base text-rausch font-black">0 / 8</span>
+            </div>
+        </div>
+
+        <!-- Utility Pill Action Buttons -->
+        <div class="flex items-center gap-2.5 w-full md:w-auto">
+            <button id="sound-btn" onclick="toggleSound()" class="flex-1 md:flex-none h-10 px-4 bg-white border border-airbnb-border hover:bg-slate-50 text-airbnb-black font-semibold rounded-full text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-airbnb-gray"></i>
+                <span id="sound-text">소리 켬</span>
+            </button>
+
+            <button onclick="resetGame()" class="flex-1 md:flex-none h-10 px-5 bg-rausch hover:bg-rausch-hover text-white font-bold rounded-full text-xs sm:text-sm shadow-md shadow-rausch/20 transition flex items-center justify-center gap-2 active:scale-95">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>새 게임 시작</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Cards Area -->
+    <main class="w-full max-w-5xl flex-1 flex flex-col items-center">
+        
+        <!-- Airbnb Listing Grid Layout (4x4) -->
+        <div id="grid-container" class="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4.5 mb-6">
+            <!-- Dynamic 16 Listing Cards -->
+        </div>
+
+    </main>
+
+    <!-- Airbnb Footer -->
+    <footer class="w-full max-w-5xl border-t border-airbnb-borderSubtle py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-airbnb-gray gap-2 font-medium">
+        <div>© 2026 Integrated Social Studies • Airbnb Design System Edition</div>
+        <div class="flex items-center gap-4">
+            <span>한국어 (KR)</span>
+            <span>KRW (₩)</span>
+            <span class="hover:underline cursor-pointer">개념 복습 가이드</span>
+        </div>
+    </footer>
+
+    <!-- Victory Modal (Airbnb Detail Modal Style) -->
+    <div id="victory-modal" class="fixed inset-0 bg-airbnb-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 text-left transform scale-95 transition-transform duration-300 border border-airbnb-border relative" id="modal-card">
+            
+            <!-- Modal Close Button -->
+            <button onclick="closeModalAndReset()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-airbnb-black transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <!-- Airbnb Header Banner -->
+            <div class="flex items-center gap-2.5 mb-4">
+                <div class="w-12 h-12 bg-rausch-light text-rausch rounded-2xl flex items-center justify-center text-2xl border border-rausch/20">
+                    👑
+                </div>
+                <div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-airbnb-gold/15 text-amber-700 border border-amber-300 inline-block">
+                        ★ 최고 등급 학습 달성
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-black text-airbnb-black tracking-tight mt-0.5">
+                        통합사회 짝 맞추기 완수!
+                    </h2>
+                </div>
+            </div>
+
+            <p class="text-airbnb-gray text-xs sm:text-sm mb-5 leading-relaxed">
+                모든 8쌍의 통합사회 핵심 개념과 설명을 정확하게 매칭하셨습니다.
+            </p>
+
+            <!-- Result Stats Card -->
+            <div class="grid grid-cols-2 gap-3 mb-6 bg-airbnb-bg p-4 rounded-2xl border border-airbnb-border">
+                <div class="text-center border-r border-airbnb-border pr-2">
+                    <span class="text-[11px] font-semibold text-airbnb-gray block mb-1">총 소요 시간</span>
+                    <span id="final-time" class="text-xl sm:text-2xl font-black text-airbnb-black font-mono">00:00</span>
+                </div>
+                <div class="text-center pl-2">
+                    <span class="text-[11px] font-semibold text-airbnb-gray block mb-1">총 시도 횟수</span>
+                    <span id="final-attempts" class="text-xl sm:text-2xl font-black text-rausch">0회</span>
+                </div>
+            </div>
+
+            <!-- Airbnb Amenities Style: Concept Review Notes -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-airbnb-black tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-rausch"></i> 통합사회 핵심 개념 총정리
+                    </h3>
+                    <span class="text-xs text-airbnb-gray">8개 항목</span>
+                </div>
+
+                <div id="review-list" class="max-h-56 overflow-y-auto space-y-2.5 pr-1">
+                    <!-- Dynamic Concept Summaries -->
+                </div>
+            </div>
+
+            <!-- Modal Action Pill Button -->
+            <button onclick="closeModalAndReset()" class="w-full h-12 bg-rausch hover:bg-rausch-hover text-white font-bold rounded-full shadow-lg shadow-rausch/25 transition flex items-center justify-center gap-2 text-base active:scale-95">
+                <i class="fa-solid fa-rotate-right"></i> 다시 도전하기
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic & Web Audio Synthesizer -->
+    <script>
+        // 8 Social Studies Concept Pairs
+        const PAIRS_DATA = [
+            {
+                pairId: 1,
+                concept: "평등권",
+                description: "성별, 종교, 사회적 신분에 의해 차별받지 않을 권리"
+            },
+            {
+                pairId: 2,
+                concept: "청구권",
+                description: "기본권이 침해되었을 때 이를 구제해 달라고 국가에 요구할 수 있는 수단적 권리"
+            },
+            {
+                pairId: 3,
+                concept: "롤스\n(기회 균등 & 차등의 원칙)",
+                description: "최저 수혜자에게 최대의 이익이 돌아가도록 사회적·경제적 불평등을 조정해야 한다."
+            },
+            {
+                pairId: 4,
+                concept: "노직\n(소유 권리론)",
+                description: "정당하게 취득한 개인의 재산권은 절대적으로 보장되어야 하며 국가의 개입은 최소화해야 한다."
+            },
+            {
+                pairId: 5,
+                concept: "주식",
+                description: "수익성은 높을 수 있으나 원금 손실의 위험성이 있는 자기자본 조달 수단"
+            },
+            {
+                pairId: 6,
+                concept: "몬트리올 의정서",
+                description: "오존층 파괴 물질인 프레온 가스(CFCs)의 생산 및 사용을 규제하기 위한 국제 협약"
+            },
+            {
+                pairId: 7,
+                concept: "열대 기후",
+                description: "고온 다습한 기후 특성으로 인해 지붕 경사가 가파른 고상 가옥이 발달함"
+            },
+            {
+                pairId: 8,
+                concept: "외부 불경제",
+                description: "공장 폐수로 인해 인근 양식장이 피해를 입었지만 이에 대한 보상이 이루어지지 않는 현상"
+            }
+        ];
+
+        // Web Audio Synthesizer Sound Engine
+        class AirbnbSoundFx {
+            constructor() {
+                this.audioCtx = null;
+                this.isMuted = false;
+            }
+
+            init() {
+                if (!this.audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.audioCtx = new AudioContext();
+                    }
+                }
+                if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            }
+
+            playFlip() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.audioCtx) return;
+
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, this.audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(620, this.audioCtx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.09, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + 0.08);
+            }
+
+            playMatch() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.audioCtx) return;
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // E-Maj/C Chord
+                const now = this.audioCtx.currentTime;
+
+                notes.forEach((freq, idx) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.2);
+
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.2);
+                });
+            }
+
+            playMismatch() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.audioCtx) return;
+
+                const now = this.audioCtx.currentTime;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.linearRampToValueAtTime(160, now + 0.22);
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.22);
+            }
+
+            playWin() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.audioCtx) return;
+
+                const notes = [523.25, 659.25, 783.99, 880, 1046.50];
+                const times = [0, 0.08, 0.16, 0.24, 0.38];
+                const now = this.audioCtx.currentTime;
+
+                notes.forEach((freq, idx) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + times[idx]);
+
+                    gain.gain.setValueAtTime(0.15, now + times[idx]);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + times[idx] + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+
+                    osc.start(now + times[idx]);
+                    osc.stop(now + times[idx] + 0.4);
+                });
+            }
+        }
+
+        const soundFx = new AirbnbSoundFx();
+
+        // Game State Engine Variables
+        let cardsDataList = [];
+        let flippedCards = [];
+        let matchedCount = 0;
+        let attemptsCount = 0;
+        let isBoardLocked = false;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let gameStarted = false;
+
+        // Toggle Sound Mute State
+        function toggleSound() {
+            soundFx.isMuted = !soundFx.isMuted;
+            const soundIcon = document.getElementById('sound-icon');
+            const soundText = document.getElementById('sound-text');
+            const soundBtn = document.getElementById('sound-btn');
+
+            if (soundFx.isMuted) {
+                soundIcon.className = "fa-solid fa-volume-xmark text-rausch";
+                soundText.innerText = "음소거";
+                soundBtn.classList.add("bg-rausch-light", "border-rausch/30");
+            } else {
+                soundIcon.className = "fa-solid fa-volume-high text-airbnb-gray";
+                soundText.innerText = "소리 켬";
+                soundBtn.classList.remove("bg-rausch-light", "border-rausch/30");
+            }
+        }
+
+        // Shuffle & Start / Reset Game
+        function resetGame() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            secondsElapsed = 0;
+            attemptsCount = 0;
+            matchedCount = 0;
+            flippedCards = [];
+            isBoardLocked = false;
+            gameStarted = false;
+
+            document.getElementById('timer').innerText = "00:00";
+            document.getElementById('attempts').innerText = "0회";
+            document.getElementById('matches').innerText = "0 / 8";
+
+            // Prepare 16 Cards (8 Concept + 8 Description)
+            cardsDataList = [];
+            PAIRS_DATA.forEach(pair => {
+                cardsDataList.push({
+                    cardId: `concept-${pair.pairId}`,
+                    pairId: pair.pairId,
+                    type: "개념",
+                    text: pair.concept,
+                    isMatched: false
+                });
+                cardsDataList.push({
+                    cardId: `desc-${pair.pairId}`,
+                    pairId: pair.pairId,
+                    type: "설명",
+                    text: pair.description,
+                    isMatched: false
+                });
+            });
+
+            shuffleArray(cardsDataList);
+            renderGameBoard();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Render Cards with Airbnb Listing Card Aesthetics
+        function renderGameBoard() {
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+
+            cardsDataList.forEach((card, index) => {
+                const scene = document.createElement('div');
+                scene.className = 'card-scene h-44 sm:h-48 w-full';
+
+                const isConcept = card.type === "개념";
+                
+                // Airbnb Style Badges
+                const badgeStyle = isConcept 
+                    ? "bg-rausch-light text-rausch border-rausch/25" 
+                    : "bg-airbnb-emeraldLight text-airbnb-emerald border-airbnb-emerald/25";
+
+                const badgeText = isConcept ? "게스트 선호 • 개념" : "슈퍼호스트 • 설명";
+                
+                scene.innerHTML = `
+                    <div class="card-inner" id="card-${index}" onclick="handleCardClick(${index})">
+                        
+                        <!-- CARD COVER (FACEDOWN) - Airbnb Listing Style Cover -->
+                        <div class="card-face card-front-cover p-4 flex flex-col justify-between items-center">
+                            <div class="w-full flex justify-between items-center text-[10px] text-airbnb-gray font-bold tracking-wider">
+                                <span>AIRBNB STUDY</span>
+                                <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200">#0${card.pairId}</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="w-12 h-12 rounded-2xl bg-rausch/10 flex items-center justify-center mb-2 border border-rausch/20 shadow-sm">
+                                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 1C11.5 1 8 4.8 8 9.5C8 15.2 14.2 22.8 15.4 24.2C15.7 24.6 16.3 24.6 16.6 24.2C17.8 22.8 24 15.2 24 9.5C24 4.8 20.5 1 16 1ZM16 13C14.1 13 12.5 11.4 12.5 9.5C12.5 7.6 14.1 6 16 6C17.9 6 19.5 7.6 19.5 9.5C19.5 11.4 17.9 13 16 13Z" fill="#FF385C"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-airbnb-black tracking-tight">통합사회</span>
+                            </div>
+
+                            <div class="w-full text-center text-[10px] text-airbnb-gray font-medium">
+                                탭하여 뒤집기
+                            </div>
+                        </div>
+
+                        <!-- CARD CONTENT (FACEUP) -->
+                        <div class="card-face card-back-content p-4 flex flex-col justify-between">
+                            <!-- Header Pill Badge -->
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badgeStyle}">
+                                    ${badgeText}
+                                </span>
+                                <span class="text-[10px] text-airbnb-gray font-mono">#0${card.pairId}</span>
+                            </div>
+
+                            <!-- Body Text -->
+                            <div class="flex-1 flex items-center justify-center text-center my-1.5 px-1">
+                                <p class="${isConcept ? 'font-black text-airbnb-black text-sm sm:text-base leading-snug whitespace-pre-line' : 'font-semibold text-airbnb-black text-xs sm:text-sm leading-snug'}">
+                                    ${escapeHtml(card.text)}
+                                </p>
+                            </div>
+
+                            <!-- Footer Status Badge -->
+                            <div class="w-full flex items-center justify-between text-[10px] font-bold text-airbnb-gray border-t border-airbnb-borderSubtle pt-2 mt-1">
+                                <span class="text-airbnb-gold">★ 5.0</span>
+                                <span class="opacity-0 match-check text-airbnb-emerald flex items-center gap-1 font-bold">
+                                    <i class="fa-solid fa-circle-check"></i> 매칭 성공
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                gridContainer.appendChild(scene);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+
+        // Card Selection Event
+        function handleCardClick(index) {
+            const cardData = cardsDataList[index];
+            const cardElement = document.getElementById(`card-${index}`);
+
+            if (isBoardLocked || cardData.isMatched || flippedCards.some(item => item.index === index)) {
+                return;
+            }
+
+            if (!gameStarted) {
+                startTimer();
+                gameStarted = true;
+            }
+
+            soundFx.playFlip();
+
+            cardElement.classList.add('is-flipped');
+            flippedCards.push({ index, cardData, cardElement });
+
+            if (flippedCards.length === 2) {
+                attemptsCount++;
+                document.getElementById('attempts').innerText = `${attemptsCount}회`;
+                checkMatch();
+            }
+        }
+
+        // Card Matching Logic
+        function checkMatch() {
+            isBoardLocked = true;
+            const [first, second] = flippedCards;
+
+            const isMatch = (first.cardData.pairId === second.cardData.pairId) && (first.index !== second.index);
+
+            if (isMatch) {
+                setTimeout(() => {
+                    soundFx.playMatch();
+                    
+                    first.cardData.isMatched = true;
+                    second.cardData.isMatched = true;
+
+                    first.cardElement.classList.add('animate-matched');
+                    second.cardElement.classList.add('animate-matched');
+
+                    first.cardElement.querySelector('.match-check').classList.remove('opacity-0');
+                    second.cardElement.querySelector('.match-check').classList.remove('opacity-0');
+
+                    matchedCount++;
+                    document.getElementById('matches').innerText = `${matchedCount} / 8`;
+
+                    flippedCards = [];
+                    isBoardLocked = false;
+
+                    if (matchedCount === 8) {
+                        handleVictory();
+                    }
+                }, 280);
+
+            } else {
+                setTimeout(() => {
+                    soundFx.playMismatch();
+
+                    first.cardElement.classList.add('animate-mismatch');
+                    second.cardElement.classList.add('animate-mismatch');
+                }, 350);
+
+                setTimeout(() => {
+                    first.cardElement.classList.remove('is-flipped', 'animate-mismatch');
+                    second.cardElement.classList.remove('is-flipped', 'animate-mismatch');
+
+                    flippedCards = [];
+                    isBoardLocked = false;
+                }, 1000);
+            }
+        }
+
+        // Timer Functionality
+        function startTimer() {
+            clearInterval(timerInterval);
+            secondsElapsed = 0;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+                const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Victory Fireworks & Airbnb Review Modal
+        function handleVictory() {
+            stopTimer();
+            soundFx.playWin();
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+            const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('final-time').innerText = `${mins}:${secs}`;
+            document.getElementById('final-attempts').innerText = `${attemptsCount}회`;
+
+            // Render Airbnb Amenities-style Review Notes
+            const reviewList = document.getElementById('review-list');
+            reviewList.innerHTML = '';
+            
+            PAIRS_DATA.forEach((pair, i) => {
+                const item = document.createElement('div');
+                item.className = "bg-airbnb-bg p-3.5 rounded-2xl border border-airbnb-border text-xs flex flex-col gap-1.5";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between font-bold text-airbnb-black">
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 bg-rausch text-white rounded-full flex items-center justify-center text-[10px] shrink-0 font-mono">${i+1}</span>
+                            <span>${pair.concept.replace('\n', ' ')}</span>
+                        </div>
+                        <span class="text-airbnb-gold text-[11px]">★ 5.0</span>
+                    </div>
+                    <p class="text-airbnb-gray pl-7 leading-relaxed font-normal">${pair.description}</p>
+                `;
+                reviewList.appendChild(item);
+            });
+
+            // Show Modal with smooth backdrop blur
+            const modal = document.getElementById('victory-modal');
+            const modalCard = document.getElementById('modal-card');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalCard.classList.remove('scale-95');
+                modalCard.classList.add('scale-100');
+            }, 50);
+        }
+
+        function closeModalAndReset() {
+            const modal = document.getElementById('victory-modal');
+            const modalCard = document.getElementById('modal-card');
+            
+            modal.classList.add('opacity-0');
+            modalCard.classList.remove('scale-100');
+            modalCard.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                resetGame();
+            }, 300);
+        }
+
+        window.onload = function() {
+            resetGame();
+        };
+    </script>
+</body>
+</html>
