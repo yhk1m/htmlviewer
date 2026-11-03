@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지구찾기 · 지뢰찾기</title>
+<style>
+:root{color-scheme:light;--ink:#212121;--muted:#757575;--pink:#f84a71;--pink-soft:#fff0f3;--blue:#00b8ff;--paper:#fff9f8;--tile:#f9e5e9;--tile-shadow:#efd0d7;--line:#f0dfe2}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 0%,#ffe5eb 0,transparent 38%),radial-gradient(ellipse at 96% 18%,#e7f9ff 0,transparent 30%),var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;display:flex;justify-content:center;padding:34px 16px 48px}
+main{width:min(100%,890px)}header{text-align:left;margin:0 auto 22px;padding:0 8px}h1{margin:0;font-size:clamp(30px,5vw,44px);letter-spacing:-1.8px;font-weight:850}header h1::first-letter{color:var(--pink)}header p{margin:7px 0;color:var(--muted);font-size:14px}
+.panel{position:relative;background:#fff;border:1px solid #f1e5e6;border-radius:24px;padding:20px;box-shadow:0 18px 55px #7a344014,0 3px 10px #7a34400a;overflow:hidden}.panel::before{content:"";position:absolute;top:0;left:24px;right:24px;height:3px;background:linear-gradient(90deg,var(--pink),#ff9eae 50%,var(--blue));border-radius:0 0 5px 5px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:3px 0 16px}.levels{display:flex;gap:5px;padding:4px;background:#f8f5f5;border:1px solid #f1eaea;border-radius:14px}.levels button,.restart{border:1px solid transparent;background:transparent;color:#555;font:inherit;font-weight:750;padding:9px 17px;border-radius:10px;cursor:pointer;transition:background .16s,color .16s,transform .16s,box-shadow .16s}.levels button:hover,.restart:hover{color:var(--pink);transform:translateY(-1px)}.levels button.active{background:var(--pink);color:white;box-shadow:0 4px 12px #f84a7140}.stats{display:flex;gap:9px;align-items:center;font-variant-numeric:tabular-nums}.stat{background:#fff4f6;border:1px solid #ffe4e9;border-radius:13px;padding:7px 13px;font-weight:800;min-width:82px;text-align:center;color:var(--pink)}.stat:nth-child(2){background:#f1fbff;border-color:#def5ff;color:#1289b3}.stat small{font-size:10px;color:var(--muted);display:block;font-weight:650;letter-spacing:.07em}.restart{border-color:#eee5e5;background:#fff;padding:7px 12px;font-size:20px;line-height:1;color:#555}
+.message{min-height:24px;margin:0 0 10px;text-align:center;color:#777;font-size:13px}.board-wrap{overflow:auto;border-radius:15px;padding:12px;background:linear-gradient(145deg,#fff7f8,#fff);border:1px solid #f5e8ea;overscroll-behavior:contain}.board{display:grid;gap:4px;width:max-content;margin:auto;user-select:none;touch-action:manipulation}.cell{width:36px;height:36px;border:1px solid #f1cfd6;border-radius:9px;background:linear-gradient(145deg,#fff3f5,#f8e2e7);box-shadow:inset 0 -2px 0 var(--tile-shadow),0 2px 5px #a44c5c0b;color:#294b40;font:800 16px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .1s,filter .12s,background .12s}.cell:hover:not(.open){filter:brightness(.98);transform:translateY(-1px)}.cell.open{background:#fff;box-shadow:inset 0 0 0 1px #f1eeee;cursor:default}.cell.flag{font-size:18px}.cell.mine{background:#fff0eb}.cell.exploded{background:#ffc5cf}.cell.wrong{background:#f6d6ce}.cell[data-n="1"]{color:#168ec3}.cell[data-n="2"]{color:#39885b}.cell[data-n="3"]{color:#e24968}.cell[data-n="4"]{color:#7554a8}.cell[data-n="5"]{color:#ad6331}.cell[data-n="6"]{color:#258f99}.earth{font-size:18px;line-height:1}
+.instructions{text-align:center;margin:14px 0 0;color:#858080;font-size:12px;line-height:1.8}.instructions strong{color:var(--pink)}
+@media(max-width:540px){body{padding:22px 10px 32px}header{margin-bottom:16px;padding:0 4px}.panel{padding:15px 10px 13px;border-radius:20px}.panel::before{left:16px;right:16px}.toolbar{justify-content:center;margin-top:2px}.levels{width:100%;justify-content:space-between}.levels button{flex:1;padding:9px 10px}.stats{width:100%;justify-content:center}.cell{width:31px;height:31px;border-radius:7px;font-size:14px}.cell.flag{font-size:16px}.board{gap:2px}.board-wrap{padding:9px 6px}.message{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>🌍 지구찾기</h1><p>숲속에 숨은 지구를 찾아보세요</p></header>
+<section class="panel" aria-label="지구찾기 게임">
+<div class="toolbar"><div class="levels" role="group" aria-label="난이도 선택"><button data-level="easy" class="active">하</button><button data-level="medium">중</button><button data-level="hard">상</button></div><div class="stats"><div class="stat"><small>남은 지구</small><span id="remaining">10</span></div><div class="stat"><small>시간</small><span id="timer">000</span></div><button id="restart" class="restart" aria-label="새 게임" title="새 게임">↻</button></div></div>
+<div id="message" class="message" aria-live="polite">칸을 열어 지구를 피해가세요.</div>
+<div class="board-wrap"><div id="board" class="board" role="grid" aria-label="게임판"></div></div>
+<p class="instructions">왼쪽 클릭: 칸 열기 · 오른쪽 클릭: 지구 표시 <strong>🚩</strong><br>숫자 칸에서 왼쪽과 오른쪽을 동시에 누르면 검사해요.</p>
+</section>
+</main>
+<script>
+(()=>{
+const levels={easy:{rows:9,cols:9,mines:10},medium:{rows:16,cols:16,mines:40},hard:{rows:16,cols:30,mines:99}};
+const boardEl=document.querySelector('#board'),remainingEl=document.querySelector('#remaining'),timerEl=document.querySelector('#timer'),messageEl=document.querySelector('#message');
+let level='easy',cells=[],started=false,ended=false,seconds=0,timer=null,flags=0,first=null;
+const neighbors=(i)=>{const r=Math.floor(i/levels[level].cols),c=i%levels[level].cols,out=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<levels[level].rows&&nc>=0&&nc<levels[level].cols)out.push(nr*levels[level].cols+nc)}return out};
+function fresh(){clearInterval(timer);timer=null;seconds=0;started=false;ended=false;flags=0;first=null;const {rows,cols}=levels[level];cells=Array.from({length:rows*cols},()=>({mine:false,open:false,flag:false,count:0}));boardEl.style.gridTemplateColumns=`repeat(${cols},36px)`;if(innerWidth<=540)boardEl.style.gridTemplateColumns=`repeat(${cols},31px)`;remainingEl.textContent=levels[level].mines;timerEl.textContent='000';messageEl.textContent='칸을 열어 지구를 피해가세요.';draw()}
+function placeMines(safe){const {mines}=levels[level];let pool=cells.map((_,i)=>i).filter(i=>i!==safe&&!neighbors(safe).includes(i));for(let n=pool.length-1;n>0;n--){const j=Math.floor(Math.random()*(n+1));[pool[n],pool[j]]=[pool[j],pool[n]]}for(const i of pool.slice(0,mines))cells[i].mine=true;cells.forEach((x,i)=>x.count=neighbors(i).filter(j=>cells[j].mine).length)}
+function start(i){if(started)return;started=true;placeMines(i);timer=setInterval(()=>{seconds++;timerEl.textContent=String(seconds).padStart(3,'0')},1000)}
+function draw(){boardEl.replaceChildren();cells.forEach((x,i)=>{const el=document.createElement('button');el.className='cell'+(x.open?' open':'')+(x.flag?' flag':'');el.dataset.index=i;el.setAttribute('role','gridcell');el.setAttribute('aria-label',x.open?(x.mine?'지구':x.count?`주변 지구 ${x.count}개`:'빈 칸'):(x.flag?'지구 표시됨':'닫힌 칸'));if(x.open){if(x.mine){el.classList.add('mine');el.innerHTML='<span class="earth">🌍</span>'}else if(x.count){el.textContent=x.count;el.dataset.n=x.count}}else if(x.flag){el.textContent='🚩'}
+ el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.buttons===3){e.preventDefault();chord(i);return}if(e.pointerType==='mouse'&&e.button===2){e.preventDefault();toggleFlag(i);return}if(e.pointerType==='mouse'&&e.button===0){e.preventDefault();reveal(i)}});
+ el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('click',e=>e.preventDefault());boardEl.append(el)})}
+function reveal(i){if(ended||cells[i].open||cells[i].flag)return;if(!started)start(i);const x=cells[i];x.open=true;if(x.mine){ended=true;clearInterval(timer);cells.forEach(c=>{if(c.mine)c.open=true});x.exploded=true;messageEl.textContent='앗, 지구를 찾았어요! 새 게임으로 다시 도전해요.';draw();boardEl.querySelector(`[data-index="${i}"]`)?.classList.add('exploded');return}if(x.count===0)for(const j of neighbors(i))if(!cells[j].open&&!cells[j].flag)revealSafe(j);draw();checkWin()}
+function revealSafe(i){if(cells[i].open||cells[i].flag||cells[i].mine)return;cells[i].open=true;if(cells[i].count===0)neighbors(i).forEach(revealSafe)}
+function toggleFlag(i){if(ended||cells[i].open)return;cells[i].flag=!cells[i].flag;flags+=cells[i].flag?1:-1;remainingEl.textContent=levels[level].mines-flags;draw()}
+function chord(i){if(ended||!cells[i].open||cells[i].count===0)return;const near=neighbors(i),marked=near.filter(j=>cells[j].flag).length;if(marked!==cells[i].count){messageEl.textContent=`주변 깃발이 ${cells[i].count}개여야 검사할 수 있어요. 현재 ${marked}개예요.`;return}messageEl.textContent='깃발을 확인하고 주변 칸을 열었어요.';for(const j of near)if(!cells[j].open&&!cells[j].flag)reveal(j);}
+function checkWin(){if(cells.every(c=>c.mine||c.open)){ended=true;clearInterval(timer);messageEl.textContent='성공! 모든 안전한 칸을 열었어요. 🌱'}}
+document.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>{level=b.dataset.level;document.querySelectorAll('[data-level]').forEach(x=>x.classList.toggle('active',x===b));fresh()}));document.querySelector('#restart').addEventListener('click',fresh);window.addEventListener('resize',()=>{const cols=levels[level].cols;boardEl.style.gridTemplateColumns=`repeat(${cols},${innerWidth<=540?31:36}px)`});window.addEventListener('pointerup',()=>{});fresh();
+})();
+</script>
+</body>
+</html>
