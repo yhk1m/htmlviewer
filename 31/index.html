@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full bg-[#F4F7FA] text-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에듀 트레이딩 / 통합사회 모의투자 (교사 제어 모드)</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sec: {
+                            navy: '#0B1B3D',       // 메인 딥 네이비
+                            navyLight: '#142A58',
+                            blue: '#0046FF',       // 신한/핀테크 블루
+                            blueHover: '#0038CC',
+                            blueLight: '#EEF3FF',
+                            bg: '#F4F7FA',         // 트레이딩 배경색
+                            card: '#FFFFFF',
+                            up: '#E53535',         // 한국 증시 상승 (레드)
+                            upBg: '#FDF2F2',
+                            down: '#1A6DF1',       // 한국 증시 하락 (블루)
+                            downBg: '#EFF5FF',
+                            border: '#E2E8F0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F4F7FA;
+            color: #0F172A;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4F7FA;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+
+        /* Ticker Pulse */
+        @keyframes tickerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        .animate-ticker {
+            animation: tickerPulse 1.8s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans bg-sec-bg antialiased selection:bg-sec-blue selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- TOP SECURITIES BRAND HEADER -->
+    <header class="bg-sec-navy text-white sticky top-0 z-30 px-4 lg:px-8 py-3 shadow-md flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <!-- Brand Symbol Logo -->
+            <div class="w-10 h-10 rounded-xl bg-sec-blue flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sec-blue/30">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-lg text-white tracking-tight">에듀 트레이딩</h1>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-blue-200 border border-white/20">
+                        통합사회 모의투자 / 교사 제어
+                    </span>
+                </div>
+                <p class="text-xs text-slate-300">시장 경제 / 금융 단원 실전 모의주식 트레이딩</p>
+            </div>
+        </div>
+
+        <!-- Live Market Status & Header Actions -->
+        <div class="flex items-center gap-2.5">
+            <div id="market-status-pill" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-xs text-emerald-300 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="market-status-text">🟢 매매 가능 시간</span>
+            </div>
+
+            <button id="sound-btn" onclick="toggleSound()" class="h-9 px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition border border-white/15 flex items-center gap-1.5">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-blue-300"></i>
+                <span id="sound-text" class="hidden sm:inline">효과음</span>
+            </button>
+
+            <!-- TEACHER ADMIN LOGIN / TOGGLE BUTTON -->
+            <button onclick="toggleAdminLogin()" class="h-9 px-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition border border-amber-300/40 shadow-md flex items-center gap-1.5 active:scale-95">
+                <i class="fa-solid fa-key"></i>
+                <span>🔑 교사 관리자</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- TEACHER ADMIN CONTROL PANEL (Collapsible) -->
+    <div id="teacher-admin-panel" class="bg-slate-900 border-b-2 border-amber-500 text-white px-4 lg:px-8 py-3.5 shadow-xl hidden transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-base shrink-0">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="font-bold text-sm text-amber-400">교사 전용 라운드 컨트롤러</h2>
+                        <span id="admin-phase-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                            현재: 0라운드 (초기 매수)
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300">뉴스 공개 ➔ 학생 토의 / 매매 ➔ 교사가 주가 변동 & 이유 공개 버튼을 눌러 수업을 진행하세요.</p>
+                </div>
+            </div>
+
+            <!-- Admin Action Buttons Group -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <!-- Step 1: Show News Headline -->
+                <button onclick="adminPublishNews()" class="h-9 px-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow active:scale-95">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>1. 뉴스 속보 공개 & 매매 시작</span>
+                </button>
+
+                <!-- Step 2: Reveal Price Changes & Reasons -->
+                <button onclick="adminRevealResults()" class="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow active:scale-95">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>2. 주가 변동 & 이유 공개</span>
+                </button>
+
+                <!-- Step 3: Next Round -->
+                <button onclick="adminNextRound()" class="h-9 px-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow active:scale-95">
+                    <i class="fa-solid fa-forward"></i>
+                    <span>다음 라운드로</span>
+                </button>
+
+                <!-- Lock / Unlock Toggle -->
+                <button id="admin-lock-btn" onclick="toggleTradingLock()" class="h-9 px-3.5 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-rose-500/30 active:scale-95">
+                    <i id="admin-lock-icon" class="fa-solid fa-lock"></i>
+                    <span id="admin-lock-text">매매 잠금</span>
+                </button>
+
+                <!-- Reset -->
+                <button onclick="confirmReset()" class="h-9 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition border border-slate-700">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT DASHBOARD & STOCKS LIST (8 Cols) -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+
+            <!-- TOTAL ASSET SUMMARY CARDS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <!-- Total Valuation -->
+                <div class="bg-white p-4 rounded-2xl border border-sec-border shadow-sm relative overflow-hidden">
+                    <span class="text-xs font-semibold text-slate-500 block mb-1">총 평가 자산</span>
+                    <div id="dash-total" class="text-lg sm:text-xl font-extrabold text-sec-navy font-mono tracking-tight">₩10,000,000</div>
+                    <div class="mt-1 flex items-center gap-1 text-xs font-bold" id="dash-return-wrapper">
+                        <span id="dash-return-icon">―</span>
+                        <span id="dash-return-rate">0.00%</span>
+                        <span class="text-[10px] text-slate-400 font-normal ml-0.5">(수익률)</span>
+                    </div>
+                </div>
+
+                <!-- Cash Balance -->
+                <div class="bg-white p-4 rounded-2xl border border-sec-border shadow-sm">
+                    <span class="text-xs font-semibold text-slate-500 block mb-1">보유 현금</span>
+                    <div id="dash-cash" class="text-lg sm:text-xl font-extrabold text-sec-blue font-mono tracking-tight">₩10,000,000</div>
+                    <span class="text-[10px] text-slate-400 block mt-1">주식 매수 가능 잔액</span>
+                </div>
+
+                <!-- Stock Valuation -->
+                <div class="bg-white p-4 rounded-2xl border border-sec-border shadow-sm">
+                    <span class="text-xs font-semibold text-slate-500 block mb-1">주식 평가금</span>
+                    <div id="dash-stock-val" class="text-lg sm:text-xl font-extrabold text-slate-800 font-mono tracking-tight">₩0</div>
+                    <span class="text-[10px] text-slate-400 block mt-1">5개 종목 합산액</span>
+                </div>
+
+                <!-- Round Tracker Banner -->
+                <div class="bg-gradient-to-br from-sec-navy to-sec-navyLight p-4 rounded-2xl shadow-md text-white flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-blue-200 font-semibold">진행 라운드</span>
+                            <span id="dash-round-badge" class="px-2 py-0.5 rounded-full bg-sec-blue text-white font-extrabold text-[10px]">0 / 4</span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-100" id="dash-round-desc">매수 포트폴리오 구성</div>
+                    </div>
+                    <div class="mt-2 pt-1 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-200">
+                        <span>진행 단계:</span>
+                        <span id="dash-phase-label" class="font-bold text-amber-300">1단계 (매매 시간)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEWS TICKER BANNER (NO % HINTS DURING TRADING) -->
+            <div id="news-ticker-box" class="bg-white border border-sec-border rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fa-solid fa-newspaper text-base animate-ticker"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200" id="news-round-label">
+                            현재 라운드: 0라운드 (초기 투자)
+                        </span>
+                        <span class="text-xs text-slate-400" id="news-status-sub">교사의 뉴스 발표를 기다리세요</span>
+                    </div>
+                    <p id="news-headline" class="text-sm font-semibold text-slate-800 leading-snug">
+                        모든 주식이 1주당 ₩10,000으로 개장합니다. 시드머니 1,000만 원으로 5개 종목을 자유롭게 매수하여 포트폴리오를 구성하세요!
+                    </p>
+                </div>
+            </div>
+
+            <!-- 5 TRADING STOCK CARDS -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-bold text-sec-navy flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-sec-blue"></i> 가상 주식 종목 (5개 기업)
+                    </h2>
+                    <span id="trading-lock-indicator" class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check"></i> 매매 가능 상태
+                    </span>
+                </div>
+
+                <div id="stocks-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Stock Cards -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDEBAR CHARTS & LOG (4 Cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+
+            <!-- PRICE HISTORY CHART -->
+            <div class="bg-white border border-sec-border rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-sec-navy flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-sec-blue"></i> 라운드별 주가 추이
+                    </h3>
+                    <span class="text-[11px] text-slate-400">단위: 원(₩)</span>
+                </div>
+                <div class="h-52 w-full relative">
+                    <canvas id="priceHistoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ASSET ALLOCATION DOUGHNUT -->
+            <div class="bg-white border border-sec-border rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-sec-navy flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-sec-blue"></i> 자산 비중 (포트폴리오)
+                    </h3>
+                    <span class="text-[11px] text-slate-400">현금 / 주식</span>
+                </div>
+                <div class="h-44 w-full relative flex items-center justify-center">
+                    <canvas id="portfolioDoughnutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- TRANSACTION LOG -->
+            <div class="bg-white border border-sec-border rounded-2xl p-4 flex flex-col flex-1 min-h-[220px] shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-sec-navy flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-sec-blue"></i> 최근 체결 내역
+                    </h3>
+                    <span id="log-count" class="text-[11px] text-slate-400">0건</span>
+                </div>
+                
+                <div id="transaction-log" class="flex-1 overflow-y-auto max-h-56 space-y-2 pr-1 text-xs">
+                    <div class="text-center text-slate-400 py-8">아직 실행된 매매 내역이 없습니다.</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- PHASE 1: NEWS HEADLINE MODAL (FOR STUDENTS - NO % HINTS) -->
+    <div id="news-headline-modal" class="fixed inset-0 bg-sec-navy/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border border-slate-200 transform scale-95 transition-transform duration-300" id="news-modal-card">
+            
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center text-2xl mb-4">
+                <i class="fa-solid fa-bullhorn animate-bounce"></i>
+            </div>
+
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200 inline-block mb-2" id="modal-round-tag">
+                1라운드 증권 속보
+            </span>
+
+            <h2 class="text-xl sm:text-2xl font-black text-sec-navy tracking-tight mb-3" id="modal-news-title">
+                한국은행, 기준금리 전격 0.5%p 인상 발표
+            </h2>
+
+            <p class="text-slate-700 text-xs sm:text-sm leading-relaxed mb-5 bg-slate-50 p-4 rounded-xl border border-slate-200" id="modal-news-body">
+                뉴스 상세 내용이 이곳에 표시됩니다.
+            </p>
+
+            <!-- Guide Box Encouraging Analysis -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 mb-6 text-xs text-sec-navy">
+                <span class="font-bold block mb-1 flex items-center gap-1.5 text-sec-blue">
+                    <i class="fa-solid fa-lightbulb"></i> 모둠 토의 / 뉴스 분석 가이드
+                </span>
+                <p class="text-slate-600 leading-normal">
+                    이 뉴스가 5개 종목에 <strong>호재(상승)</strong>일지 <strong>악재(하락)</strong>일지 모둠원과 토의해보세요! 교사가 결과를 공개하기 전까지 매수를 마치셔야 합니다.
+                </p>
+            </div>
+
+            <button onclick="closeNewsHeadlineModal()" class="w-full py-3.5 bg-sec-blue hover:bg-sec-blueHover text-white font-bold rounded-xl text-sm shadow-lg shadow-sec-blue/20 transition flex items-center justify-center gap-2 active:scale-95">
+                <span>뉴스 확인 완료 / 매매 시작하기</span>
+                <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- PHASE 2: PRICE RESULTS & EDUCATIONAL REASON MODAL -->
+    <div id="results-reason-modal" class="fixed inset-0 bg-sec-navy/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200 transform scale-95 transition-transform duration-300" id="results-modal-card">
+            
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" id="result-modal-round-tag">
+                        1라운드 시장 결과 발표
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-black text-sec-navy tracking-tight" id="result-modal-title">
+                        주가 변동 결과 및 통합사회 해설
+                    </h2>
+                </div>
+            </div>
+
+            <p class="text-slate-600 text-xs sm:text-sm mb-5 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200" id="result-modal-summary">
+                뉴스 발표 이후 각 주가가 아래와 같이 변동하였습니다. 주가 변동 원인을 확인하세요.
+            </p>
+
+            <!-- STOCK RESULTS WITH EDUCATIONAL REASON CARDS -->
+            <div class="space-y-3 mb-6" id="results-reason-list">
+                <!-- Dynamic Reason Cards -->
+            </div>
+
+            <button onclick="closeResultsReasonModal()" class="w-full py-3.5 bg-sec-navy hover:bg-sec-navyLight text-white font-bold rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2 active:scale-95">
+                <span>확인 완료 / 다음 활동 대기</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- FINAL GAME RESULT & SOCIAL STUDIES REVIEW MODAL -->
+    <div id="result-modal" class="fixed inset-0 bg-sec-navy/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-slate-200 transform scale-95 transition-transform duration-300" id="result-modal-card">
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-sec-blueLight text-sec-blue font-black rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 border border-sec-blue/20 shadow-md">
+                    👑
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-sec-blue border border-blue-200 inline-block mb-1" id="result-grade-badge">
+                    성과 등급: 스마트 펀드매니저
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-sec-navy tracking-tight">모의투자 최종 성과 정산</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">통합사회 시장 경제 / 금융 단원 완료</p>
+            </div>
+
+            <!-- STATS GRID -->
+            <div class="grid grid-cols-3 gap-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
+                <div>
+                    <span class="text-[11px] text-slate-500 block mb-1">시작 시드머니</span>
+                    <span class="text-sm sm:text-base font-bold font-mono text-slate-700">₩10,000,000</span>
+                </div>
+                <div class="border-x border-slate-200">
+                    <span class="text-[11px] text-slate-500 block mb-1">최종 평가 자산</span>
+                    <span id="final-total" class="text-sm sm:text-base font-extrabold font-mono text-sec-navy">₩10,000,000</span>
+                </div>
+                <div>
+                    <span class="text-[11px] text-slate-500 block mb-1">최종 수익률</span>
+                    <span id="final-rate" class="text-sm sm:text-base font-extrabold font-mono text-sec-up">+0.00%</span>
+                </div>
+            </div>
+
+            <!-- SOCIAL STUDIES REVIEW NOTES -->
+            <div class="mb-6 space-y-3">
+                <h3 class="text-sm font-bold text-sec-navy flex items-center gap-2 border-b border-slate-200 pb-2">
+                    <i class="fa-solid fa-book-open text-sec-blue"></i> 통합사회 핵심 개념 성찰 노트
+                </h3>
+
+                <div class="space-y-2.5 text-xs text-slate-700">
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-sec-navy block mb-1">1. 금리 / 주가 변동 원리 (1라운드)</span>
+                        <p class="text-slate-600 leading-relaxed">기준금리가 인상되면 예금 이자 수익성이 커져 안전은행 주가가 상승한 반면, 자금 조달 이자 부담이 커지는 IT / 기술주 주가는 약세를 보입니다.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-emerald-700 block mb-1">2. 정부 정책 / 환경 규제 효과 (2라운드)</span>
+                        <p class="text-slate-600 leading-relaxed">친환경 보조금 및 탄소배출 규제 정책은 에코에너지 기업 가치를 크게 높입니다. 정부 정책 방향은 산업별 수혜 / 불이익을 결정합니다.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-sec-up block mb-1">3. 기술 혁신 / 고위험 / 고수익 구조 (3라운드)</span>
+                        <p class="text-slate-600 leading-relaxed">글로벌바이오의 임상 성공처럼 고수익을 가져다주는 주식은 반대로 실패 시 손실 위험도 큽니다. '하이 리스크 / 하이 리턴' 금융 법칙을 보여줍니다.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <span class="font-bold text-sec-blue block mb-1">4. 분산 투자 / 포트폴리오 안전성 (4라운드)</span>
+                        <p class="text-slate-600 leading-relaxed">특정 악재로 기술주가 하락하더라도, 은행 / 친환경 등 방어주를 함께 보유하면 전체 자산 손실을 방어할 수 있습니다. "달걀을 한 바구니에 담지 마라"는 원칙입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeResultModalAndReset()" class="w-full py-3.5 bg-sec-blue hover:bg-sec-blueHover text-white font-bold rounded-xl text-sm shadow-lg shadow-sec-blue/20 transition flex items-center justify-center gap-2 active:scale-95">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>새 모의투자 시작하기</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME ENGINE -->
+    <script>
+        // INITIAL DATA CONFIGURATION
+        const INITIAL_CASH = 10000000; // ₩10,000,000
+        const INITIAL_PRICE = 10000;   // ₩10,000
+
+        // 5 VIRTUAL STOCKS DATA
+        const INITIAL_STOCKS = [
+            {
+                id: 'ai',
+                name: '미래AI',
+                badge: '고위험 / 고수익 IT',
+                badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+                price: INITIAL_PRICE,
+                prevPrice: INITIAL_PRICE,
+                owned: 0,
+                priceHistory: [INITIAL_PRICE]
+            },
+            {
+                id: 'eco',
+                name: '에코에너지',
+                badge: '친환경 / ESG',
+                badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                price: INITIAL_PRICE,
+                prevPrice: INITIAL_PRICE,
+                owned: 0,
+                priceHistory: [INITIAL_PRICE]
+            },
+            {
+                id: 'enter',
+                name: 'K-컬처엔터',
+                badge: '소비재 / 미디어',
+                badgeColor: 'bg-pink-100 text-pink-800 border-pink-200',
+                price: INITIAL_PRICE,
+                prevPrice: INITIAL_PRICE,
+                owned: 0,
+                priceHistory: [INITIAL_PRICE]
+            },
+            {
+                id: 'bank',
+                name: '안전은행',
+                badge: '저위험 / 금융',
+                badgeColor: 'bg-blue-100 text-sec-blue border-blue-200',
+                price: INITIAL_PRICE,
+                prevPrice: INITIAL_PRICE,
+                owned: 0,
+                priceHistory: [INITIAL_PRICE]
+            },
+            {
+                id: 'bio',
+                name: '글로벌바이오',
+                badge: '제약 / 임상',
+                badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+                price: INITIAL_PRICE,
+                prevPrice: INITIAL_PRICE,
+                owned: 0,
+                priceHistory: [INITIAL_PRICE]
+            }
+        ];
+
+        // ROUND NEWS & DETAILED REASONS MATRIX (NO PERCENTAGE DISCLOSED IN PHASE 1)
+        const ROUND_SCENARIOS = [
+            {
+                round: 1,
+                title: "한국은행, 기준금리 전격 0.5%p 인상 발표",
+                headline: "[속보] 한국은행이 물가 안정을 위해 기준금리를 0.5%p 전격 인상했습니다. 시중 유동성이 축소되고 예금 이자가 상승합니다.",
+                body: "기준금리 인상으로 시중 은행의 예대마진 및 이자 수익 기대가 커진 반면, 대출 부담이 큰 IT 기술 기업과 소비재 산업은 위축될 전망입니다.",
+                impacts: { bank: 0.15, ai: -0.12, enter: -0.08, eco: -0.05, bio: -0.10 },
+                reasons: {
+                    bank: "기준금리 인상으로 예대마진 및 이자 수익 확대로 대표적 수혜주 등극 (+15%)",
+                    ai: "자금 조달 대출 이자 부담 급증으로 투자 위축 악재 (-12%)",
+                    enter: "시중 유동성 축소로 가계 소비 심리 위축 영향 (-8%)",
+                    eco: "시설 투자비 자금 조달 금리 상승 부담 (-5%)",
+                    bio: "R&D 연구 개발 자금 대출 이자 비용 증가 (-10%)"
+                }
+            },
+            {
+                round: 2,
+                title: "EU, 탄소배출 규제 강화 및 친환경 기업 보조금 지급",
+                headline: "[속보] 유럽연합(EU)이 강력한 탄소 규제안을 승인하고 신재생에너지 기업에 대규모 보조금을 투입합니다.",
+                body: "글로벌 탄소중립 가속화로 신재생에너지 기업의 유럽 수주가 대폭 증가할 것으로 기대되며, 친환경 AI 데이터센터 관련 기술주도 주목받고 있습니다.",
+                impacts: { eco: 0.30, ai: 0.10, enter: 0.05, bank: 0.02, bio: 0.00 },
+                reasons: {
+                    eco: "EU 정부 대규모 보조금 지급 및 글로벌 신재생 성장 폭발 (+30%)",
+                    ai: "친환경 저전력 AI 데이터센터 기술 수요 증가 호재 (+10%)",
+                    enter: "유럽 친환경 브랜드 콘텐츠 협업 증가 소폭 상승 (+5%)",
+                    bank: "친환경 기업 대출 자금 운용 안정성 확보 (+2%)",
+                    bio: "직접적 영향을 받지 않아 주가 보합 유지 (0%)"
+                }
+            },
+            {
+                round: 3,
+                title: "글로벌바이오, 신약 3상 승인 및 2조 원 수출 계약",
+                headline: "[속보] 글로벌바이오가 개발한 차세대 치료제가 미 FDA 3상 승인을 통과하고 2조 원 규모 글로벌 독점 수출 계약을 체결했습니다.",
+                body: "바이오 기업의 대형 호재로 글로벌바이오 기업 가치가 급등하였으며, 기술주 투자 심리가 대폭 개선되는 양상을 보입니다.",
+                impacts: { bio: 0.45, ai: 0.05, enter: 0.08, bank: -0.03, eco: -0.04 },
+                reasons: {
+                    bio: "FDA 3상 승인 및 2조 원 독점 판매권 계약으로 실적 폭등 (+45%)",
+                    ai: "바이오 / AI 헬스케어 기술 협업 기대감 반영 (+5%)",
+                    enter: "글로벌 바이오 행사 론칭 연계 콘텐츠 호조 (+8%)",
+                    bank: "위험 자산 선호 심리로 안전 자산에서 자금 일부 이탈 (-3%)",
+                    eco: "바이오주로 증시 자금 쏠림 현상에 따른 일시적 소외 (-4%)"
+                }
+            },
+            {
+                round: 4,
+                title: "글로벌 경기 둔화 우려 / 정부, 금리 인하 검토",
+                headline: "[속보] 경기 침체 조짐에 따라 정부와 중앙은행이 경기 부양을 위한 금리 인하 조치를 검토하고 있습니다.",
+                body: "금리 인하 기대감으로 유동성 공급이 늘어날 것이라는 전망이 나오면서 그동안 위축되었던 IT 기술주와 소비재주가 경기 부양 수혜를 입습니다.",
+                impacts: { ai: 0.18, enter: 0.15, eco: 0.08, bank: -0.10, bio: -0.15 },
+                reasons: {
+                    ai: "금리 인하 기대감으로 시중 유동성 급증 및 기술주 유입 (+18%)",
+                    enter: "경기 부양 정책에 따른 가계 소비 회복 기대감 (+15%)",
+                    eco: "친환경 인프라 투자 자금 조달 용이성 확보 (+8%)",
+                    bank: "금리 인하로 인한 예대마진 축소 및 이자 수익 감소 우려 (-10%)",
+                    bio: "그동안 상승에 따른 차익 실현 매물 출회로 조정 (-15%)"
+                }
+            }
+        ];
+
+        // GAME STATE
+        let currentRound = 0;
+        let isTradingLocked = false;      // True = Student trading frozen
+        let isPhase1Published = false;    // True = News published, waiting for trades
+        let isPhase2Revealed = false;     // True = Prices revealed for this round
+        let isAdminLoggedIn = false;      // Teacher admin status
+
+        let cash = INITIAL_CASH;
+        let stocks = JSON.parse(JSON.stringify(INITIAL_STOCKS));
+        let transactionLogs = [];
+
+        // CHARTS
+        let priceChartInstance = null;
+        let doughnutChartInstance = null;
+
+        // SOUND SYNTHESIZER
+        class SecSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBuy() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            playSell() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(783.99, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.14);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.14);
+            }
+
+            playNews() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                [350, 500, 700].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.07);
+
+                    gain.gain.setValueAtTime(0.06, now + i * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.1);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now + i * 0.07);
+                    osc.stop(now + i * 0.07 + 0.1);
+                });
+            }
+
+            playWin() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.09);
+
+                    gain.gain.setValueAtTime(0.12, now + i * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now + i * 0.09);
+                    osc.stop(now + i * 0.09 + 0.3);
+                });
+            }
+
+            playError() {
+                if (this.isMuted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+        }
+
+        const sound = new SecSoundEngine();
+
+        function toggleSound() {
+            sound.isMuted = !sound.isMuted;
+            const icon = document.getElementById('sound-icon');
+            const text = document.getElementById('sound-text');
+            if (sound.isMuted) {
+                icon.className = "fa-solid fa-volume-xmark text-slate-300";
+                text.innerText = "음소거됨";
+            } else {
+                icon.className = "fa-solid fa-volume-high text-blue-300";
+                text.innerText = "효과음";
+            }
+        }
+
+        // TEACHER ADMIN LOGIN CONTROL
+        function toggleAdminLogin() {
+            if (isAdminLoggedIn) {
+                isAdminLoggedIn = false;
+                document.getElementById('teacher-admin-panel').classList.add('hidden');
+                showToast("교사 관리자 모드가 비활성화되었습니다.", "info");
+                return;
+            }
+
+            const pwd = prompt("교사 관리자 비밀번호를 입력하세요 (기본: 1234):");
+            if (pwd === "1234") {
+                isAdminLoggedIn = true;
+                document.getElementById('teacher-admin-panel').classList.remove('hidden');
+                showToast("🔑 교사 관리자 모드가 활성화되었습니다.", "success");
+            } else if (pwd !== null) {
+                sound.playError();
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        }
+
+        // LOCK / UNLOCK TRADING
+        function toggleTradingLock() {
+            isTradingLocked = !isTradingLocked;
+            const lockBtn = document.getElementById('admin-lock-btn');
+            const lockIcon = document.getElementById('admin-lock-icon');
+            const lockText = document.getElementById('admin-lock-text');
+            const statusPill = document.getElementById('market-status-pill');
+            const statusText = document.getElementById('market-status-text');
+            const indicator = document.getElementById('trading-lock-indicator');
+
+            if (isTradingLocked) {
+                lockBtn.className = "h-9 px-3.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-emerald-500/30 active:scale-95";
+                lockIcon.className = "fa-solid fa-lock-open";
+                lockText.innerText = "매매 잠금 해제";
+
+                statusPill.className = "hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-rose-950/80 border border-rose-500/40 text-xs text-rose-300 font-semibold";
+                statusText.innerText = "🔴 매매 정지 / 교사 진행 중";
+
+                indicator.className = "text-xs font-semibold text-rose-600 flex items-center gap-1";
+                indicator.innerHTML = `<i class="fa-solid fa-lock"></i> 학생 매매 잠금 상태`;
+
+                showToast("🔒 학생 매매가 일시 중지되었습니다.", "error");
+
+            } else {
+                lockBtn.className = "h-9 px-3.5 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-rose-500/30 active:scale-95";
+                lockIcon.className = "fa-solid fa-lock";
+                lockText.innerText = "매매 잠금";
+
+                statusPill.className = "hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-xs text-emerald-300 font-semibold";
+                statusText.innerText = "🟢 매매 가능 시간";
+
+                indicator.className = "text-xs font-semibold text-emerald-600 flex items-center gap-1";
+                indicator.innerHTML = `<i class="fa-solid fa-circle-check"></i> 매매 가능 상태`;
+
+                showToast("🔓 학생 매매가 재개되었습니다.", "success");
+            }
+
+            renderStockCards();
+        }
+
+        // FORMATTING UTILS
+        function formatKRW(number) {
+            return '₩' + Math.round(number).toLocaleString('ko-KR');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bgClass = "bg-sec-navy border-slate-700 text-white";
+            if (type === 'success') bgClass = "bg-emerald-700 border-emerald-600 text-white";
+            if (type === 'error') bgClass = "bg-rose-700 border-rose-600 text-white";
+
+            toast.className = `px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-[-10px] opacity-0 ${bgClass}`;
+            toast.innerHTML = `
+                <i class="${type === 'error' ? 'fa-solid fa-circle-exclamation' : type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-info'}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+            }, 20);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
+        }
+
+        // STEP 1: PUBLISH NEWS HEADLINE (NO % HINTS)
+        function adminPublishNews() {
+            if (currentRound >= 4 && isPhase2Revealed) {
+                showFinalResults();
+                return;
+            }
+
+            let targetRound = currentRound;
+            if (currentRound === 0 || isPhase2Revealed) {
+                targetRound = currentRound + 1;
+            }
+
+            if (targetRound > 4) {
+                showFinalResults();
+                return;
+            }
+
+            currentRound = targetRound;
+            isPhase1Published = true;
+            isPhase2Revealed = false;
+            isTradingLocked = false; // Unlock trading for student discussion
+
+            const scenario = ROUND_SCENARIOS.find(s => s.round === currentRound);
+
+            // Update Header & Admin Badges
+            document.getElementById('admin-phase-badge').innerText = `현재: ${currentRound}라운드 (1단계: 뉴스 분석 & 매매)`;
+            document.getElementById('dash-phase-label').innerText = "1단계 (매매 시간)";
+
+            // Update Ticker
+            document.getElementById('news-round-label').innerText = `현재 라운드: ${currentRound}라운드`;
+            document.getElementById('news-status-sub').innerText = "모둠원과 분석 후 매수/매도하세요";
+            document.getElementById('news-headline').innerText = scenario.headline;
+
+            // Show Headline Modal
+            document.getElementById('modal-round-tag').innerText = `${currentRound}라운드 증권 속보`;
+            document.getElementById('modal-news-title').innerText = scenario.title;
+            document.getElementById('modal-news-body').innerText = scenario.body;
+
+            sound.playNews();
+
+            const modal = document.getElementById('news-headline-modal');
+            const card = document.getElementById('news-modal-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 30);
+
+            updateDashboard();
+            renderStockCards();
+        }
+
+        function closeNewsHeadlineModal() {
+            const modal = document.getElementById('news-headline-modal');
+            const card = document.getElementById('news-modal-card');
+
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 250);
+        }
+
+        // STEP 2: REVEAL RESULTS & EDUCATIONAL REASONS
+        function adminRevealResults() {
+            if (currentRound === 0) {
+                alert("1라운드 뉴스 속보를 먼저 공개하세요.");
+                return;
+            }
+
+            if (isPhase2Revealed) {
+                showToast("이미 해당 라운드 결과가 공개되었습니다.", "info");
+                openResultsModal();
+                return;
+            }
+
+            // Lock Trading for Results Explanation
+            isTradingLocked = true;
+            isPhase2Revealed = true;
+
+            const scenario = ROUND_SCENARIOS.find(s => s.round === currentRound);
+
+            // Apply Price Changes
+            stocks.forEach(stock => {
+                stock.prevPrice = stock.price;
+                const rate = scenario.impacts[stock.id] || 0;
+                const newPrice = Math.round(stock.price * (1 + rate));
+                stock.price = Math.max(1000, newPrice);
+                stock.priceHistory.push(stock.price);
+            });
+
+            // Update UI & Admin Badges
+            document.getElementById('admin-phase-badge').innerText = `현재: ${currentRound}라운드 (2단계: 주가 결과 & 해설)`;
+            document.getElementById('dash-phase-label').innerText = "2단계 (해설 및 정산)";
+
+            sound.playWin();
+
+            updateDashboard();
+            renderStockCards();
+            updatePriceChart();
+
+            openResultsModal();
+        }
+
+        function openResultsModal() {
+            const scenario = ROUND_SCENARIOS.find(s => s.round === currentRound);
+            if (!scenario) return;
+
+            document.getElementById('result-modal-round-tag').innerText = `${currentRound}라운드 주가 변동 결과`;
+            document.getElementById('result-modal-title').innerText = scenario.title;
+            document.getElementById('result-modal-summary').innerText = `${scenario.headline} 이에 따른 각 주가의 실제 변동률과 통합사회 핵심 교과 해설입니다.`;
+
+            // Render Reason Cards
+            const container = document.getElementById('results-reason-list');
+            container.innerHTML = '';
+
+            stocks.forEach(s => {
+                const impactRate = scenario.impacts[s.id] || 0;
+                const isUp = impactRate > 0;
+                const isDown = impactRate < 0;
+                const impactPercent = (impactRate * 100).toFixed(0);
+                const reasonText = scenario.reasons[s.id] || "시장 동향 유지";
+
+                let badgeClass = "text-slate-600 bg-slate-100 border-slate-200";
+                let rateSymbol = "―";
+                if (isUp) {
+                    badgeClass = "text-sec-up bg-rose-50 border-rose-200";
+                    rateSymbol = "▲";
+                } else if (isDown) {
+                    badgeClass = "text-sec-down bg-blue-50 border-blue-200";
+                    rateSymbol = "▼";
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-col gap-1.5";
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-sec-navy text-sm">${s.name}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${s.badgeColor}">${s.badge}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-black font-mono px-2 py-0.5 rounded border ${badgeClass}">
+                                ${rateSymbol} ${isUp ? '+' : ''}${impactPercent}% (${formatKRW(s.price)})
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-700 leading-relaxed font-semibold bg-white p-2.5 rounded-xl border border-slate-200 mt-1">
+                        💡 <strong>교과 해설:</strong> ${reasonText}
+                    </p>
+                `;
+
+                container.appendChild(card);
+            });
+
+            const modal = document.getElementById('results-reason-modal');
+            const card = document.getElementById('results-modal-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 30);
+        }
+
+        function closeResultsReasonModal() {
+            const modal = document.getElementById('results-reason-modal');
+            const card = document.getElementById('results-modal-card');
+
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (currentRound === 4) {
+                    showFinalResults();
+                }
+            }, 250);
+        }
+
+        // STEP 3: ADVANCE TO NEXT ROUND
+        function adminNextRound() {
+            if (currentRound >= 4 && isPhase2Revealed) {
+                showFinalResults();
+                return;
+            }
+
+            if (!isPhase2Revealed && currentRound > 0) {
+                if (!confirm("현재 라운드의 주가 변동을 아직 공개하지 않았습니다. 변동을 공개하지 않고 다음 라운드로 넘어가시겠습니까?")) {
+                    return;
+                }
+            }
+
+            adminPublishNews();
+        }
+
+        // DASHBOARD UPDATE
+        function updateDashboard() {
+            let stockValuation = 0;
+            stocks.forEach(s => {
+                stockValuation += s.owned * s.price;
+            });
+
+            const totalAssets = cash + stockValuation;
+            const returnRate = ((totalAssets - INITIAL_CASH) / INITIAL_CASH) * 100;
+
+            document.getElementById('dash-total').innerText = formatKRW(totalAssets);
+            document.getElementById('dash-cash').innerText = formatKRW(cash);
+            document.getElementById('dash-stock-val').innerText = formatKRW(stockValuation);
+
+            const rateEl = document.getElementById('dash-return-rate');
+            const iconEl = document.getElementById('dash-return-icon');
+            const wrapper = document.getElementById('dash-return-wrapper');
+
+            rateEl.innerText = (returnRate >= 0 ? '+' : '') + returnRate.toFixed(2) + '%';
+
+            if (returnRate > 0) {
+                wrapper.className = "mt-1 flex items-center gap-1 text-xs font-bold text-sec-up";
+                iconEl.innerText = '▲';
+            } else if (returnRate < 0) {
+                wrapper.className = "mt-1 flex items-center gap-1 text-xs font-bold text-sec-down";
+                iconEl.innerText = '▼';
+            } else {
+                wrapper.className = "mt-1 flex items-center gap-1 text-xs font-bold text-slate-400";
+                iconEl.innerText = '―';
+            }
+
+            // Update Round Tracker
+            document.getElementById('dash-round-badge').innerText = `${currentRound} / 4`;
+            const roundDesc = document.getElementById('dash-round-desc');
+
+            if (currentRound === 0) {
+                roundDesc.innerText = "초기 포트폴리오 매수 단계";
+            } else if (currentRound < 4) {
+                roundDesc.innerText = `${currentRound}라운드 진행 중`;
+            } else {
+                roundDesc.innerText = "4라운드 완료 (정산 가능)";
+            }
+
+            updateDoughnutChart(cash, stocks);
+        }
+
+        // RENDER STOCK CARDS
+        function renderStockCards() {
+            const grid = document.getElementById('stocks-grid');
+            grid.innerHTML = '';
+
+            stocks.forEach(stock => {
+                const diff = stock.price - stock.prevPrice;
+                const diffPercent = stock.prevPrice === 0 ? 0 : (diff / stock.prevPrice) * 100;
+                const isUp = diff > 0;
+                const isDown = diff < 0;
+
+                let colorClass = "text-slate-500";
+                let badgeSymbol = "―";
+                if (isUp) {
+                    colorClass = "text-sec-up";
+                    badgeSymbol = "▲";
+                } else if (isDown) {
+                    colorClass = "text-sec-down";
+                    badgeSymbol = "▼";
+                }
+
+                const evalAmount = stock.owned * stock.price;
+                const disabledAttr = isTradingLocked ? 'disabled' : '';
+
+                const card = document.createElement('div');
+                card.className = `bg-white border rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-sm transition ${isTradingLocked ? 'border-slate-200 opacity-90' : 'border-sec-border hover:border-slate-300'}`;
+
+                card.innerHTML = `
+                    <div>
+                        <!-- Header & Badge -->
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border ${stock.badgeColor}">
+                                ${stock.badge}
+                            </span>
+                            <span class="text-[11px] font-semibold text-slate-500">
+                                보유: <strong class="text-sec-navy font-mono text-xs">${stock.owned.toLocaleString()}주</strong>
+                            </span>
+                        </div>
+
+                        <!-- Name & Price -->
+                        <div class="flex items-baseline justify-between mb-1">
+                            <h3 class="text-base font-extrabold text-sec-navy tracking-tight">${stock.name}</h3>
+                            <div class="text-right">
+                                <div class="text-lg font-black font-mono text-sec-navy">${formatKRW(stock.price)}</div>
+                                <div class="text-[11px] font-bold ${colorClass}">
+                                    ${badgeSymbol} ${Math.abs(diff).toLocaleString()}원 (${isUp ? '+' : ''}${diffPercent.toFixed(1)}%)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evaluation info -->
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 my-2">
+                            <span>평가 금액</span>
+                            <span class="font-mono font-bold text-slate-800">${formatKRW(evalAmount)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Trading Controller -->
+                    <div class="border-t border-slate-200 pt-3 flex flex-col gap-2">
+                        <!-- Quick Quantity Buttons -->
+                        <div class="flex items-center gap-1.5">
+                            <input type="number" id="qty-${stock.id}" min="1" value="1" ${disabledAttr} class="w-16 h-8 bg-slate-50 border border-slate-300 rounded-lg text-center text-xs font-mono font-bold text-sec-navy focus:outline-none focus:border-sec-blue disabled:bg-slate-100 disabled:text-slate-400">
+                            
+                            <button onclick="adjustQty('${stock.id}', 1)" ${disabledAttr} class="h-8 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-200 disabled:opacity-50">+1</button>
+                            <button onclick="adjustQty('${stock.id}', 10)" ${disabledAttr} class="h-8 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-200 disabled:opacity-50">+10</button>
+                            <button onclick="adjustQty('${stock.id}', 100)" ${disabledAttr} class="h-8 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-200 disabled:opacity-50">+100</button>
+                            <button onclick="setMaxBuyQty('${stock.id}')" ${disabledAttr} class="h-8 px-2 bg-sec-blueLight hover:bg-blue-100 text-sec-blue text-[11px] font-bold rounded-lg border border-blue-200 flex-1 disabled:opacity-50">최대매수</button>
+                        </div>
+
+                        <!-- Reason Note -->
+                        <input type="text" id="reason-${stock.id}" placeholder="투자 이유 한 줄 기록 (선택 사항)" ${disabledAttr} class="w-full h-7 bg-slate-50 border border-slate-200 rounded-lg px-2.5 text-[11px] text-slate-700 placeholder-slate-400 focus:outline-none focus:border-sec-blue disabled:bg-slate-100">
+
+                        <!-- Buy & Sell Action Buttons -->
+                        <div class="grid grid-cols-2 gap-2 mt-0.5">
+                            <button onclick="executeTrade('${stock.id}', 'BUY')" ${disabledAttr} class="h-9 bg-sec-up hover:bg-rose-600 active:scale-95 text-white font-bold rounded-xl text-xs shadow-md shadow-rose-500/20 transition flex items-center justify-center gap-1 disabled:bg-slate-300 disabled:shadow-none disabled:active:scale-100">
+                                <i class="fa-solid fa-plus text-[10px]"></i> 매수 (사기)
+                            </button>
+                            <button onclick="executeTrade('${stock.id}', 'SELL')" ${disabledAttr} class="h-9 bg-sec-down hover:bg-blue-600 active:scale-95 text-white font-bold rounded-xl text-xs shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-1 disabled:bg-slate-300 disabled:shadow-none disabled:active:scale-100">
+                                <i class="fa-solid fa-minus text-[10px]"></i> 매도 (팔기)
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // QUANTITY ADJUSTMENT HELPERS
+        function adjustQty(stockId, addAmount) {
+            if (isTradingLocked) return;
+            const input = document.getElementById(`qty-${stockId}`);
+            let val = parseInt(input.value) || 0;
+            input.value = Math.max(1, val + addAmount);
+        }
+
+        function setMaxBuyQty(stockId) {
+            if (isTradingLocked) return;
+            const stock = stocks.find(s => s.id === stockId);
+            if (!stock) return;
+            const maxQty = Math.floor(cash / stock.price);
+            const input = document.getElementById(`qty-${stockId}`);
+            input.value = maxQty > 0 ? maxQty : 1;
+        }
+
+        // BUY / SELL EXECUTION
+        function executeTrade(stockId, type) {
+            if (isTradingLocked) {
+                sound.playError();
+                showToast("현재 교사 설명 진행 중으로 매매가 정지된 상태입니다.", "error");
+                return;
+            }
+
+            const stock = stocks.find(s => s.id === stockId);
+            const qtyInput = document.getElementById(`qty-${stockId}`);
+            const reasonInput = document.getElementById(`reason-${stockId}`);
+            const qty = parseInt(qtyInput.value) || 0;
+            const reasonText = reasonInput ? reasonInput.value.trim() : '';
+
+            if (qty <= 0) {
+                sound.playError();
+                showToast("1주 이상의 수량을 입력해주세요.", "error");
+                return;
+            }
+
+            const totalCost = stock.price * qty;
+
+            if (type === 'BUY') {
+                if (cash < totalCost) {
+                    sound.playError();
+                    showToast(`현금이 부족합니다! (필요: ${formatKRW(totalCost)})`, "error");
+                    return;
+                }
+
+                cash -= totalCost;
+                stock.owned += qty;
+                sound.playBuy();
+                showToast(`${stock.name} ${qty}주 매수 완료! (${formatKRW(totalCost)})`, "success");
+
+                addTransactionLog('BUY', stock.name, qty, stock.price, reasonText);
+
+            } else if (type === 'SELL') {
+                if (stock.owned < qty) {
+                    sound.playError();
+                    showToast(`보유 주식이 부족합니다! (보유: ${stock.owned}주)`, "error");
+                    return;
+                }
+
+                cash += totalCost;
+                stock.owned -= qty;
+                sound.playSell();
+                showToast(`${stock.name} ${qty}주 매도 완료! (+${formatKRW(totalCost)})`, "success");
+
+                addTransactionLog('SELL', stock.name, qty, stock.price, reasonText);
+            }
+
+            if (reasonInput) reasonInput.value = '';
+            updateDashboard();
+            renderStockCards();
+        }
+
+        // LOG HISTORY
+        function addTransactionLog(type, name, qty, price, reason = '') {
+            const logContainer = document.getElementById('transaction-log');
+            if (transactionLogs.length === 0) {
+                logContainer.innerHTML = '';
+            }
+
+            const isBuy = type === 'BUY';
+            const badgeClass = isBuy ? 'bg-rose-100 text-sec-up border-rose-200' : 'bg-blue-100 text-sec-down border-blue-200';
+            const typeLabel = isBuy ? '매수' : '매도';
+
+            const logItem = {
+                round: currentRound,
+                type,
+                name,
+                qty,
+                price,
+                total: qty * price,
+                reason,
+                time: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            };
+
+            transactionLogs.unshift(logItem);
+            document.getElementById('log-count').innerText = `${transactionLogs.length}건`;
+
+            const itemEl = document.createElement('div');
+            itemEl.className = "bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col gap-1";
+            itemEl.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.2 rounded text-[10px] font-bold border ${badgeClass}">${typeLabel}</span>
+                        <span class="font-bold text-sec-navy">${name}</span>
+                        <span class="text-slate-500 font-mono text-[11px]">${qty}주</span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-800 text-[11px]">${formatKRW(logItem.total)}</span>
+                </div>
+                ${reason ? `<p class="text-[10px] text-sec-blue bg-blue-50 px-2 py-0.5 rounded italic">💬 "${reason}"</p>` : ''}
+                <div class="flex items-center justify-between text-[9px] text-slate-400">
+                    <span>${currentRound}라운드</span>
+                    <span>${logItem.time}</span>
+                </div>
+            `;
+
+            logContainer.prepend(itemEl);
+        }
+
+        // FINAL RESULT MODAL & REVIEW
+        function showFinalResults() {
+            sound.playWin();
+
+            let stockValuation = 0;
+            stocks.forEach(s => stockValuation += s.owned * s.price);
+            const totalAssets = cash + stockValuation;
+            const returnRate = ((totalAssets - INITIAL_CASH) / INITIAL_CASH) * 100;
+
+            document.getElementById('final-total').innerText = formatKRW(totalAssets);
+            
+            const rateEl = document.getElementById('final-rate');
+            rateEl.innerText = (returnRate >= 0 ? '+' : '') + returnRate.toFixed(2) + '%';
+            rateEl.className = returnRate >= 0 ? "text-sm sm:text-base font-extrabold font-mono text-sec-up" : "text-sm sm:text-base font-extrabold font-mono text-sec-down";
+
+            // Grade Badge
+            let grade = "🌱 금융 입문자";
+            if (returnRate >= 30) grade = "👑 전설의 펀드매니저";
+            else if (returnRate >= 10) grade = "⭐ 스마트 투자 전문가";
+            else if (returnRate >= 0) grade = "🛡️ 안정적 자산 방어가";
+            else grade = "💡 리스크 관리 학습자";
+
+            document.getElementById('result-grade-badge').innerText = `성과 등급: ${grade}`;
+
+            // Confetti
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            const modal = document.getElementById('result-modal');
+            const card = document.getElementById('result-modal-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 50);
+        }
+
+        function closeResultModalAndReset() {
+            const modal = document.getElementById('result-modal');
+            const card = document.getElementById('result-modal-card');
+
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                resetGame();
+            }, 250);
+        }
+
+        function confirmReset() {
+            if (confirm("게임을 처음 상태로 재설정하시겠습니까?")) {
+                resetGame();
+                showToast("모의투자가 초기 상태로 재설정되었습니다.", "info");
+            }
+        }
+
+        function resetGame() {
+            currentRound = 0;
+            isTradingLocked = false;
+            isPhase1Published = false;
+            isPhase2Revealed = false;
+
+            cash = INITIAL_CASH;
+            stocks = JSON.parse(JSON.stringify(INITIAL_STOCKS));
+            transactionLogs = [];
+
+            document.getElementById('admin-phase-badge').innerText = "현재: 0라운드 (초기 매수)";
+            document.getElementById('dash-phase-label').innerText = "1단계 (매매 시간)";
+
+            document.getElementById('transaction-log').innerHTML = '<div class="text-center text-slate-400 py-8">아직 실행된 매매 내역이 없습니다.</div>';
+            document.getElementById('log-count').innerText = "0건";
+
+            document.getElementById('news-round-label').innerText = "현재 라운드: 0라운드 (초기 투자)";
+            document.getElementById('news-status-sub').innerText = "교사의 뉴스 발표를 기다리세요";
+            document.getElementById('news-headline').innerText = "모든 주식이 1주당 ₩10,000으로 개장합니다. 시드머니 1,000만 원으로 5개 종목을 자유롭게 매수하여 포트폴리오를 구성하세요!";
+
+            initCharts();
+            updateDashboard();
+            renderStockCards();
+        }
+
+        // CHART.JS INITIALIZATION & UPDATES
+        function initCharts() {
+            // Price History Line Chart
+            const ctxPrice = document.getElementById('priceHistoryChart').getContext('2d');
+            if (priceChartInstance) priceChartInstance.destroy();
+
+            const labels = ['0R (시작)', '1R', '2R', '3R', '4R'];
+            const datasets = stocks.map((s, idx) => {
+                const colors = ['#8B5CF6', '#10B981', '#EC4899', '#0046FF', '#F59E0B'];
+                return {
+                    label: s.name,
+                    data: [...s.priceHistory],
+                    borderColor: colors[idx % colors.length],
+                    backgroundColor: colors[idx % colors.length],
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    tension: 0.25
+                };
+            });
+
+            priceChartInstance = new Chart(ctxPrice, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: { color: '#475569', font: { size: 10 }, boxWidth: 10 }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ₩${ctx.parsed.y.toLocaleString()}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#F1F5F9' },
+                            ticks: { color: '#64748B', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#F1F5F9' },
+                            ticks: {
+                                color: '#64748B',
+                                font: { size: 10 },
+                                callback: val => '₩' + (val / 1000) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Portfolio Doughnut Chart
+            const ctxDoughnut = document.getElementById('portfolioDoughnutChart').getContext('2d');
+            if (doughnutChartInstance) doughnutChartInstance.destroy();
+
+            doughnutChartInstance = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['현금', ...stocks.map(s => s.name)],
+                    datasets: [{
+                        data: [cash, ...stocks.map(s => s.owned * s.price)],
+                        backgroundColor: ['#0046FF', '#8B5CF6', '#10B981', '#EC4899', '#3B82F6', '#F59E0B'],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: { color: '#475569', font: { size: 10 }, boxWidth: 10 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.label}: ₩${Math.round(ctx.parsed).toLocaleString()}`
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updatePriceChart() {
+            if (!priceChartInstance) return;
+            priceChartInstance.data.datasets.forEach((dataset, idx) => {
+                dataset.data = [...stocks[idx].priceHistory];
+            });
+            priceChartInstance.update();
+        }
+
+        function updateDoughnutChart(currentCash, currentStocks) {
+            if (!doughnutChartInstance) return;
+            const stockVals = currentStocks.map(s => s.owned * s.price);
+            doughnutChartInstance.data.datasets[0].data = [currentCash, ...stockVals];
+            doughnutChartInstance.update();
+        }
+
+        // INITIAL ONLOAD START
+        window.onload = function() {
+            resetGame();
+        };
+    </script>
+</body>
+</html>
