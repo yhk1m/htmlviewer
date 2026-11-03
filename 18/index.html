@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>도시 개발 긴급 공청회 | 공간 정의 탐구</title>
+<style>
+:root{--bg:#0d1724;--panel:#142538;--panel2:#1a3045;--line:#2b465e;--text:#edf4fa;--muted:#a6b8c8;--aqua:#67dfc0;--blue:#80bdff;--gold:#ffd071;--coral:#ff9b85}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 70% -10%,#1e4054 0%,#101d2b 42%,#0a131e 100%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}button,textarea{font:inherit}button{cursor:pointer}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 22px 50px}
+header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:24px}
+.brand{display:flex;gap:13px;align-items:center}.brand-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,#4bc9b1,#257a88);box-shadow:0 8px 25px #31bea744}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--aqua);font-weight:800}.brand h1{font-size:clamp(23px,4vw,32px);letter-spacing:-.8px;margin:2px 0 0}
+.header-note{color:var(--muted);font-size:12px;text-align:right}
+.layout{display:grid;grid-template-columns:235px minmax(0,1fr);gap:18px}
+.sidebar,.main{border:1px solid var(--line);background:linear-gradient(150deg,#15283aee,#102033ee);border-radius:20px;box-shadow:0 20px 60px #050b1270}
+.sidebar{padding:17px;height:fit-content;position:sticky;top:18px}
+.side-label{font-size:10px;color:#849db2;font-weight:800;letter-spacing:.14em;padding:5px 9px 12px}
+.step{display:flex;gap:11px;align-items:center;padding:10px 9px;border-radius:12px;color:#8399ac;font-size:13px;margin:3px 0}
+.step .num{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;border:1px solid #3a5267;background:#152a3c;font-size:11px;font-weight:800}
+.step.active{background:#213c50;color:#e9f8ff}.step.active .num{background:#4bc9b1;color:#08221e;border-color:#4bc9b1}.step.done{color:#bdcec9}.step.done .num{border-color:#4eb69f;color:#81e5ce}
+.case-box{margin-top:18px;padding:13px;background:#0e1d2b;border:1px solid #263d51;border-radius:13px}
+.case-box strong{display:block;font-size:12px;margin-bottom:6px}.case-box p{font-size:11px;color:#93a8ba;line-height:1.6;margin:0}
+.main{padding:clamp(18px,3vw,30px);min-height:620px}
+.screen{display:none}.screen.active{display:block;animation:appear .25s ease}@keyframes appear{from{opacity:.3;transform:translateY(5px)}to{opacity:1;transform:none}}
+.kicker{font-size:11px;color:var(--aqua);font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+h2{font-size:clamp(23px,4vw,34px);line-height:1.2;letter-spacing:-.7px;margin:8px 0 10px}
+.lead{max-width:720px;color:#b4c4d2;font-size:14px;line-height:1.75;margin:0 0 22px}
+.callout{padding:15px 17px;background:#18364a;border-left:3px solid var(--aqua);border-radius:5px 13px 13px 5px;color:#dcebf4;font-size:13px;line-height:1.7;margin:18px 0}
+.action-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:23px}
+.btn{border:0;border-radius:11px;padding:11px 16px;background:var(--aqua);color:#09241f;font-size:13px;font-weight:850;box-shadow:0 5px 15px #2bc7a133}.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}.btn:disabled{opacity:.38;cursor:not-allowed;transform:none}.btn.ghost{background:#1b3044;border:1px solid #405a70;color:#d9e8f2;box-shadow:none}.btn.gold{background:var(--gold);color:#2e230c}
+.progress-text{font-size:12px;color:#93aabd}.progress-track{height:6px;background:#22384b;border-radius:9px;overflow:hidden;margin:11px 0 21px}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#48bfa8,#8fe7d1);transition:width .3s}
+.evidence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.evidence{border:1px solid #314d63;background:#142b3e;border-radius:15px;padding:15px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;transition:.2s}
+.evidence:hover{border-color:#65cbb8;transform:translateY(-2px)}
+.evidence .icon{font-size:23px}.evidence h3{font-size:14px;margin:10px 0 6px}.evidence p{font-size:12px;line-height:1.6;color:#a9bbca;margin:0}
+.evidence .reveal{font-size:11px;color:#6fddc1;font-weight:800;margin-top:12px}
+.map-card{margin-top:18px;padding:15px;background:#0d1b29;border:1px solid #2a4054;border-radius:15px}
+.map-title{font-size:12px;font-weight:800;margin:0 0 12px}
+.map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.zone{border:1px solid #31495e;border-radius:11px;background:#172a3b;padding:11px}
+.zone .zname{font-size:12px;font-weight:850}.zone .tag{font-size:10px;color:#9cb0c0;margin:3px 0 9px}
+.mini-row{font-size:10px;color:#9bb0c0;display:flex;justify-content:space-between;margin:4px 0}.mini-row b{color:#e7f1f7;font-variant-numeric:tabular-nums}
+.role-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.role{position:relative;text-align:left;border:1px solid #344f65;border-radius:15px;padding:15px;background:#142a3c;color:var(--text);transition:.18s}
+.role:hover{border-color:#6bd8c0;transform:translateY(-2px)}.role.selected{border-color:var(--aqua);background:#1b3b4b;box-shadow:inset 0 0 0 1px #67dfc055}
+.role .who{font-size:23px}.role h3{font-size:14px;margin:8px 0 6px}.role p{font-size:12px;line-height:1.6;color:#a8bac8;margin:0}.role .quote{color:#d8e9f2;font-style:italic;margin-top:9px}
+.plan-top{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:13px 15px;background:#0f2030;border:1px solid #2a4359;border-radius:14px;margin:16px 0}
+.budget{font-size:12px;color:#a8bbc9}.budget strong{font-size:22px;color:var(--gold);margin-right:4px}
+.project-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.project{display:flex;gap:12px;align-items:flex-start;border:1px solid #314a60;border-radius:14px;background:#142a3c;padding:13px;cursor:pointer;transition:.16s}
+.project:hover{border-color:#74cdbd}.project.chosen{border-color:#6edec3;background:#1a3948}
+.project .emoji{font-size:22px}.project h3{font-size:13px;margin:0 0 5px}.project p{font-size:11px;line-height:1.5;color:#a2b5c5;margin:0}.cost{display:inline-block;margin-top:7px;font-size:10px;color:#ffda84;font-weight:850}
+.project .check{margin-left:auto;color:#6de2c1;font-weight:900;opacity:0}.project.chosen .check{opacity:1}
+.helper{font-size:11px;color:#8ea5b8;margin:13px 0}
+.results-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:18px 0}
+.metric{background:#102235;border:1px solid #2a4358;border-radius:13px;padding:13px}.metric small{display:block;color:#93aabd;font-size:10px}.metric strong{display:block;font-size:23px;margin-top:5px}.metric span{font-size:10px;color:#74ddc3}
+.result-zones{display:grid;gap:10px}
+.result-zone{border:1px solid #2d475d;border-radius:14px;background:#12273a;padding:14px}
+.rz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.rz-top strong{font-size:13px}.rz-top span{font-size:11px;color:#b2c2cf}
+.bar-line{display:grid;grid-template-columns:90px 1fr 33px;align-items:center;gap:8px;margin:6px 0;font-size:10px;color:#a7bac8}
+.bar{height:7px;border-radius:8px;background:#263e52;overflow:hidden}.bar i{height:100%;display:block;border-radius:8px;background:linear-gradient(90deg,#47bca8,#7bddc8);transition:width .4s}
+textarea{width:100%;min-height:95px;resize:vertical;background:#0d1c2a;border:1px solid #365168;border-radius:12px;padding:12px;color:#e7f0f6;font-size:13px;line-height:1.6;outline:none}textarea:focus{border-color:var(--aqua)}
+.prompt{font-size:12px;color:#b5c6d2;margin:17px 0 8px;font-weight:800}
+.notice{font-size:11px;color:#8299ad;line-height:1.6;margin-top:12px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,15px);background:#ddfff4;color:#0b332a;padding:10px 16px;border-radius:11px;font-size:12px;font-weight:800;opacity:0;transition:.25s;pointer-events:none;z-index:5}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.sidebar{position:static;padding:10px}.side-label,.case-box{display:none}.steps{display:flex;justify-content:space-between;gap:4px}.step{flex:1;justify-content:center;font-size:10px;padding:7px 3px;margin:0;gap:5px}.step .num{width:23px;height:23px}.main{min-height:0}}
+@media(max-width:560px){.wrap{padding:18px 11px 30px}header{align-items:flex-start}.header-note{display:none}.evidence-grid,.map{grid-template-columns:1fr}.evidence{min-height:135px}.role-grid,.project-grid{grid-template-columns:1fr}.results-summary{gap:6px}.metric{padding:10px}.metric strong{font-size:19px}.main{padding:18px 14px}.steps .step span:last-child{display:none}}
+</style>
+<style>
+/* Editorial civic-research visual direction: bright canvas, deep ink, restrained blue */
+:root{--bg:#fff;--panel:#fff;--panel2:#f5f7f9;--line:#d8dde3;--text:#111820;--muted:#53616e;--aqua:#087db5;--blue:#087db5;--gold:#b77900;--coral:#b94335;color-scheme:light}
+body{background:#f4f5f6;color:#15191d;font-family:Arial,"Noto Sans KR","Malgun Gothic",sans-serif}
+.wrap{max-width:1240px;padding-top:32px}
+header{padding:0 0 21px;border-bottom:1px solid #aeb5bb;margin-bottom:27px;align-items:flex-end}
+.brand-icon{border-radius:2px;background:#102e44;color:#fff;box-shadow:none;font-size:0;width:44px;height:44px}
+.brand-icon:after{content:"GC";font:700 15px Arial,sans-serif;letter-spacing:.08em}
+.eyebrow{color:#087db5;letter-spacing:.17em;font-size:10px}
+.brand h1{font-family:"Noto Serif KR","Nanum Myeongjo",Batang,Georgia,serif;font-weight:500;letter-spacing:-1px;color:#101820}
+.header-note{color:#525e68;font-size:12px;line-height:1.7}
+.sidebar,.main{background:#fff;border:0;border-radius:0;box-shadow:none}
+.sidebar{border-top:3px solid #112d43;border-right:1px solid #d8dde3;padding:17px 15px 17px 0}
+.main{padding:clamp(22px,4vw,42px);min-height:620px}
+.side-label{color:#5e6972;letter-spacing:.13em}
+.step{border-radius:0;color:#737b82;padding:11px 8px;border-bottom:1px solid #e4e7e9}
+.step .num{border-radius:2px;background:#f0f2f4;border-color:#d4d9dd;color:#35414b}
+.step.active{background:#eef5f9;color:#112d43;border-left:3px solid #087db5;padding-left:5px}
+.step.active .num{border-radius:2px;background:#087db5;border-color:#087db5;color:white}
+.step.done .num{border-radius:2px;border-color:#087db5;color:#087db5}
+.case-box{background:#f5f6f7;border:0;border-top:1px solid #b7c0c7;border-radius:0;padding:14px 11px}
+.case-box strong{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.case-box p{color:#53616e}
+.kicker{color:#087db5;letter-spacing:.15em}
+h2{font-family:"Noto Serif KR","Nanum Myeongjo",Batang,Georgia,serif;font-weight:500;letter-spacing:-.6px;color:#111820}
+.lead{color:#46535e;line-height:1.85}
+.callout{background:#f3f6f8;border-left:3px solid #087db5;border-radius:0;color:#303b44;padding:16px 19px}
+.btn{border-radius:2px;background:#087db5;color:white;box-shadow:none;padding:12px 18px}
+.btn:hover{background:#075e89;filter:none;transform:none}
+.btn:disabled{opacity:.4}
+.btn.ghost{background:#fff;border:1px solid #5e6972;color:#18232c;border-radius:2px}
+.btn.gold{background:#132e43;color:#fff;border-radius:2px}
+.progress-track{height:3px;background:#e0e4e7;border-radius:0}.progress-fill{background:#087db5;border-radius:0}
+.evidence-grid{gap:0;border-top:1px solid #bac2c8;border-bottom:1px solid #bac2c8}
+.evidence{background:#fff;border:0;border-right:1px solid #d9dee2;border-radius:0;padding:17px;min-height:176px}
+.evidence:last-child{border-right:0}.evidence:hover{border-color:#d9dee2;background:#f7fafb;transform:none}
+.evidence h3,.role h3,.project h3{color:#14202a}
+.evidence p,.role p,.project p{color:#56636e}
+.evidence .reveal{color:#087db5}
+.map-card{background:#fff;border:0;border-top:1px solid #aab4bc;border-bottom:1px solid #aab4bc;border-radius:0;padding:16px 0}
+.map-title{font-size:13px;color:#17232c}
+.map{gap:0}.zone{border:0;border-right:1px solid #d8dde3;border-radius:0;background:#fff;padding:13px 15px}
+.zone:first-child{border-left:3px solid #102e44}.zone:nth-child(2){border-top:3px solid #087db5}.zone:last-child{border-right:0;border-top:3px solid #8c989f}
+.zone .tag,.mini-row{color:#596670}.mini-row b{color:#17222b}
+.role-grid{gap:0;border-top:1px solid #b7c0c7;border-bottom:1px solid #b7c0c7}
+.role{border:0;border-right:1px solid #d7dde1;border-radius:0;background:white;padding:17px;transition:background .15s}
+.role:nth-child(2n){border-right:0}.role:hover{border-color:#d7dde1;background:#f6f9fa;transform:none}
+.role.selected{background:#edf6fa;border:0;border-right:1px solid #d7dde1;box-shadow:inset 0 -3px #087db5}
+.role .quote{color:#26343e}
+.plan-top{background:#f2f4f5;border:0;border-top:1px solid #b3bcc3;border-bottom:1px solid #b3bcc3;border-radius:0}
+.budget strong{color:#087db5}
+.project-grid{gap:0;border-top:1px solid #bac2c8;border-bottom:1px solid #bac2c8}
+.project{border:0;border-right:1px solid #d9dee2;border-bottom:1px solid #d9dee2;border-radius:0;background:#fff;padding:16px;transition:background .15s}
+.project:nth-child(2n){border-right:0}.project:hover{border-color:#d9dee2;background:#f6f9fa}.project.chosen{border-color:#d9dee2;background:#edf6fa;box-shadow:inset 3px 0 #087db5}
+.cost{color:#087db5}.project .check{color:#087db5}
+.helper,.progress-text{color:#5d6972}
+.results-summary{gap:0;border-top:1px solid #b7c0c7;border-bottom:1px solid #b7c0c7}
+.metric{background:#fff;border:0;border-right:1px solid #d8dde3;border-radius:0;padding:15px 17px}
+.metric:last-child{border-right:0}.metric small{color:#5b6770}.metric strong{color:#112d43}.metric span{color:#087db5}
+.result-zones{gap:0;border-top:1px solid #b7c0c7}
+.result-zone{border:0;border-bottom:1px solid #d8dde3;border-radius:0;background:#fff;padding:16px 10px}
+.rz-top strong{color:#14202a}.rz-top span{color:#56636e}
+.bar{background:#e5e8ea;border-radius:0}.bar i{background:#087db5;border-radius:0}
+.bar-line{color:#56636e}.bar-line b{color:#1b252c}
+textarea{background:#fff;border:1px solid #9ba5ad;border-radius:0;color:#15191d}textarea:focus{border-color:#087db5;box-shadow:0 0 0 1px #087db5}
+.prompt{color:#1d2932}.notice{color:#58656f}
+.toast{border-radius:2px;background:#112e43;color:white}
+@media(max-width:800px){.sidebar{border-right:0;border-bottom:1px solid #c9cfd3;padding:8px 0}.step{border-bottom:0}.main{padding:25px 20px}}
+@media(max-width:560px){.wrap{padding-top:18px}.brand-icon{width:37px;height:37px}.brand h1{font-size:24px}.main{padding:20px 14px}.evidence{border-right:0;border-bottom:1px solid #d9dee2;min-height:130px}.evidence:last-child{border-bottom:0}.map{grid-template-columns:1fr}.zone{border-right:0;border-bottom:1px solid #d8dde3;padding:12px}.zone:first-child{border-left:3px solid #102e44}.zone:nth-child(2),.zone:last-child{border-top:0}.role{border-right:0;border-bottom:1px solid #d7dde1}.role.selected{border-right:0}.project{border-right:0}.metric{padding:11px 7px}.metric strong{font-size:19px}}
+</style>
+<style>
+/* Desktop fills the available viewport; tablets keep the same flow with tighter spacing. */
+@media(min-width:1100px){
+ .wrap{width:100%;max-width:none;padding:30px clamp(36px,5vw,92px) 48px}
+ .layout{grid-template-columns:235px minmax(0,1fr);gap:26px}
+ .main{min-height:calc(100vh - 190px);padding:clamp(30px,3.2vw,52px)}
+ .lead{max-width:860px;font-size:15px}
+ .evidence,.role,.project{padding:19px}
+}
+@media(min-width:760px) and (max-width:1099px){
+ .wrap{width:100%;max-width:none;padding:22px 20px 38px}
+ .layout{grid-template-columns:178px minmax(0,1fr);gap:14px}
+ .sidebar{padding-right:10px}
+ .step{font-size:12px;gap:8px;padding-left:6px;padding-right:4px}
+ .step.active{padding-left:3px}
+ .main{padding:24px 20px;min-height:calc(100vh - 170px)}
+ .evidence{padding:12px;min-height:155px}
+ .role{padding:12px}
+ .project{padding:11px;gap:8px}
+ .lead{font-size:13px}
+}
+@media(max-width:759px){
+ .wrap{width:100%;padding-left:12px;padding-right:12px}
+ .layout{grid-template-columns:minmax(0,1fr)}
+ .main{min-height:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="brand"><div class="brand-icon">🏙️</div><div><div class="eyebrow">도시의 미래 탐구 · 공간 정의</div><h1>도시 개발 긴급 공청회</h1></div></div>
+<div class="header-note">탐정처럼 단서를 찾고<br>도시계획가처럼 선택해 보세요.</div>
+</header>
+<div class="layout">
+<aside class="sidebar">
+<div class="side-label">탐구 진행</div>
+<div class="steps">
+<div class="step active" data-step="0"><span class="num">01</span><span>사건 브리핑</span></div>
+<div class="step" data-step="1"><span class="num">02</span><span>단서 조사</span></div>
+<div class="step" data-step="2"><span class="num">03</span><span>주민 역할</span></div>
+<div class="step" data-step="3"><span class="num">04</span><span>예산 결정</span></div>
+<div class="step" data-step="4"><span class="num">05</span><span>결과 판정</span></div>
+</div>
+<div class="case-box"><strong>📁 사건 파일 24-시티</strong><p>가온시는 새 개발 예산 10점을 받았습니다. 시청은 도시 전체를 위한 계획이라고 말하지만, 주민들은 동네마다 필요한 것이 다르다고 합니다.</p></div>
+</aside>
+<main class="main">
+<section class="screen active" id="screen0">
+<div class="kicker">CASE FILE · 01</div><h2>같은 도시, 다른 일상</h2>
+<p class="lead">가온시는 개발 예산 10점으로 도시를 바꾸려 합니다. 하지만 어떤 동네는 버스와 병원이 가깝고, 어떤 동네는 공원이나 교통편을 이용하기 어렵습니다. 여러분은 이 도시의 개발 계획을 심의하는 시민 공청회 위원입니다.</p>
+<div class="callout"><strong>오늘의 질문</strong><br>도시의 공간과 자원을 누구에게, 어디에 먼저 배분해야 더 정의로운 도시가 될까요?</div>
+<div class="map-card"><p class="map-title">🗺️ 가온시의 세 동네</p><div class="map" id="introMap"></div></div>
+<div class="action-row"><span class="progress-text">예상 활동 시간 15–20분</span><button class="btn" onclick="go(1)">사건 조사 시작 →</button></div>
+</section>
+
+<section class="screen" id="screen1">
+<div class="kicker">INVESTIGATION · 02</div><h2>단서를 모아 불균형을 찾아라</h2>
+<p class="lead">자료 카드를 눌러 단서를 조사하세요. 세 장을 모두 확인하면 주민 공청회가 열립니다. 숫자만 보지 말고, 그 차이가 주민들의 하루에 어떤 영향을 줄지 생각해 보세요.</p>
+<div class="progress-text">조사한 단서 <strong id="clueCount">0</strong> / 3</div><div class="progress-track"><div class="progress-fill" id="clueProgress"></div></div>
+<div class="evidence-grid" id="evidenceGrid"></div>
+<div class="callout" id="clueInsight">💡 자료 카드를 눌러 가온시의 상황을 확인하세요.</div>
+<div class="action-row"><button class="btn ghost" onclick="go(0)">← 사건 브리핑</button><button class="btn" id="toRoles" disabled onclick="go(2)">주민 공청회 열기 →</button></div>
+</section>
+
+<section class="screen" id="screen2">
+<div class="kicker">PUBLIC HEARING · 03</div><h2>누구의 목소리로 심의할까요?</h2>
+<p class="lead">역할을 하나 선택하세요. 이 역할의 입장에서 도시계획안을 살펴보고, 내 선택이 어떤 주민에게 어떤 변화를 가져오는지 확인합니다.</p>
+<div class="role-grid" id="roleGrid"></div>
+<div class="callout" id="roleCallout">역할 카드를 선택하면 주민의 목소리가 여기에 표시됩니다.</div>
+<div class="action-row"><button class="btn ghost" onclick="go(1)">← 단서 조사</button><button class="btn" id="toPlan" disabled onclick="go(3)">예산 심의 시작 →</button></div>
+</section>
+
+<section class="screen" id="screen3">
+<div class="kicker">CITY PLANNING · 04</div><h2>예산 10점, 어디에 쓸까요?</h2>
+<p class="lead">사업을 눌러 예산을 배정하세요. 한 동네에만 집중할 수도, 여러 동네에 나눌 수도 있습니다. 예산을 다 쓰지 않아도 되지만, 선택의 이유를 설명할 수 있어야 합니다.</p>
+<div class="plan-top"><div class="budget"><strong id="budgetLeft">10</strong> / 10점 남음</div><div class="progress-text" id="pickedCount">선택한 사업 0개</div></div>
+<div class="project-grid" id="projectGrid"></div>
+<p class="helper">사업 카드를 다시 누르면 선택이 취소됩니다. 최소 2개 사업을 선택해 주세요.</p>
+<div class="action-row"><button class="btn ghost" onclick="go(2)">← 주민 역할</button><button class="btn" id="toResults" disabled onclick="showResults()">계획 결과 확인 →</button></div>
+</section>
+
+<section class="screen" id="screen4">
+<div class="kicker">DELIBERATION RESULT · 05</div><h2>이 계획은 누구에게 공정할까?</h2>
+<p class="lead" id="resultLead">선택한 사업이 세 동네의 접근성에 어떤 변화를 가져왔는지 살펴보세요.</p>
+<div class="results-summary" id="summaryMetrics"></div>
+<div class="result-zones" id="resultZones"></div>
+<div class="callout" id="resultInsight"></div>
+<div class="prompt">📝 공청회 최종 의견</div>
+<p class="helper">선택한 기준과 그 결과를 한두 문장으로 정리해 보세요. (예: 가장 불편한 동네의 교통 접근성을 우선 개선했다.)</p>
+<textarea id="reflection" placeholder="나는 ______을(를) 우선한 계획을 선택했다. 그 이유는 ______이기 때문이다. 이 계획으로 ______은(는) 좋아지지만, ______은(는) 충분히 해결되지 않을 수 있다."></textarea>
+<div class="action-row"><button class="btn ghost" onclick="go(3)">← 계획 수정하기</button><button class="btn gold" onclick="copyReport()">의견 복사하기</button></div>
+<div class="notice">※ 이 도구의 수치는 가상 도시의 학습용 자료입니다. 하나의 정답 점수보다, 어떤 기준으로 누구의 필요를 우선했는지 설명하는 것이 중요합니다.</div>
+</section>
+</main>
+</div>
+</div>
+<div class="toast" id="toast">복사했어요!</div>
+<script>
+(function(){
+const base=[
+{name:'새봄역 주변',tag:'중심 상업·업무 지역',mobility:88,green:54,care:70,home:32},
+{name:'언덕마을',tag:'고령 주민이 많은 주거 지역',mobility:32,green:28,care:24,home:72},
+{name:'달빛 외곽동',tag:'아동·청소년 가구가 많은 지역',mobility:35,green:46,care:33,home:68}
+];
+const labels={mobility:'교통 접근',green:'공원·녹지',care:'생활 서비스',home:'주거 안정'};
+const projects=[
+{id:'hillbus',zone:1,cost:4,emoji:'🚌',title:'언덕마을 저상 순환버스',desc:'가파른 언덕과 병원·역을 잇는 순환 노선을 운행합니다.',metric:'mobility',gain:36},
+{id:'outerbus',zone:2,cost:3,emoji:'🚏',title:'외곽동 마을버스 증편',desc:'배차 간격을 줄여 학교와 역까지 이동을 돕습니다.',metric:'mobility',gain:30},
+{id:'walkway',zone:1,cost:2,emoji:'♿',title:'언덕마을 무장애 보행로',desc:'경사로와 안전한 보행로를 정비합니다.',metric:'mobility',gain:18},
+{id:'clinic',zone:1,cost:4,emoji:'🏥',title:'언덕마을 보건 분소',desc:'가까운 곳에서 기본 진료와 건강 상담을 제공합니다.',metric:'care',gain:40},
+{id:'park',zone:1,cost:3,emoji:'🌳',title:'언덕마을 생활 공원',desc:'주민이 걸어서 이용할 작은 쉼터와 녹지를 만듭니다.',metric:'green',gain:35},
+{id:'kidspark',zone:2,cost:3,emoji:'🛝',title:'외곽동 어린이 공원',desc:'아이들이 안전하게 놀 수 있는 공원과 그늘을 조성합니다.',metric:'green',gain:32},
+{id:'rent',zone:0,cost:5,emoji:'🏠',title:'새봄역 공공임대주택',desc:'역세권 개발로 밀려날 수 있는 주민의 주거 안정을 지원합니다.',metric:'home',gain:42},
+{id:'culture',zone:2,cost:3,emoji:'📚',title:'외곽동 생활문화센터',desc:'도서관·돌봄 공간을 마련해 생활 서비스를 늘립니다.',metric:'care',gain:25}
+];
+const clues=[
+{icon:'🚌',title:'단서 1 · 이동 시간',text:'새봄역 주변 주민은 버스 정류장까지 평균 4분, 언덕마을은 18분, 외곽동은 22분 걸립니다.',insight:'교통 접근성 차이는 통학·출근·병원 방문에 드는 시간과 기회의 차이로 이어질 수 있어요.'},
+{icon:'🌿',title:'단서 2 · 생활 환경',text:'걸어서 갈 수 있는 공원은 새봄역 주변 3곳, 언덕마을 0곳, 외곽동 1곳입니다.',insight:'공원 수가 적다는 것은 단순한 경관 문제가 아니라, 휴식과 놀이를 누릴 공간의 차이일 수 있어요.'},
+{icon:'🏥',title:'단서 3 · 생활 서비스',text:'가까운 의원이나 보건 시설에 접근하기 쉬운 주민은 새봄역 주변에 많고, 언덕마을은 특히 불편합니다.',insight:'같은 도시 안에서도 사는 위치에 따라 건강·돌봄 서비스를 이용하기 어려울 수 있어요.'}
+];
+const roles=[
+{id:'elder',emoji:'👵',name:'언덕마을 고령 주민',desc:'언덕이 가파르고 병원이 멀어 외출할 때마다 이동이 큰 부담입니다.',quote:'“버스가 자주 다니고 가까운 진료 공간이 있으면 좋겠어요.”'},
+{id:'renter',emoji:'🧳',name:'역세권 세입자',desc:'역 주변 개발 소식에 기대도 있지만, 임대료가 오를까 걱정됩니다.',quote:'“좋은 시설이 생겨도 계속 살 수 없다면 누구를 위한 개발인가요?”'},
+{id:'student',emoji:'🎒',name:'외곽동 학생',desc:'학교와 도서관, 친구를 만나러 갈 때 버스 배차가 길어 불편합니다.',quote:'“집 근처에서 안전하게 놀고 공부할 곳이 필요해요.”'},
+{id:'shop',emoji:'🧑‍🍳',name:'동네 상인',desc:'새로운 개발이 손님을 늘릴 수도 있지만, 공사와 임대료 상승은 걱정입니다.',quote:'“도시가 바뀌어도 오래 살아온 주민과 가게가 함께 남았으면 해요.”'}
+];
+let found=new Set(),role=null,selected=new Set(),active=0;
+const $=id=>document.getElementById(id);
+function zoneCards(){return base.map(z=>'<div class="zone"><div class="zname">'+z.name+'</div><div class="tag">'+z.tag+'</div><div class="mini-row"><span>교통</span><b>'+z.mobility+'</b></div><div class="mini-row"><span>공원</span><b>'+z.green+'</b></div><div class="mini-row"><span>서비스</span><b>'+z.care+'</b></div><div class="mini-row"><span>주거 안정</span><b>'+z.home+'</b></div></div>').join('')}
+function drawClues(){$('evidenceGrid').innerHTML=clues.map((c,i)=>'<button class="evidence" data-clue="'+i+'" style="text-align:left;color:inherit"><div><div class="icon">'+c.icon+'</div><h3>'+c.title+'</h3><p>'+(found.has(i)?c.text:'카드를 눌러 자료를 확인하세요.')+'</p></div><div class="reveal">'+(found.has(i)?'✓ 조사 완료':'자료 열기 →')+'</div></button>').join('');document.querySelectorAll('[data-clue]').forEach(b=>b.onclick=()=>{let i=+b.dataset.clue;found.add(i);drawClues();$('clueCount').textContent=found.size;$('clueProgress').style.width=(found.size/3*100)+'%';$('clueInsight').textContent='💡 '+clues[i].insight;if(found.size===3){$('toRoles').disabled=false;$('toRoles').textContent='주민 공청회 열기 →'}})}
+function drawRoles(){$('roleGrid').innerHTML=roles.map(r=>'<button class="role '+(role===r.id?'selected':'')+'" data-role="'+r.id+'"><div class="who">'+r.emoji+'</div><h3>'+r.name+'</h3><p>'+r.desc+'</p><p class="quote">'+r.quote+'</p></button>').join('');document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{role=b.dataset.role;let r=roles.find(x=>x.id===role);drawRoles();$('roleCallout').innerHTML='<strong>'+r.emoji+' '+r.name+'의 입장</strong><br>'+r.quote;$('toPlan').disabled=false})}
+function drawProjects(){$('projectGrid').innerHTML=projects.map(p=>'<div class="project '+(selected.has(p.id)?'chosen':'')+'" data-project="'+p.id+'"><div class="emoji">'+p.emoji+'</div><div><h3>'+p.title+'</h3><p>'+p.desc+'</p><span class="cost">예산 '+p.cost+'점</span></div><div class="check">✓</div></div>').join('');document.querySelectorAll('[data-project]').forEach(el=>el.onclick=()=>{let p=projects.find(x=>x.id===el.dataset.project);if(selected.has(p.id)){selected.delete(p.id)}else if(spent()+p.cost<=10){selected.add(p.id)}else{toast('예산 10점을 넘길 수 없어요.');return}drawProjects()});let left=10-spent();$('budgetLeft').textContent=left;$('pickedCount').textContent='선택한 사업 '+selected.size+'개 · '+spent()+'점 사용';$('toResults').disabled=selected.size<2}
+function spent(){return projects.filter(p=>selected.has(p.id)).reduce((a,p)=>a+p.cost,0)}
+function go(n){if(n===2&&found.size<3)return;if(n===3&&!role)return;active=n;document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));document.querySelectorAll('.step').forEach((s,i)=>{s.classList.toggle('active',i===n);s.classList.toggle('done',i<n)});if(n===2)drawRoles();if(n===3)drawProjects();window.scrollTo({top:0,behavior:'smooth'})}
+function updatedZones(){let z=base.map(x=>({...x}));projects.filter(p=>selected.has(p.id)).forEach(p=>{z[p.zone][p.metric]=Math.min(100,z[p.zone][p.metric]+p.gain)});return z}
+function average(z){return Math.round((z.mobility+z.green+z.care+z.home)/4)}
+function showResults(){if(selected.size<2)return;go(4);let z=updatedZones(),scores=z.map(average),gap=Math.max.apply(null,scores)-Math.min.apply(null,scores),min=Math.min.apply(null,scores);$('summaryMetrics').innerHTML='<div class="metric"><small>최저 접근성 동네</small><strong>'+min+'점</strong><span>네 지표 평균</span></div><div class="metric"><small>동네 간 격차</small><strong>'+gap+'점</strong><span>격차가 작을수록 고른 편</span></div><div class="metric"><small>사용한 예산</small><strong>'+spent()+'점</strong><span>총 10점 중</span></div>';
+$('resultZones').innerHTML=z.map((x,i)=>'<div class="result-zone"><div class="rz-top"><strong>'+x.name+'</strong><span>접근성 평균 '+scores[i]+'점</span></div>'+Object.keys(labels).map(k=>'<div class="bar-line"><span>'+labels[k]+'</span><div class="bar"><i style="width:'+x[k]+'%"></i></div><b>'+x[k]+'</b></div>').join('')+'</div>').join('');
+let names=projects.filter(p=>selected.has(p.id)).map(p=>p.title).join(' · ');let text=gap<=25?'동네 간 평균 점수 차이가 비교적 줄었지만, 어떤 지표가 여전히 낮은지도 살펴보세요.':gap<=40?'일부 동네의 접근성이 개선됐지만, 동네 간 격차는 여전히 남아 있어요.': '선택한 사업 이후에도 동네별 접근성 차이가 커요. 예산을 어디에 더 배분할지 토론해 보세요.';$('resultInsight').innerHTML='<strong>선택한 계획</strong><br>'+names+'<br><br>'+text+'<br>접근성 점수만으로 공정함을 모두 판단할 수는 없어요. 주거비 상승, 기존 주민의 이주, 시설을 실제로 이용할 수 있는지까지 함께 이야기해 보세요.';$('resultLead').textContent=(roles.find(r=>r.id===role)||roles[0]).name+'의 관점에서 결과를 확인해 보세요. 다른 역할의 관점에서도 같은 계획을 평가해 보세요.'}
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
+async function copyReport(){let reflection=$('reflection').value.trim();if(!reflection){$('reflection').focus();toast('먼저 최종 의견을 적어 보세요.');return}let z=updatedZones(),scores=z.map(average),gap=Math.max.apply(null,scores)-Math.min.apply(null,scores);let report='도시 개발 긴급 공청회 결과\\n관점: '+(roles.find(r=>r.id===role)||{}).name+'\\n선택한 사업: '+projects.filter(p=>selected.has(p.id)).map(p=>p.title).join(', ')+'\\n사용 예산: '+spent()+'/10점\\n동네별 접근성 평균: '+z.map((x,i)=>x.name+' '+scores[i]+'점').join(' / ')+'\\n동네 간 격차: '+gap+'점\\n나의 의견: '+reflection;try{await navigator.clipboard.writeText(report);toast('공청회 의견과 결과를 복사했어요!')}catch(e){let ta=document.createElement('textarea');ta.value=report;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('공청회 의견과 결과를 복사했어요!')}}
+window.go=go;window.showResults=showResults;window.copyReport=copyReport;
+$('introMap').innerHTML=zoneCards();drawClues();
+})();
+</script>
+</body>
+</html>
