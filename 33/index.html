@@ -132,9 +132,9 @@
   .tt > div { display: grid; grid-template-columns: 160px 1fr; padding: 18px 0; border-bottom: 1px solid var(--g2); font-size: 30px; }
   .tt > div > span { color: var(--g5); }
   .tt .rest { color: var(--g4); }
-  .tt.toc { margin-top: 40px; }
-  .tt.toc > div { grid-template-columns: 100px 1fr 120px; padding: 10px 0; font-size: 27px; }
-  .tt.toc em { font-style: normal; color: var(--g5); text-align: right; }
+  .tt.toc { display: grid; grid-template-rows: repeat(4, auto); grid-auto-flow: column; grid-auto-columns: 1fr; column-gap: 80px; margin-top: 64px; border-top: 0; }
+  .tt.toc > div { grid-template-columns: 80px 1fr; padding: 32px 0; font-size: 30px; }
+  .tt.toc > div:nth-child(4n+1) { border-top: 1px solid var(--g3); }
   .ask { border: 1px solid var(--k); padding: 32px 36px; font-size: 28px; line-height: 1.7; }
   .ask .lab { font-size: 20px; color: var(--g5); margin-bottom: 12px; }
   .ask .url { font-family: Consolas, monospace; font-size: 20px; letter-spacing: 0; word-break: break-all; color: var(--g6); }
@@ -245,18 +245,16 @@
 <section class="slide" data-intro>
   <div class="hd"></div>
   <div class="bd">
-    <div class="eyebrow">120분</div>
     <h2>목차</h2>
-    <div class="tt toc" style="margin-top:28px">
-      <div><span>01</span>바이브 코딩을 해야 하는 이유<em>15분</em></div>
-      <div><span>02</span>HTML 기초<em>5분</em></div>
-      <div><span>03</span>게임 만들기: 지뢰찾기, 오목, 카드 뒤집기<em>15분</em></div>
-      <div><span>04</span>오픈소스 라이브러리<em>10분</em></div>
-      <div class="rest"><span></span>쉬는 시간<em>10분</em></div>
-      <div><span>05</span>내 수업 도구 만들기<em>35분</em></div>
-      <div><span>06</span>공유와 피드백<em>15분</em></div>
-      <div><span>07</span>웹 배포와 데이터<em>10분</em></div>
-      <div><span>08</span>마무리<em>5분</em></div>
+    <div class="tt toc">
+      <div><span>01</span>바이브 코딩을 해야 하는 이유</div>
+      <div><span>02</span>HTML 기초</div>
+      <div><span>03</span>게임 만들기: 지뢰찾기, 오목, 카드 뒤집기</div>
+      <div><span>04</span>오픈소스 라이브러리</div>
+      <div><span>05</span>내 수업 도구 만들기</div>
+      <div><span>06</span>공유와 피드백</div>
+      <div><span>07</span>웹 배포와 데이터</div>
+      <div><span>08</span>마무리</div>
     </div>
   </div>
 </section>
