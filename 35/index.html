@@ -1,98 +1,39 @@
-<!-- © 2026 김용현 -->
 <!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>선상지 질감 시안</title>
-<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+<title>지형 형성 실험실</title>
 <style>
-  :root { --ink:#f3f1ea; --glass:rgba(22,26,24,.72); --line:rgba(255,255,255,.2); --accent:#e4b15a; }
+  :root { --ink:#f3f1ea; --sub:#b9b8ae; --line:rgba(255,255,255,.18); --accent:#e4b15a; }
   * { box-sizing:border-box; }
-  html,body { margin:0; height:100%; background:#1b1f1d; color:var(--ink); overflow:hidden;
-    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
-  #stage { position:fixed; inset:0; } canvas { display:block; }
-  #panel { position:fixed; left:20px; top:20px; width:min(370px,calc(100vw - 40px)); padding:18px 20px; background:var(--glass);
-    border:1px solid var(--line); border-radius:6px; backdrop-filter:blur(7px); }
-  h1 { font-size:24px; margin:0 0 4px; letter-spacing:-.02em; }
-  #note { font-size:16px; line-height:1.5; margin:8px 0 12px; color:#e8e6dd; min-height:48px; }
-  .row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-  button { font:inherit; font-size:15px; color:var(--ink); background:transparent; border:1px solid var(--line); padding:7px 12px; border-radius:4px; cursor:pointer; }
-  button:hover { border-color:#fff; }
-  button.on { background:var(--accent); border-color:var(--accent); color:#1b1b16; font-weight:600; }
-  .cap { font-size:13px; color:#b9b8ae; margin-top:12px; }
-  #labels .label { position:fixed; left:0; top:0; pointer-events:none; text-align:center; text-shadow:0 1px 3px rgba(0,0,0,.9); }
-  .label b { display:block; font-size:21px; }
-  .label span { display:block; font-size:13px; white-space:nowrap; color:#eee; }
-  .label::after { content:""; display:block; width:1px; height:26px; background:#fff; margin:3px auto 0; }
-  #legend { position:fixed; right:20px; bottom:20px; padding:10px 14px; background:var(--glass); border:1px solid var(--line); border-radius:6px; font-size:14px; }
-  #legend i { display:block; height:12px; width:220px; margin:6px 0; background:linear-gradient(90deg,#eed6b8,#d96b24,#5a170d); }
-  #legend div { display:flex; justify-content:space-between; }
-  #load { position:fixed; inset:0; display:grid; place-items:center; background:#1b1f1d; font-size:20px; }
-  #load[hidden] { display:none; }
-  #foot { position:fixed; left:20px; bottom:14px; font-size:12px; color:#eee; text-shadow:0 1px 2px #000; max-width:520px; }
-  #schem { position:fixed; right:0; top:0; bottom:0; width:min(600px,42vw); padding:16px 20px; overflow:auto; background:rgba(22,26,24,.9); border-left:1px solid var(--line); color:var(--ink); }
-  #schem[hidden] { display:none; }
-  #schem h2 { font-size:18px; margin:4px 0 6px; font-weight:700; }
-  #schem figure { margin:0 0 10px; }
-  #schem svg { display:block; width:100%; height:auto; border-radius:3px; background:#23302a; font-family:inherit; }
-  .schem-note { font-size:17px; line-height:1.5; margin:8px 0 4px; min-height:52px; }
-  .schem-note b { color:var(--accent); margin-right:4px; }
-  .schem-cap { font-size:13px; color:#b9b8ae; margin:0; }
-  .label.hi b { color:var(--accent); font-size:26px; }
-  #legend { right:calc(min(600px,42vw) + 20px); }
-  body.noschem #legend { right:20px; }
-  #panel { max-height:calc(100vh - 40px); overflow:auto; }
-  #panelToggle { position:absolute; right:12px; top:12px; font-size:13px; padding:4px 8px; }
-  h1 { padding-right:74px; }
-  body.panel-closed #panel { width:auto; padding:10px 12px; }
-  body.panel-closed #panel > :not(h1):not(#panelToggle) { display:none; }
-  body.panel-closed #panel h1 { font-size:16px; margin:2px 0; padding-right:90px; }
-  @media (max-width:820px) {
-    #panel { left:8px; top:8px; width:calc(100vw - 16px); max-height:calc(62vh - 16px); padding:12px; }
-    #note { font-size:14px; min-height:0; }
-    button { padding:7px 9px; }
-    #schem { left:0; right:0; top:auto; bottom:0; width:100%; height:38vh; padding:10px 14px; border-left:0; border-top:1px solid var(--line); }
-    body.noschem #foot, #foot { left:8px; right:8px; bottom:calc(38vh + 4px); font-size:10px; max-width:none; }
-    body.noschem #foot { bottom:6px; }
-    #legend { right:8px; bottom:calc(38vh + 34px); }
-    body.noschem #legend { right:8px; bottom:40px; }
-    .label b { font-size:15px; }
-    .label span { display:none; }
-    .label::after { height:12px; }
-    .schem-note { font-size:14px; min-height:0; }
-  }
+  body { margin:0; background:#1b1f1d; color:var(--ink); font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:48px 20px 64px; }
+  h1 { font-size:34px; margin:0 0 8px; letter-spacing:-.02em; }
+  main > p { color:var(--sub); font-size:17px; line-height:1.6; margin:0 0 32px; }
+  h2 { font-size:15px; color:var(--accent); margin:32px 0 6px; }
+  .scene { display:flex; justify-content:space-between; gap:16px; align-items:baseline; padding:14px 2px; border-top:1px solid var(--line); color:inherit; text-decoration:none; }
+  a.scene:hover b { color:var(--accent); }
+  .scene b { font-size:20px; display:block; margin-bottom:3px; }
+  .scene span { font-size:14px; color:var(--sub); }
+  .scene em { font-style:normal; font-size:13px; color:var(--sub); white-space:nowrap; }
+  a.scene em { color:var(--accent); }
+  .off b { color:var(--sub); }
 </style>
 </head>
 <body>
-<div id="stage"></div>
-<div id="labels"></div>
-<section id="panel">
-  <h1 id="title">선상지</h1>
-  <button id="panelToggle">접기</button>
-  <div class="row" aria-label="지형 선택" style="margin-bottom:6px">
-    <button data-site="gurye">구례 실제 지형</button><button data-site="synthetic">계산 지형</button><button data-site="model">형성 모형</button>
-  </div>
-  <p id="note"></p>
-  <div class="row" aria-label="시간">
-    <button data-stage="0">초기</button><button data-stage="1">성장</button><button data-stage="2">오늘날</button>
-  </div>
-  <div class="row" aria-label="높이 과장">
-    <button data-height="1">실제 높이</button><button data-height="3" class="on">높이 3배</button><button data-height="5">높이 5배</button>
-  </div>
-  <div class="row" aria-label="시점">
-    <button data-view="oblique" class="on">비스듬히</button><button data-view="above">위에서</button><button data-view="close">가까이</button><button data-view="apex">곡구 쪽</button>
-  </div>
-  <div class="row">
-    <button id="labelsBtn" class="on">이름표</button><button id="grainBtn">입자 크기</button><button id="schemBtn" class="on">모식도</button>
-  </div>
-  <p class="cap" id="heightNote"></p>
-  <p class="cap" style="margin-top:4px">시간과 규모는 압축했습니다. 선상지가 쌓이는 과정은 형성 모형에서 볼 수 있습니다.</p>
-</section>
-<aside id="schem" aria-label="선상지 모식도"></aside>
-<div id="legend" hidden>입자 크기<i></i><div><span>작음</span><span>큼</span></div></div>
-<div id="foot">표면 재질: ambientCG (CC0)</div>
-<div id="load"><span id="status">준비 중</span></div>
-<script type="module" src="./main.js"></script>
+<main>
+  <h1>지형 형성 실험실</h1>
+  <p>지형이 어떻게 만들어지는지 3D로 쌓아 보고, 조건을 바꿔 비교합니다.</p>
+  <div id="list"></div>
+</main>
+<script type="module">
+  import { SCENES } from './shared/scenes.js';
+  const rows = area => SCENES.filter(s => s.area === area).map(s => s.href
+    ? `<a class="scene" href="./${s.href}"><div><b>${s.name}</b><span>${s.shows}</span></div><em>열기</em></a>`
+    : `<div class="scene off"><div><b>${s.name}</b><span>${s.shows}</span></div><em>준비 중</em></div>`).join('');
+  document.getElementById('list').innerHTML = `<h2>하천</h2>${rows('하천')}<h2>해안</h2>${rows('해안')}`;
+  window.__APP_READY = true;
+</script>
 </body>
 </html>

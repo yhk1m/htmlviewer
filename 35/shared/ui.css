@@ -1,0 +1,28 @@
+/* © 2026 김용현 */
+:root { --ink:#f3f1ea; --glass:rgba(22,26,24,.76); --line:rgba(255,255,255,.2); --accent:#e4b15a; }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; color:var(--ink); overflow:hidden; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+#stage { position:fixed; inset:0; } canvas { display:block; }
+#panel { position:fixed; left:20px; top:20px; width:min(360px,calc(100vw - 40px)); padding:16px 18px; background:var(--glass); border:1px solid var(--line); border-radius:6px; backdrop-filter:blur(7px); max-height:calc(100vh - 40px); overflow:auto; z-index:3; }
+h1 { font-size:23px; margin:0 0 8px; padding-right:74px; letter-spacing:-.02em; }
+.row { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; align-items:center; }
+button { font:inherit; font-size:14px; color:var(--ink); background:transparent; border:1px solid var(--line); padding:6px 10px; border-radius:4px; cursor:pointer; }
+button:hover { border-color:#fff; }
+button.on { background:var(--accent); border-color:var(--accent); color:#1b1b16; font-weight:600; }
+.cap { font-size:13px; line-height:1.45; color:#c4c3b9; margin:10px 0 0; }
+#labels .label { position:fixed; left:0; top:0; pointer-events:none; text-align:center; text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 6px rgba(0,0,0,.6); }
+.label b { display:block; font-size:21px; }
+.label span { display:block; font-size:13px; white-space:nowrap; }
+.label::after { content:""; display:block; width:1px; height:var(--lead,22px); background:#fff; margin:3px auto 0; }
+.label.hi b { color:var(--accent); font-size:26px; }
+#panelToggle { position:absolute; right:12px; top:12px; font-size:13px; padding:4px 8px; }
+body.panel-closed #panel { width:auto; padding:10px 12px; }
+body.panel-closed #panel > :not(h1):not(#panelToggle) { display:none; }
+body.panel-closed #panel h1 { font-size:16px; margin:2px 0; padding-right:90px; }
+@media (max-width:820px) {
+  #panel { left:8px; top:8px; width:calc(100vw - 16px); max-height:calc(62vh - 16px); padding:12px; }
+  button { padding:7px 9px; }
+  .label b { font-size:15px; }
+  .label span { display:none; }
+  .label.hi b { font-size:18px; }
+}

@@ -3,28 +3,25 @@
 // 1) 산지와 평지를 만들고 빗방울 침식으로 산의 주름을 새긴다.
 // 2) 곡구에서 나온 물길(워커)이 퇴적물을 쌓고, 쌓인 곳을 피해 물길을 옮기며 부채꼴을 만든다.
 // 3) 칸마다 입자 크기와 마지막으로 퇴적된 시점을 기억해 표면 재질을 정한다.
+import { rng32 } from '../../shared/rng.js';
 
-export const SITE = new URLSearchParams(location.search).get('site') === 'gurye' ? 'gurye' : 'synthetic';
 export const N = 512;
-export const SIZE = SITE === 'gurye' ? 9000 : 6000;
-export const CELL = SIZE / (N - 1);
-export const WATER_LEVEL = SITE === 'gurye' ? -100 : 22;
+export const SITES = {
+  gurye: { size: 9000, waterLevel: -100 },
+  synthetic: { size: 6000, waterLevel: 22 },
+};
+let SITE = 'synthetic', SIZE = SITES.synthetic.size, CELL = SIZE / (N - 1), WATER_LEVEL = SITES.synthetic.waterLevel;
+function useSite(name) {
+  SITE = name;
+  SIZE = SITES[name].size;
+  CELL = SIZE / (N - 1);
+  WATER_LEVEL = SITES[name].waterLevel;
+}
 
 const idx = (i, j) => j * N + i;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
 const lerp = (a, b, t) => a + (b - a) * t;
-
-function rng32(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function makeNoise(seed) {
   const rand = rng32(seed);
@@ -181,7 +178,7 @@ function sampleH(h, x, y) {
 
 function growFan(world, events, onSnap) {
   const { h, apex, rand, coarse, total, last, recent, mountain } = world;
-  const WALKERS = 460, VOL = 10;
+  const WALKERS = 460, VOL = 8;
   for (let e = 1; e <= events; e++) {
     const flood = 0.7 + rand() * 0.8;
     // 이번 홍수의 물길: 쌓여서 높아진 쪽을 피해 낮은 쪽을 고른다.
@@ -208,7 +205,7 @@ function growFan(world, events, onSnap) {
         if (x < 3 || y < 3 || x >= N - 4 || y >= N - 4) break;
         if (sampleH(h, x, y) <= WATER_LEVEL) break;
         const slope = -(gx * dx + gy * dy);
-        const rate = clamp(0.0035 + 0.00032 * dist + (slope < 0.012 ? 0.012 : 0), 0, 0.2);
+        const rate = clamp(0.002 + 0.00016 * dist + (slope < 0.012 ? 0.012 : 0), 0, 0.2);
         const dep = sed * rate;
         sed -= dep;
         const i = x | 0, j = y | 0;
@@ -237,30 +234,41 @@ function growFan(world, events, onSnap) {
         }
       }
     }
-    // 곡구 안쪽 메우기: 쌓인 면이 골짜기를 따라 위로 이어져 선정이 산지에 바로 붙게 한다.
-    // 골짜기 바닥을 한 줄씩 따라 올라가며, 양옆 벽 사이의 좁은 폭만 메운다.
-    const head = (h[idx(apex.i, apex.j + 2)] + h[idx(apex.i - 1, apex.j + 2)] + h[idx(apex.i + 1, apex.j + 2)]) / 3;
-    let cx = apex.i;
-    for (let dj = 0; dj < 50; dj++) {
-      const j = apex.j - dj;
-      if (j < 3) break;
-      const top = head + dj * CELL * 0.05;
-      let low = cx;
-      for (let p = -6; p <= 6; p++) if (h[idx(cx + p, j)] < h[idx(low, j)]) low = cx + p;
-      cx = low;
-      if (h[idx(cx, j)] >= top) break;
-      let l = cx, r = cx;
-      while (cx - l < 16 && h[idx(l - 1, j)] < top) l--;
-      while (r - cx < 16 && h[idx(r + 1, j)] < top) r++;
-      if (cx - l >= 16 || r - cx >= 16) break; // 벽이 없으면 골짜기가 아니므로 멈춘다.
-      for (let i = l; i <= r; i++) {
-        const k = idx(i, j);
-        const add = top - h[k];
-        h[k] = top; total[k] += add; coarse[k] += add * 0.9; last[k] = e;
-      }
-    }
     for (let k = 0; k < recent.length; k++) recent[k] *= 0.5;
     onSnap?.(e);
+  }
+}
+
+// 곡구 안쪽 메우기: 퇴적면이 곡구에서 위로 이어져 산지 사면과 만나게 해 선정이 산지에 바로 붙는다.
+// 선정 줄의 가로 단면을 그대로 위로 옮겨 쓰므로 부채꼴 옆면과 이어지고 옆에 벽이 생기지 않는다.
+// 쌓는 계산 안에서 메우면 메운 흙이 다시 흘러내려 부채꼴이 끝없이 높아지므로, 단계 사진에만 더한다.
+function fillBehindApex(world, snap) {
+  const { apex, base } = world;
+  const { h, total, coarse, last, e } = snap;
+  const SLOPE = 0.05, NEAR = 4, FAR = 16, ROUND_ROWS = 14, FLAT = 40, EDGE = 60;
+  const section = width => {
+    const m = new Float32Array(N);
+    for (let i = width; i < N - width; i++) {
+      for (let p = -width; p <= width; p++) m[i] += h[idx(i + p, apex.j)] / (2 * width + 1);
+    }
+    return m.map(v => Math.max(0, m[apex.i] - v));
+  };
+  const near = section(NEAR), far = section(FAR);
+  let crest = 0;
+  for (let p = -2; p <= 2; p++) crest += h[idx(apex.i + p, apex.j)] / 5;
+  for (let dj = 1; dj < 90 && apex.j - dj >= 3; dj++) {
+    const j = apex.j - dj, top = crest + dj * CELL * SLOPE;
+    let ground = 0;
+    for (let p = -2; p <= 2; p++) ground += base[idx(apex.i + p, j)] / 5;
+    if (ground >= top) break;
+    // 위로 갈수록 뾰족한 선정 단면에서 둥근 단면으로 바꿔 등성이처럼 보이지 않게 한다.
+    const round = smooth(0, ROUND_ROWS, dj);
+    for (let i = Math.max(FAR, apex.i - EDGE); i <= Math.min(N - FAR - 1, apex.i + EDGE); i++) {
+      const k = idx(i, j);
+      const add = (top - lerp(near[i], far[i], round) - h[k]) * smooth(EDGE, FLAT, Math.abs(i - apex.i));
+      if (add <= 0) continue;
+      h[k] += add; total[k] += add; coarse[k] += add * 0.9; last[k] = e;
+    }
   }
 }
 
@@ -272,7 +280,9 @@ function takeSnap(world, e) {
     const dd = Math.hypot(ii - apex.i, jj - apex.j);
     water[k] = smooth(1.3, 2.6, world.recent[k] * (0.18 + dd / 42)) * smooth(2, 10, dd);
   }
-  return { e, h: world.h.slice(), coarse: world.coarse.slice(), total: world.total.slice(), last: world.last.slice(), recent: world.recent.slice(), water };
+  const snap = { e, h: world.h.slice(), coarse: world.coarse.slice(), total: world.total.slice(), last: world.last.slice(), recent: world.recent.slice(), water };
+  fillBehindApex(world, snap);
+  return snap;
 }
 
 function traceStream(h, apex, R, rand, opt = {}) {
@@ -361,6 +371,7 @@ function makeSplats(world, snap, stageIndex) {
 }
 
 export function simulate(onProgress = () => {}) {
+  useSite('synthetic');
   const nz = makeNoise(20261105);
   const rand = rng32(4242);
   onProgress('산지 뼈대 만드는 중');
@@ -403,6 +414,7 @@ export function simulate(onProgress = () => {}) {
 // 실제 고도 자료로 만드는 구례 화엄사 선상지.
 // 오늘날 단계는 실제 고도 그대로이고, 초기와 성장 단계는 부채꼴 두께를 빼낸 뒤 같은 계산으로 다시 쌓은 추정이다.
 export function simulateGurye(dem, onProgress = () => {}) {
+  useSite('gurye');
   const nz = makeNoise(20261105);
   const rand = rng32(4242);
   const h = new Float32Array(N * N);
@@ -495,9 +507,21 @@ function paintStream(today, stream) {
   }
 }
 
+// 곡구에서 본 부채꼴의 대표 방향: 곡구 아래쪽 퇴적 두께의 무게중심 쪽.
+function fanAxis(h, base, apex) {
+  let sx = 0, sy = 0;
+  for (let j = apex.j + 1; j < N; j++) for (let i = 0; i < N; i++) {
+    const t = h[idx(i, j)] - base[idx(i, j)];
+    if (t > 0) { sx += t * (i - apex.i); sy += t * (j - apex.j); }
+  }
+  const l = Math.hypot(sx, sy) || 1;
+  return { x: sx / l, y: sy / l };
+}
+
 function finish(world, snaps, stream, onProgress) {
   const { nz, mountain, base, apex, R } = world;
   const today = snaps[2];
+  const axis = SITE === 'synthetic' ? fanAxis(today.h, base, apex) : null;
   paintStream(today, stream);
 
   onProgress('표면 재질 정하는 중');
@@ -515,11 +539,21 @@ function finish(world, snaps, stream, onProgress) {
 
   const at = t => { let best = stream[0]; for (const p of stream) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; return best; };
   const toWorld = p => ({ x: (p.x / (N - 1) - 0.5) * SIZE, z: (p.y / (N - 1) - 0.5) * SIZE });
+  const apexG = { x: apex.i, y: apex.j };
+  // 계산 지형은 물길이 한쪽으로 치우치므로 부채꼴의 대표 방향을 쓰고, 구례는 곡구에서 선단으로 가는 물길을 쓴다.
+  const toeG = axis ? { x: apex.i + axis.x * R * 0.9, y: apex.j + axis.y * R * 0.9 } : at(0.9);
+  const midG = axis ? { x: apex.i + axis.x * R * 0.5, y: apex.j + axis.y * R * 0.5 } : at(0.5);
+  // 계산 지형의 곡구 뒤 사면은 완만해서, 단면이 산지에서 시작하도록 더 멀리서 시작한다.
+  const BEHIND = 0.4;
+  const profile = axis
+    ? { from: { x: apex.i - axis.x * R * BEHIND, y: apex.j - axis.y * R * BEHIND }, to: { x: apex.i + axis.x * R, y: apex.j + axis.y * R } }
+    : { from: { x: apex.i - (toeG.x - apex.i) * 0.25, y: apex.j - (toeG.y - apex.j) * 0.25 }, to: toeG };
   const places = {
-    apex: toWorld({ x: apex.i, y: apex.j }), mid: toWorld(at(0.5)), toe: toWorld(at(0.9)), R: R * CELL,
+    apex: toWorld(apexG), mid: toWorld(midG), toe: toWorld(toeG), R: R * CELL,
     streamToe: stream.filter(p => p.t > 0.8 && p.t < 1.05).map(toWorld),
+    profile: { from: toWorld(profile.from), to: toWorld(profile.to) },
   };
-  return { stages, places, base, mountain, stats: { fanRadiusM: Math.round(R * CELL), fanReliefM: Math.round(fanRelief), streamEndT: +stream[stream.length - 1].t.toFixed(2) } };
+  return { site: SITE, stages, places, base, mountain, stats: { fanRadiusM: Math.round(R * CELL), fanReliefM: Math.round(fanRelief), streamEndT: +stream[stream.length - 1].t.toFixed(2) } };
 }
 
-export { rng32, sampleH };
+export { sampleH };

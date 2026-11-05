@@ -2,6 +2,7 @@
 // 선상지 형성 모형의 계산. 화면과 분리되어 있어 node에서도 실행할 수 있다.
 // 빈 산지와 평지에서 시작한다. 곡구에서 나온 입자는 물의 힘이 약해지는 곳에서 멈추고,
 // 멈춘 자리의 땅이 실제로 높아진다. 높아진 땅이 다음 입자와 물길의 경로를 바꾸어 부채꼴이 자란다.
+import { rng32 } from '../../shared/rng.js';
 
 export const N = 256;
 const CENTER = 128;
@@ -20,6 +21,12 @@ export const OPTIONS = {
   gravel: { low: 0.14, mid: 0.3, high: 0.55 },
 };
 
+export const PRESETS = {
+  textbook: { name: '교과서 선상지', options: { sediment: 'mid', water: 'mid', gravel: 'mid' } },
+  dry: { name: '물이 적은 곳', options: { sediment: 'mid', water: 'low', gravel: 'high' } },
+  wet: { name: '물이 많은 곳', options: { sediment: 'mid', water: 'high', gravel: 'low' } },
+};
+
 const FLOOD_SECONDS = 7;
 const CALM_SECONDS = 3;
 export const MAX_FLOODS = 14;
@@ -29,17 +36,6 @@ const SPAWN_PER_SECOND = 260;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
 const idx = (i, j) => j * N + i;
-
-function rng32(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function valueNoise(seed) {
   const r = rng32(seed), S = 256;
@@ -212,15 +208,40 @@ export function createModel(seed = 11) {
   // 평상시 물길: 곡구에서 낮은 곳을 따라가며, 선앙에서 스며들고 선단에서 다시 나온다.
   function buildCalmPath() {
     calmPath = [];
-    let x = MOUTH.i, y = MOUTH.j - 2, dx = lobe.x * 0.5, dy = 1;
-    for (let s = 0; s < 420; s++) {
-      const gx = (sample(x + 3, y) - sample(x - 3, y)) / 6, gy = (sample(x, y + 3) - sample(x, y - 3)) / 6;
-      let nx = dx * 0.82 - gx * 5 + (rand() - 0.5) * 0.12, ny = dy * 0.82 - gy * 5 + (rand() - 0.5) * 0.12;
-      const l = Math.hypot(nx, ny) || 1; dx = nx / l; dy = ny / l;
-      x += dx; y += dy;
-      if (x < 3 || y < 3 || x >= N - 4 || y >= N - 4) break;
-      calmPath.push({ x, y, t: Math.hypot(x - MOUTH.i, y - MOUTH.j) / Math.max(fanR, 1) });
+    const toT = (x, y) => (y > MOUTH.j ? Math.hypot(x - MOUTH.i, y - MOUTH.j) : 0) / Math.max(fanR, 1);
+    const front = frontAt(CENTER);
+    // 골짜기 안쪽 구간은 골짜기 중심선을 그대로 따른다.
+    for (let d = 16; d >= 0; d--) {
+      const vx = valleyAt(d), vy = front - d;
+      calmPath.push({ x: vx, y: vy, t: toT(vx, vy) });
     }
+    // 곡구 아래는 한 줄씩 내려가며, 넓게 평균한 높이가 가장 낮은 쪽으로 옮겨 간다. y가 늘기만 하므로 맴돌 수 없다.
+    const y0 = Math.floor(front) + 1, y1 = Math.min(N - 5, Math.floor(MOUTH.j + fanR * 1.35));
+    const rows = [];
+    let x = valleyAt(0);
+    for (let y = y0; y <= y1; y++) {
+      let bestX = x, bestC = Infinity;
+      for (let dx = -1; dx <= 1; dx += 0.5) {
+        let c = 0;
+        for (const ox of [-4, -2, 0, 2, 4]) for (const oy of [-3, 0, 3]) c += sample(x + dx + ox, y + oy);
+        c = c / 15 + 0.02 * Math.abs(dx);
+        if (c < bestC) { bestC = c; bestX = x + dx; }
+      }
+      x = bestX;
+      rows.push({ x, y });
+    }
+    for (let pass = 0; pass < 2; pass++) {
+      const xs = rows.map(r => r.x);
+      rows.forEach((r, i) => {
+        let sum = 0, n = 0;
+        for (let k = -4; k <= 4; k++) { const q = xs[i + k]; if (q !== undefined) { sum += q; n++; } }
+        r.x = sum / n;
+      });
+    }
+    // 골짜기 구간과 이어지도록 첫 점을 맞추고, 차이는 위쪽 줄에서 서서히 줄인다.
+    const off = valleyAt(0) - rows[0].x;
+    rows.forEach((r, i) => { r.x += off * Math.max(0, 1 - i / 30); });
+    for (const r of rows) calmPath.push({ x: r.x, y: r.y, t: toT(r.x, r.y) });
   }
 
   function tick(dt) {
@@ -278,6 +299,7 @@ export function createModel(seed = 11) {
   reset();
   return {
     tick, reset,
+    applyPreset(name) { Object.assign(options, PRESETS[name].options); reset(); },
     setOption(name, value) { options[name] = value; },
     get options() { return options; },
     get h() { return h; }, get base() { return base; }, get thick() { return thick; },
