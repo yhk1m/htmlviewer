@@ -31,6 +31,9 @@
   .nextno { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--line); }
   .nextno span { font-size: 13px; color: var(--muted); }
   .nextno b { font-size: 28px; font-weight: 200; letter-spacing: -1px; line-height: 1; margin-right: auto; font-variant-numeric: tabular-nums; }
+  .nextpick { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; max-width: 360px; }
+  .nextpick[hidden] { display: none; }
+  .nextpick span { font-size: 13px; color: var(--muted); margin-left: 8px; }
 
   .toolbar-wrap { position: sticky; top: 0; z-index: 2; background: var(--bg); }
   .toolbar {
@@ -129,6 +132,7 @@
     <div class="side">
       <p>배포한 페이지를 번호순으로 모았습니다.<br><span>제목·번호로 찾고, 바로 고치거나 지울 수 있습니다.</span></p>
       <div class="nextno"><span>다음 배포 번호</span><b id="nextNo">–</b><button id="btnReset" disabled>1번부터 시작</button></div>
+      <div class="nextpick" id="nextPick" hidden></div>
     </div>
   </section>
   <div class="inner toolbar-wrap"><div class="toolbar">
@@ -319,23 +323,72 @@
   }
 
   // ---------- 번호표 (counter.json) ----------
-  // 번호는 한 번 쓰면 다시 쓰지 않는다. 「1번부터 시작」은 번호표를 1로 되돌린다 (남아 있는 번호는 배포 때 건너뜀)
+  // 번호는 평소 다시 쓰지 않는다. 「1번부터 시작」은 번호표를 1로 되돌린다 (남아 있는 번호는 배포 때 건너뜀)
+  // 빈 번호를 고르면 번호표에 fill 로 적어 두고, 다음 배포 1건만 그 번호를 쓴다 (relay/lib/github.js createPage)
   const COUNTER = '/contents/counter.json';
-  let counter = { next: null, sha: null };
+  let counter = { next: null, fill: null, sha: null };
   async function loadCounter(nums) {
-    const btn = $('#btnReset');
     try {
       const r = await HP.gh(`${COUNTER}?ref=${encodeURIComponent(HP.cfg.branch || 'main')}`);
-      counter = { next: Number(JSON.parse(HP.b64decode(r.content)).next) || null, sha: r.sha };
+      const c = JSON.parse(HP.b64decode(r.content));
+      counter = { next: Number(c.next) || null, fill: Number(c.fill) || null, sha: r.sha };
     } catch (e) {
-      if (e.status !== 404) { $('#nextNo').textContent = '–'; return; }
-      counter = { next: null, sha: null };
+      if (e.status !== 404) { $('#nextNo').textContent = '–'; $('#nextPick').hidden = true; return; }
+      counter = { next: null, fill: null, sha: null };
     }
+    renderCounter(nums);
+  }
+  function renderCounter(nums) {
     const taken = new Set(nums);
-    let n = counter.next || Math.max(0, ...nums) + 1;
-    while (taken.has(n)) n++;
-    $('#nextNo').textContent = `${n}번`;
-    btn.disabled = n === 1;
+    let newNo = counter.next || Math.max(0, ...nums) + 1;
+    while (taken.has(newNo)) newNo++;
+    const gaps = [];
+    for (let i = 1; i < newNo; i++) if (!taken.has(i)) gaps.push(i);
+    const fill = gaps.includes(counter.fill) ? counter.fill : null;
+    $('#nextNo').textContent = `${fill || newNo}번`;
+    $('#btnReset').disabled = newNo === 1;
+
+    const pick = $('#nextPick');
+    pick.textContent = '';
+    pick.hidden = !gaps.length;
+    if (!gaps.length) return;
+    const choice = (label, value) => {
+      const b = document.createElement('button');
+      b.className = `small${fill === value ? ' primary' : ''}`;
+      b.textContent = label;
+      b.setAttribute('aria-pressed', String(fill === value));
+      b.onclick = () => chooseNext(value, newNo, nums);
+      return b;
+    };
+    const gapLabel = document.createElement('span');
+    gapLabel.textContent = '빈 번호';
+    pick.append(choice(`새 번호 ${newNo}번`, null), gapLabel, ...gaps.map((g) => choice(`${g}번`, g)));
+  }
+  async function writeCounter(next, fill, message) {
+    const r = await HP.gh(COUNTER, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message,
+        content: HP.b64encode(`${JSON.stringify(fill ? { next, fill } : { next })}\n`),
+        branch: HP.cfg.branch || 'main',
+        ...(counter.sha ? { sha: counter.sha } : {}),
+      }),
+    });
+    counter = { next, fill, sha: r.content.sha };
+  }
+  async function chooseNext(fill, newNo, nums) {
+    if (fill === counter.fill || (!fill && !counter.fill)) return;
+    for (const b of $('#nextPick').querySelectorAll('button')) b.disabled = true;
+    try {
+      status('다음 배포 번호를 바꾸는 중…');
+      await writeCounter(newNo, fill, fill ? `Use empty page ${fill} next` : 'Use a new page number next');
+      status(fill ? `다음 배포 1건은 ${fill}번으로 올라가요. 예전 ${fill}번 링크를 가진 사람도 새 페이지를 보게 돼요.` : `다음 배포는 새 번호 ${newNo}번으로 올라가요.`, 'ok');
+    } catch (e) {
+      status(e.status === 409 ? '그사이 누가 배포했어요. 번호를 다시 확인하고 골라 주세요.' : `바꾸지 못했어요. ${errText(e)}`, 'err');
+      await loadCounter(nums);
+      return;
+    }
+    renderCounter(nums);
   }
   $('#btnReset').onclick = async () => {
     const left = pages.length;
@@ -347,17 +400,9 @@
     btn.disabled = true;
     try {
       status('번호표를 1번으로 되돌리는 중…');
-      await HP.gh(COUNTER, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message: 'Reset numbering to 1',
-          content: HP.b64encode('{"next":1}\n'),
-          branch: HP.cfg.branch || 'main',
-          ...(counter.sha ? { sha: counter.sha } : {}),
-        }),
-      });
+      await writeCounter(1, null, 'Reset numbering to 1');
       status('다음 배포부터 1번으로 시작해요.', 'ok');
-      await loadCounter(pages.map((p) => p.n));
+      renderCounter(pages.map((p) => p.n));
     } catch (e) {
       status(e.status === 409 ? '그사이 누가 배포했어요. 새로고침 후 다시 눌러 주세요.' : `되돌리지 못했어요. ${errText(e)}`, 'err');
       btn.disabled = false;
@@ -385,7 +430,10 @@
     } catch (e) {
       status(`${done.length ? `${done.length}개 삭제 후 ` : ''}중단됐어요. ${errText(e)}`, 'err');
       return false;
-    } finally { syncSelection(); }
+    } finally {
+      syncSelection();
+      if (done.length) loadCounter(pages.map((p) => p.n)); // 방금 지운 번호를 빈 번호에 바로 보여 준다
+    }
   }
 
   btnBulk.onclick = () => removePages(selected);

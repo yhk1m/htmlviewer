@@ -110,15 +110,17 @@ export async function putFile(n, html, sha) {
 // ---------- 번호표 (counter.json) ----------
 // 한 번 쓴 번호는 페이지를 지워도 다시 쓰지 않도록, 다음 번호를 저장소의 counter.json 에 적어 둔다.
 // 관리자 페이지의 「1번부터 시작」은 이 파일을 { "next": 1 } 로 되돌린다.
+// 관리자가 빈 번호를 고르면 { "next": 33, "fill": 2 } 처럼 적어 두고, 다음 배포 1건만 그 번호를 쓴다.
 const COUNTER = 'counter.json';
+const positiveInt = (v) => (Number.isInteger(v) && v > 0 ? v : null);
 
 async function readCounter() {
   try {
     const r = await gh(`/contents/${COUNTER}${refQ()}`);
-    const next = Number(JSON.parse(Buffer.from(r.content, 'base64').toString('utf8')).next);
-    return { next: Number.isInteger(next) && next > 0 ? next : null, sha: r.sha };
+    const c = JSON.parse(Buffer.from(r.content, 'base64').toString('utf8'));
+    return { next: positiveInt(Number(c.next)), fill: positiveInt(Number(c.fill)), sha: r.sha };
   } catch (e) {
-    if (e.status === 404) return { next: null, sha: null };
+    if (e.status === 404) return { next: null, fill: null, sha: null };
     throw e;
   }
 }
@@ -127,16 +129,19 @@ async function readCounter() {
  *  번호표 갱신이 sha 잠금이라, 여러 명이 동시에 눌러도 같은 번호를 두 사람이 받지 않는다 */
 export async function createPage(html) {
   for (let attempt = 0; attempt < 12; attempt++) {
-    const [{ next, sha }, nums] = await Promise.all([readCounter(), listNumbers()]);
+    const [{ next, fill, sha }, nums] = await Promise.all([readCounter(), listNumbers()]);
     const taken = new Set(nums);
-    let n = next || Math.max(0, ...nums) + 1;   // 번호표가 없으면 남은 최대 번호 다음부터
-    while (taken.has(n)) n++;                    // 1번부터 다시 시작한 뒤 남아 있는 페이지 번호는 건너뜀
+    let newNo = next || Math.max(0, ...nums) + 1; // 번호표가 없으면 남은 최대 번호 다음부터
+    while (taken.has(newNo)) newNo++;              // 1번부터 다시 시작한 뒤 남아 있는 페이지 번호는 건너뜀
+    const useFill = fill && fill < newNo && !taken.has(fill);
+    const n = useFill ? fill : newNo;
     try {
       await gh(`/contents/${COUNTER}`, {
         method: 'PUT',
         body: JSON.stringify({
           message: `Claim page ${n}`,
-          content: Buffer.from(`${JSON.stringify({ next: n + 1 })}\n`).toString('base64'),
+          // fill 은 다시 적지 않으므로 빈 번호 선택은 이 배포 1건으로 끝난다
+          content: Buffer.from(`${JSON.stringify({ next: useFill ? newNo : newNo + 1 })}\n`).toString('base64'),
           branch: BRANCH(),
           ...(sha ? { sha } : {}),
         }),
