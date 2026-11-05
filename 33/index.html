@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>바이브 코딩 연수</title>
+<title>AI·에듀테크 활용 지리 수업 역량 강화 연수</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
   /* 강조색은 --accent 하나만 바꾸면 전체에 적용된다 */
@@ -26,10 +26,10 @@
 
   /* 상단 바: 레퍼런스 헤더 */
   .hd { height: 120px; flex: none; display: flex; align-items: center; justify-content: space-between; }
-  .hd .brand { display: flex; align-items: center; gap: 16px; font-size: 22px; font-weight: 600; }
+  .hd .brand { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; white-space: nowrap; }
   .hd .brand i { width: 1px; height: 16px; background: var(--g2); }
   .hd .brand span { font-weight: 400; color: var(--g5); }
-  .hd nav { display: flex; gap: 24px; font-size: 18px; color: var(--g5); }
+  .hd nav { display: flex; gap: 18px; font-size: 18px; color: var(--g5); white-space: nowrap; }
   .hd nav span { cursor: pointer; transition: color .2s; }
   .hd nav span:hover, .hd nav span.cur { color: var(--k); }
   .dark .hd .brand i { background: var(--g7); }
@@ -230,7 +230,7 @@
 <section class="slide cover">
   <div class="hd"></div>
   <div class="bd">
-    <h1>바이브 코딩 연수</h1>
+    <h1>AI·에듀테크 활용 지리 수업<br>역량 강화 연수</h1>
     <div class="row">
       <div class="who">
         김용현<br>
@@ -238,23 +238,6 @@
         <a class="mail" href="mailto:bgnlkim@gmail.com">bgnlkim@gmail.com</a>
       </div>
       <div class="date">경기중등지리교육연구회 연수<br>2026.11.08.(일) 초지고등학교</div>
-    </div>
-  </div>
-</section>
-
-<section class="slide" data-intro>
-  <div class="hd"></div>
-  <div class="bd">
-    <h2>목차</h2>
-    <div class="tt toc">
-      <div><span>01</span>바이브 코딩을 해야 하는 이유</div>
-      <div><span>02</span>HTML 기초</div>
-      <div><span>03</span>게임 만들기: 지뢰찾기, 오목, 카드 뒤집기</div>
-      <div><span>04</span>오픈소스 라이브러리</div>
-      <div><span>05</span>내 수업 도구 만들기</div>
-      <div><span>06</span>공유와 피드백</div>
-      <div><span>07</span>웹 배포와 데이터</div>
-      <div><span>08</span>마무리</div>
     </div>
   </div>
 </section>
@@ -287,6 +270,23 @@
           <a href="https://proj3d.bgnl.kr" target="_blank"><img data-img="proj3d" src="data:image/png;base64,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" alt=""><div><b>Projection 3D</b><span>지도 투영법을 3D로 보여 주는 시각화 도구</span></div><em>proj3d.bgnl.kr</em></a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-intro>
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>목차</h2>
+    <div class="tt toc">
+      <div><span>01</span>바이브 코딩을 해야 하는 이유</div>
+      <div><span>02</span>HTML 기초</div>
+      <div><span>03</span>게임 만들기: 지뢰찾기, 오목, 카드 뒤집기</div>
+      <div><span>04</span>오픈소스 라이브러리</div>
+      <div><span>05</span>내 수업 도구 만들기</div>
+      <div><span>06</span>공유와 피드백</div>
+      <div><span>07</span>웹 배포와 데이터</div>
+      <div><span>08</span>마무리</div>
     </div>
   </div>
 </section>
@@ -2174,7 +2174,7 @@ let cur = 0;
 const SECS = [...new Set(slides.map(s => s.dataset.sec).filter(Boolean))];
 slides.forEach(s => {
   const nav = SECS.map(t => `<span class="${t === s.dataset.sec ? 'cur' : ''}" data-go="${t}">${t}</span>`).join('');
-  s.querySelector('.hd').innerHTML = `<div class="brand">바이브 코딩 연수<i></i><span>2026.11.08. 초지고등학교</span></div><nav>${nav}</nav>`;
+  s.querySelector('.hd').innerHTML = `<div class="brand">AI·에듀테크 활용 지리 수업 역량 강화 연수<i></i><span>2026.11.08. 초지고등학교</span></div><nav>${nav}</nav>`;
 });
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-go]');
