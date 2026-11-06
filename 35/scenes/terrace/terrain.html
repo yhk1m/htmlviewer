@@ -1,0 +1,80 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>정동진 실제 지형</title>
+<script type="importmap">{"imports":{"three":"../../shared/vendor/three.module.js"}}</script>
+<link rel="stylesheet" href="../../shared/ui.css">
+<style>
+  html,body { background:#1b1f1d; }
+  #note { font-size:16px; line-height:1.5; margin:8px 0 12px; color:#e8e6dd; min-height:48px; }
+  #load { position:fixed; inset:0; display:grid; place-items:center; background:#1b1f1d; font-size:20px; z-index:9; }
+  #load[hidden] { display:none; }
+  #corner { position:fixed; left:20px; bottom:14px; z-index:4; max-width:520px; display:flex; flex-direction:column; align-items:flex-start; gap:5px; pointer-events:none; }
+  #heightBadge { font-size:13px; padding:3px 9px; background:var(--glass); border:1px solid var(--line); border-radius:4px; }
+  #foot { font-size:12px; line-height:1.4; color:#eee; padding:5px 9px; background:rgba(22,26,24,.82); border-radius:4px; }
+  #mapNote { display:none; font-size:12px; padding:3px 9px; background:rgba(22,26,24,.92); border:1px solid var(--line); border-radius:4px; color:#f0eee6; }
+  body.show-map #mapNote { display:block; }
+  body.show-map #heightBadge { display:none; }
+  body.show-map #corner { left:var(--ml); right:var(--mr); bottom:8px; max-width:none; }
+  body.show-map #foot { color:#f0eee6; text-shadow:none; font-size:11px; padding:5px 9px; background:rgba(22,26,24,.92); border:1px solid var(--line); border-radius:4px; }
+  #schem { position:fixed; right:0; top:0; bottom:0; width:min(600px,42vw); padding:16px 20px; overflow:auto; background:rgba(22,26,24,.9); border-left:1px solid var(--line); color:var(--ink); }
+  #schem[hidden] { display:none; }
+  #schem h2 { font-size:18px; margin:4px 0 6px; font-weight:700; }
+  #schem figure { margin:0 0 10px; }
+  #schem svg { display:block; width:100%; height:auto; border-radius:3px; background:#23302a; font-family:inherit; }
+  .schem-note { font-size:17px; line-height:1.5; margin:8px 0 4px; min-height:52px; }
+  .schem-note b { color:var(--accent); margin-right:4px; }
+  .schem-cap { font-size:13px; color:#b9b8ae; margin:0; }
+  .zone-link { font:inherit; color:var(--accent); background:none; border:0; padding:0; text-decoration:underline; cursor:pointer; }
+  body { --ml:calc(min(360px,100vw - 40px) + 40px); --mr:min(600px,42vw); --mt:0px; --foot:112px; }
+  body.noschem { --mr:0px; }
+  body.panel-closed { --ml:0px; --mt:76px; }
+  #mapView { position:fixed; left:var(--ml); top:var(--mt); width:calc(100vw - var(--ml) - var(--mr)); height:calc(100vh - var(--mt) - var(--foot)); z-index:2; }
+  #mapView[hidden] { display:none; }
+  @media (max-width:820px) { body, body.panel-closed, body.noschem { --ml:0px; --mr:0px; --mt:68px; --foot:116px; } #mapView { height:calc(62vh - var(--mt) - var(--foot)); } }
+  @media (max-width:820px) {
+    #note { font-size:14px; min-height:0; }
+    #schem { left:0; right:0; top:auto; bottom:0; width:100%; height:38vh; padding:10px 14px; border-left:0; border-top:1px solid var(--line); }
+    #corner, body.show-map #corner { left:8px; right:8px; bottom:calc(38vh + 4px); max-width:none; }
+    body.noschem #corner, body.noschem.show-map #corner { bottom:6px; }
+    #foot, body.show-map #foot { font-size:10px; }
+    .schem-note { font-size:14px; min-height:0; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<section id="panel">
+  <a id="backToList" href="../../index.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>목록으로</a>
+  <h1>강릉 정동진 해안 단구</h1>
+  <button id="panelToggle">접기</button>
+  <div class="row" aria-label="화면 선택" style="margin-bottom:6px">
+    <a href="./model.html"><button>형성 모형</button></a><button class="on">정동진 실제 지형</button><a href="./schematic.html"><button>모식도</button></a>
+  </div>
+  <p id="note"></p>
+  <div class="row" aria-label="높이 과장">
+    <button data-height="1">실제 높이</button><button data-height="2" class="on">높이 2배</button><button data-height="3">높이 3배</button>
+  </div>
+  <div class="row" aria-label="보기">
+    <button data-show="3d" class="on">3D</button><button data-show="map">등고선 지형도</button><button data-show="low">높이 색 지도</button><button data-show="profile">단면</button>
+  </div>
+  <div class="row" aria-label="시점">
+    <button data-view="oblique" class="on">비스듬히</button><button data-view="above">위에서</button><button data-view="close">가까이</button>
+  </div>
+  <div class="row">
+    <button id="labelsBtn" class="on">이름표</button><button id="schemBtn" class="on">모식도</button><button id="qualityBtn"></button>
+  </div>
+  <p class="cap" id="heightNote"></p>
+  <p class="cap" style="margin-top:4px">두 번 누르면 그 자리를 중심으로 돕니다. 실제 자료는 오늘날의 땅 높이뿐입니다. 원자료 해상도가 약 30m, 화면 격자가 약 16m라 바닷가 절벽과 작은 계단은 뭉개집니다. 단구의 단수와 생긴 시기는 이 자료로 알 수 없어 적지 않았고, 형성 모형의 높이와 나이를 이곳에 그대로 대입할 수 없습니다. 천연기념물 구역의 경계도 표시하지 않았습니다. 바다 위의 작은 낮은 얼룩은 바다로 처리했고, 물속 바닥은 자료에 없습니다. 표면 재질은 규칙으로 만든 예시이고, 높이에는 건물과 도로, 나무가 섞여 있을 수 있습니다.</p>
+</section>
+<canvas id="mapView" hidden></canvas>
+<aside id="schem" aria-label="해안 단구 모식도"></aside>
+<div id="corner"><div id="heightBadge"></div><div id="mapNote">붉은 점선: 단면을 잰 길(내륙에서 바다까지)</div><div id="foot"></div></div>
+<div id="load"><span id="status">준비 중</span></div>
+<script type="module" src="./terrain-main.js"></script>
+</body>
+</html>
