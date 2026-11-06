@@ -15,12 +15,22 @@ button.on { background:var(--accent); border-color:var(--accent); color:#1b1b16;
 .label span { display:block; font-size:13px; white-space:nowrap; }
 .label::after { content:""; display:block; width:1px; height:var(--lead,22px); background:#fff; margin:3px auto 0; }
 .label.hi b { color:var(--accent); font-size:26px; }
+#backToList { display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:3px 10px 3px 8px; margin-bottom:8px; font-size:14px; font-weight:600; color:var(--ink); background:rgba(255,255,255,.08); border:1px solid var(--line); border-radius:4px; text-decoration:none; white-space:nowrap; }
+#backToList:hover { border-color:#fff; }
 #panelToggle { position:absolute; right:12px; top:12px; font-size:13px; padding:4px 8px; }
-body.panel-closed #panel { width:auto; padding:10px 12px; }
-body.panel-closed #panel > :not(h1):not(#panelToggle) { display:none; }
-body.panel-closed #panel h1 { font-size:16px; margin:2px 0; padding-right:90px; }
+/* 패널을 접어도 목록으로 돌아가는 버튼은 남는다. */
+body.panel-closed #panel { width:auto; max-width:calc(100vw - 40px); padding:10px 12px; display:flex; align-items:center; gap:8px; }
+body.panel-closed #panel > :not(h1):not(#panelToggle):not(#backToList) { display:none; }
+body.panel-closed #panel h1 { font-size:16px; margin:0; padding-right:0; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+body.panel-closed #panelToggle { position:static; flex:none; white-space:nowrap; }
+body.panel-closed #backToList { flex:none; margin:0; }
+/* 지형도와 단면 보기에서 출처는 항목마다 한 줄씩. 3D 보기에서는 이어서 보여 준다. */
+body.show-map #foot span { display:block; }
 @media (max-width:820px) {
   #panel { left:8px; top:8px; width:calc(100vw - 16px); max-height:calc(62vh - 16px); padding:12px; }
+  #backToList { min-height:36px; }
+  body.panel-closed #panel { max-width:calc(100vw - 16px); padding:8px 10px; }
+  body.panel-closed #panel h1 { font-size:14px; }
   button { padding:7px 9px; }
   .label b { font-size:15px; }
   .label span { display:none; }

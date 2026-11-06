@@ -475,6 +475,93 @@ export function simulate(onProgress = () => {}) {
   return finish(world, snaps, stream, onProgress);
 }
 
+// 고도 격자(정수, 데시미터)의 물 방향과 집수 칸 수. 우선순위 채우기라 웅덩이에 갇히지 않고,
+// 정수 높이와 칸 번호로 순서를 정하므로 node와 브라우저의 결과가 같다.
+export function flowField(dem) {
+  const size = dem.length, heap = new Float64Array(size + 1);
+  let n = 0;
+  const push = v => {
+    let c = n++;
+    while (c > 0) { const p = (c - 1) >> 1; if (heap[p] <= v) break; heap[c] = heap[p]; c = p; }
+    heap[c] = v;
+  };
+  const pop = () => {
+    const top = heap[0], v = heap[--n];
+    for (let c = 0; ;) {
+      let m = c * 2 + 1;
+      if (m >= n) { heap[c] = v; break; }
+      if (m + 1 < n && heap[m + 1] < heap[m]) m++;
+      if (heap[m] >= v) { heap[c] = v; break; }
+      heap[c] = heap[m]; c = m;
+    }
+    return top;
+  };
+  const down = new Int32Array(size).fill(-1), area = new Int32Array(size).fill(1), seen = new Uint8Array(size), order = new Int32Array(size);
+  const seed = k => { if (!seen[k]) { seen[k] = 1; push(dem[k] * size + k); } };
+  for (let a = 0; a < N; a++) { seed(idx(a, 0)); seed(idx(a, N - 1)); seed(idx(0, a)); seed(idx(N - 1, a)); }
+  let done = 0;
+  while (n > 0) {
+    const key = pop(), k = key % size, level = (key - k) / size, j = (k / N) | 0, i = k - j * N;
+    order[done++] = k;
+    for (let q = -1; q <= 1; q++) for (let p = -1; p <= 1; p++) {
+      const a = i + p, b = j + q;
+      if ((!p && !q) || a < 0 || b < 0 || a >= N || b >= N) continue;
+      const o = idx(a, b);
+      if (seen[o]) continue;
+      seen[o] = 1; down[o] = k;
+      push(Math.max(level, dem[o]) * size + o);
+    }
+  }
+  // 나중에 채워진 칸이 위쪽이므로 거꾸로 더해 내려온다.
+  for (let t = done - 1; t >= 0; t--) if (down[order[t]] >= 0) area[down[order[t]]] += area[order[t]];
+  return { down, area };
+}
+
+// 곡구를 지나는 실제 물줄기: 위로는 집수 칸이 가장 큰 쪽을 따라 올라가고, 아래로는 물 방향을 따라 내려간다.
+// 칸을 잇는 꺾임이 보이지 않게 이동 평균으로 다듬는다. 곡구 위쪽 점의 t는 0이다.
+function streamThrough(flow, apex, R, upCells, maxT) {
+  const { down, area } = flow;
+  let at = idx(apex.i, apex.j);
+  for (let q = -3; q <= 3; q++) for (let p = -3; p <= 3; p++) if (area[idx(apex.i + p, apex.j + q)] > area[at]) at = idx(apex.i + p, apex.j + q);
+  const up = [];
+  for (let c = at, n = 0; n < upCells; n++) {
+    const j = (c / N) | 0, i = c - j * N;
+    let best = -1;
+    for (let q = -1; q <= 1; q++) for (let p = -1; p <= 1; p++) {
+      const o = idx(clamp(i + p, 0, N - 1), clamp(j + q, 0, N - 1));
+      if (down[o] === c && (best < 0 || area[o] > area[best])) best = o;
+    }
+    if (best < 0) break;
+    up.push(best); c = best;
+  }
+  const cells = [...up.reverse()], first = cells.length;
+  for (let c = at, dist = 0; c >= 0 && dist / R <= maxT; c = down[c]) {
+    cells.push(c);
+    if (down[c] >= 0) { const e = down[c], dx = (e % N) - (c % N), dy = ((e / N) | 0) - ((c / N) | 0); dist += Math.hypot(dx, dy); }
+  }
+  const raw = cells.map(c => ({ x: c % N, y: (c / N) | 0 }));
+  const W = 4, pts = [];
+  let dist = 0;
+  raw.forEach((_, n) => {
+    let sx = 0, sy = 0, cnt = 0;
+    for (let m = Math.max(0, n - W); m <= Math.min(raw.length - 1, n + W); m++) { sx += raw[m].x; sy += raw[m].y; cnt++; }
+    const x = sx / cnt, y = sy / cnt;
+    if (n > first) dist += Math.hypot(x - pts[n - 1].x, y - pts[n - 1].y);
+    pts.push({ x, y, t: n > first ? dist / R : 0 });
+  });
+  return { pts, first };
+}
+
+// 곡구 위쪽 물줄기를 물로 그린다. 산에서 나온 물이 곡구로 들어오게 한다.
+function stampWater(water, pts) {
+  for (const p of pts) {
+    const i = p.x | 0, j = p.y | 0;
+    for (let q = -2; q <= 2; q++) for (let r = -2; r <= 2; r++) {
+      if (Math.hypot(r + i - p.x, q + j - p.y) < 1.6) water[idx(i + r, j + q)] = 1;
+    }
+  }
+}
+
 // 실제 고도 자료로 만드는 구례 화엄사 선상지.
 // 오늘날 단계는 실제 고도 그대로이고, 초기와 성장 단계는 부채꼴 두께를 빼낸 뒤 같은 계산으로 다시 쌓은 추정이다.
 export function simulateGurye(dem, onProgress = () => {}) {
@@ -489,6 +576,7 @@ export function simulateGurye(dem, onProgress = () => {}) {
   for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
     sl[idx(i, j)] = Math.hypot(h[idx(i + 1, j)] - h[idx(i - 1, j)], h[idx(i, j + 1)] - h[idx(i, j - 1)]) / (2 * CELL);
   }
+  const rawSlope = sl;
   for (let pass = 0; pass < 3; pass++) {
     const c = new Float32Array(N * N);
     for (let j = 3; j < N - 3; j++) for (let i = 3; i < N - 3; i++) {
@@ -501,17 +589,32 @@ export function simulateGurye(dem, onProgress = () => {}) {
   const mountain = new Float32Array(N * N);
   for (let k = 0; k < mountain.length; k++) mountain[k] = smooth(0.085, 0.17, sl[k]);
 
-  // 곡구: 화엄사 계곡 입구 (북위 35.2465, 동경 127.4835)
-  const apex = { i: Math.round((318 / SIZE + 0.5) * (N - 1)), j: Math.round((-724 / SIZE + 0.5) * (N - 1)) };
+  // 곡구: 화엄사 골짜기 물줄기를 고도에서 따라 내려가 한쪽 벽이 끝나는 곳(대략 북위 35.244, 동경 127.490, 높이 약 134m).
+  // 물줄기를 flowField로 구해 찾은 칸이고, 검사가 물줄기 위에 있는지와 양옆 벽을 확인한다.
+  const apex = { i: 307, j: 231 };
   const R = 3000 / CELL;
   const base = h.slice();
-  const thickNow = new Float32Array(N * N);
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+  // 곡구 바로 앞은 옆 산의 경사가 넓게 번져 산지로 잡힌다. 부채꼴 방향 안에서는 덜 번진 경사로 다시 판단해
+  // 평평한 퇴적면을 산지에서 빼고, 경사가 급한 사면은 그대로 산지로 남겨 부채꼴에 들어가지 않게 한다.
+  const sectorAt = (i, j) => {
     const dx = i - apex.i, dy = j - apex.j, d = Math.hypot(dx, dy);
-    if (d >= R) continue;
+    if (d >= R) return 0;
     const bearing = (Math.atan2(dx, -dy) * 180) / Math.PI;
     const b = bearing < 0 ? bearing + 360 : bearing;
-    const sector = smooth(150, 170, b) * smooth(280, 255, b);
+    return smooth(150, 170, b) * smooth(280, 255, b);
+  };
+  for (let j = 4; j < N - 4; j++) for (let i = 4; i < N - 4; i++) {
+    const sector = sectorAt(i, j);
+    if (sector <= 0) continue;
+    let s = 0;
+    for (let q = -2; q <= 2; q++) for (let p = -2; p <= 2; p++) s += rawSlope[idx(i + p, j + q)];
+    const k = idx(i, j);
+    mountain[k] = lerp(mountain[k], Math.min(mountain[k], smooth(0.12, 0.22, s / 25)), sector);
+  }
+  const thickNow = new Float32Array(N * N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const d = Math.hypot(i - apex.i, j - apex.j), sector = sectorAt(i, j);
+    if (sector <= 0) continue;
     const k = idx(i, j);
     const th = 28 * Math.pow(1 - d / R, 1.2) * sector * (1 - mountain[k]);
     thickNow[k] = th;
@@ -520,7 +623,7 @@ export function simulateGurye(dem, onProgress = () => {}) {
 
   onProgress('선상지 쌓아 보는 중');
   const world = {
-    nz, rand, h: base.slice(), base, mountain, apex, R,
+    nz, rand, h: base.slice(), base, mountain, apex, R, thick: thickNow,
     coarse: new Float32Array(N * N), total: new Float32Array(N * N), last: new Float32Array(N * N), recent: new Float32Array(N * N),
   };
   const marks = { 14: 0, 40: 1 };
@@ -535,17 +638,12 @@ export function simulateGurye(dem, onProgress = () => {}) {
   }
   snaps[2] = { e: 40, h: h.slice(), coarse, total, last, recent: new Float32Array(N * N), water: new Float32Array(N * N) };
 
-  // 물길은 잔 기복에 갇히지 않도록 부드럽게 만든 고도로 찾는다.
-  let soft = snaps[2].h.slice();
-  for (let pass = 0; pass < 4; pass++) {
-    const c = soft.slice();
-    for (let j = 4; j < N - 4; j++) for (let i = 4; i < N - 4; i++) {
-      let s = 0;
-      for (let q = -4; q <= 4; q++) for (let p = -4; p <= 4; p++) s += c[idx(i + p, j + q)];
-      soft[idx(i, j)] = s / 81;
-    }
-  }
-  const stream = traceStream(soft, apex, R, rand, { gain: 9, maxT: 1.2, startX: -0.45, startY: 0.9 });
+  // 물길은 실제 고도에서 구한 물줄기를 따른다. 곡구 위쪽 골짜기에서 내려와 곡구를 지나 부채꼴로 나간다.
+  const { pts: stream, first } = streamThrough(flowField(dem), apex, R, Math.round(1500 / CELL), 1.2);
+  const upstream = stream.slice(0, first);
+  for (const n of [0, 1]) stampWater(snaps[n].water, upstream);
+  // 단면은 골짜기 위쪽 물줄기에서 곡구를 지나 부채꼴로 곧게 내려간다.
+  world.profileHead = upstream[Math.max(0, first - Math.round(1000 / CELL))];
   return finish(world, snaps, stream, onProgress);
 }
 
@@ -585,7 +683,7 @@ function fanAxis(h, base, apex) {
 function finish(world, snaps, stream, onProgress) {
   const { nz, mountain, base, apex, R } = world;
   const today = snaps[2];
-  const axis = SITE === 'synthetic' ? fanAxis(today.h, base, apex) : null;
+  const axis = fanAxis(world.thick ?? today.h, world.thick ? new Float32Array(N * N) : base, apex);
   paintStream(today, stream);
 
   onProgress('표면 재질 정하는 중');
@@ -602,17 +700,19 @@ function finish(world, snaps, stream, onProgress) {
   if (world.valley) for (let k = 0; k < bump.length; k++) bump[k] *= 1 - world.valley.mask[k];
   for (const s of snaps) for (let k = 0; k < bump.length; k++) s.h[k] += bump[k] * smooth(WATER_LEVEL + 1, WATER_LEVEL + 5, s.h[k]);
 
-  const at = t => { let best = stream[0]; for (const p of stream) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; return best; };
   const toWorld = p => ({ x: (p.x / (N - 1) - 0.5) * SIZE, z: (p.y / (N - 1) - 0.5) * SIZE });
   const apexG = { x: apex.i, y: apex.j }, MOUTH_ROWS = 5;
-  // 계산 지형은 물길이 한쪽으로 치우치므로 부채꼴의 대표 방향을 쓰고, 구례는 곡구에서 선단으로 가는 물길을 쓴다.
-  const toeG = axis ? { x: apex.i + axis.x * R * 0.9, y: apex.j + axis.y * R * 0.9 } : at(0.9);
-  const midG = axis ? { x: apex.i + axis.x * R * 0.5, y: apex.j + axis.y * R * 0.5 } : at(0.5);
+  // 물길은 부채꼴의 한쪽으로 치우치므로(구례는 동쪽 산자락을 따라 흐른다) 이름표는 부채꼴의 대표 방향에 놓는다.
+  const toeG = { x: apex.i + axis.x * R * 0.9, y: apex.j + axis.y * R * 0.9 };
+  const midG = { x: apex.i + axis.x * R * 0.5, y: apex.j + axis.y * R * 0.5 };
   // 계산 지형의 곡구 뒤 사면은 완만해서, 단면이 산지에서 시작하도록 더 멀리서 시작한다.
   const BEHIND = 0.4;
-  const profile = axis
+  const profile = !world.profileHead
     ? { from: { x: apex.i - axis.x * R * BEHIND, y: apex.j - axis.y * R * BEHIND }, to: { x: apex.i + axis.x * R, y: apex.j + axis.y * R } }
-    : { from: { x: apex.i - (toeG.x - apex.i) * 0.25, y: apex.j - (toeG.y - apex.j) * 0.25 }, to: toeG };
+    : (() => {
+      const a = world.profileHead, l = Math.hypot(apex.i - a.x, apex.j - a.y);
+      return { from: { x: a.x, y: a.y }, to: { x: apex.i + ((apex.i - a.x) / l) * R * 0.9, y: apex.j + ((apex.j - a.y) / l) * R * 0.9 } };
+    })();
   const places = {
     apex: toWorld(apexG), mid: toWorld(midG), toe: toWorld(toeG), R: R * CELL,
     streamToe: stream.filter(p => p.t > 0.8 && p.t < 1.05).map(toWorld),

@@ -18,6 +18,7 @@ const GURYE = SITE === 'gurye';
 
 import { createSchematic } from './schematic.js';
 import { createLabelLayer } from '../../shared/labels.js';
+import { setupPivot } from '../../shared/pivot.js';
 
 // 폰에서는 화면 배치와 부담을 줄인다.
 const PHONE = isPhone();
@@ -44,10 +45,10 @@ const { renderer, scene, camera, controls, invalidate, startLoop } = createStage
 const veg = { N, SIZE, CELL, WATER_LEVEL, ex, sampleH, dense: SITE === 'gurye', treeFactor: Q.trees };
 
 const VIEWS = GURYE ? {
-  oblique: { p: [-3680, 430, 2000], t: [-720, 70, -220] },
-  above: { p: [-1700, 3400, 2900], t: [-150, 0, -200] },
-  close: { p: [-1000, 190, 700], t: [240, 110, -700] },
-  apex: { p: [-1000, 240, 300], t: [230, 130, -600] },
+  oblique: { p: [-2600, 520, 3000], t: [260, 70, 330] },
+  above: { p: [-1300, 3400, 3200], t: [250, 0, 100] },
+  close: { p: [-420, 190, 1000], t: [820, 100, -400] },
+  apex: { p: [-420, 240, 600], t: [810, 120, -300] },
 } : {
   oblique: { p: [100, 330, 2820], t: [-225, 40, -520] },
   above: { p: [-700, 2500, 2300], t: [-220, 0, 200] },
@@ -98,6 +99,8 @@ async function start() {
   terrain.castShadow = terrain.receiveShadow = true;
   terrain.frustumCulled = false;
   scene.add(terrain);
+  const pivot = setupPivot(THREE, { dom: renderer.domElement, camera, controls, targets: () => [terrain], invalidate, scene });
+  window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
   const river = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE).rotateX(-Math.PI / 2),
     new THREE.MeshStandardMaterial({ color: 0x1a2f2e, roughness: 0.2, metalness: 0, envMapIntensity: 0.9 }));
@@ -251,7 +254,7 @@ async function start() {
 const NOTES_GURYE = [
   '초기(추정): 지리산 골짜기에서 나온 물이 곡구 앞에 자갈을 쌓기 시작합니다.',
   '성장(추정): 물길이 옮겨 다니며 부채꼴이 넓어집니다. 초기와 성장은 계산으로 복원한 모습입니다.',
-  '오늘날: 실제 고도 자료로 그린 구례 화엄사 선상지입니다. 곡구에서 약 3km 내려가며 고도가 160m에서 40m로 낮아집니다. 표면의 잔 기복은 더한 것입니다.',
+  '오늘날: 실제 고도 자료로 그린 구례 화엄사 선상지입니다. 곡구에서 약 3km 내려가며 고도가 130m에서 40m로 낮아집니다. 표면의 잔 기복은 더한 것입니다.',
 ];
 const NOTES = [
   '초기: 곡구에서 나온 물이 자갈을 쏟아 놓기 시작합니다.',
@@ -261,9 +264,9 @@ const NOTES = [
 
 document.getElementById('title').textContent = GURYE ? '구례 화엄사 선상지' : '계산으로 만든 선상지';
 document.querySelector(`[data-site="${SITE}"]`).classList.add('on');
-document.getElementById('foot').textContent = GURYE
-  ? '고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA. 논밭, 나무, 물길, 마을은 위치가 실제와 다른 예시입니다. 표면 재질: ambientCG (CC0)'
-  : '표면 재질: ambientCG (CC0)';
+document.getElementById('foot').innerHTML = (GURYE
+  ? ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭, 나무, 물길, 마을은 위치가 실제와 다른 예시입니다.', '표면 재질: ambientCG (CC0)']
+  : ['표면 재질: ambientCG (CC0)']).map(t => `<span>${t}</span>`).join(' ');
 document.querySelectorAll('[data-site]').forEach(b => b.onclick = () => { location.href = b.dataset.site === 'model' ? './model.html' : b.dataset.site === 'gurye' ? './terrain.html?site=gurye' : './terrain.html'; });
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

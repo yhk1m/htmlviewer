@@ -146,5 +146,5 @@ export function createBlock(model) {
     dropMesh.instanceMatrix.needsUpdate = true;
   }
 
-  return { group, syncTerrain, syncParticles };
+  return { group, terrain, syncTerrain, syncParticles };
 }

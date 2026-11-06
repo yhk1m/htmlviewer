@@ -6,7 +6,6 @@ import { gridIndex, fillNormals } from '../../shared/grid.js';
 
 const CENTER = N / 2;
 export const BOTTOM = -30;
-export const SEA_WIDTH = 22;
 const FLOW_DOTS = 110;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -15,6 +14,7 @@ export function createBlock(model) {
   const group = new THREE.Group();
   const linear = hex => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
   const GREEN = linear('#7f9a5c'), FIELD = linear('#a9b36a'), TREAD_OLD = linear('#b59f62'), TREAD_NEW = linear('#cdb97c');
+  const FRESH = linear('#efb765'), FRESH_SECONDS = 1.4; // 방금 깎인 자리의 밝은 흙색과 그 색이 사라지는 시간
   const FLOOR = linear('#d8cfae'), ROCK_A = linear('#6f665a'), ROCK_B = linear('#8d8272'), SHRUB = linear('#4c6340');
 
   const pos = new Float32Array(N * N * 3), nor = new Float32Array(N * N * 3), col = new Float32Array(N * N * 3);
@@ -63,8 +63,9 @@ export function createBlock(model) {
   skirt.frustumCulled = false;
   group.add(skirt);
 
-  // 강물 띠: 칸 무늬가 드러나지 않도록 중심선을 따라 따로 그린다.
-  const inBlock = model.path.map((p, s) => ({ ...p, s })).filter(p => p.x >= 0 && p.x <= N - 1 && p.y >= 0 && p.y <= N - 1);
+  // 강물 띠: 칸 무늬가 드러나지 않도록 중심선을 따라 따로 그린다. 측방 침식 동안 강과 함께 옆으로 옮겨 간다.
+  // 강은 블록 밖으로 계속 흐르므로, 블록 끝을 조금 넘는 점까지 잡아 물띠가 잘린 면에 딱 맞게 끝나게 한다.
+  const inBlock = model.path.map((p, s) => ({ ...p, s })).filter(p => p.x >= -3 && p.x <= N + 2);
   const riverPos = new Float32Array(inBlock.length * 2 * 3);
   const riverGeo = new THREE.BufferGeometry();
   riverGeo.setAttribute('position', new THREE.BufferAttribute(riverPos, 3));
@@ -75,21 +76,13 @@ export function createBlock(model) {
       idx.push(a, b, c, b, d, c);
     }
     riverGeo.setIndex(idx);
-    inBlock.forEach((p, s) => {
-      const nx = -Math.sin(p.th), ny = Math.cos(p.th), w = CHANNEL * 0.92;
-      riverPos[s * 6] = p.x + nx * w - CENTER; riverPos[s * 6 + 2] = p.y + ny * w - CENTER;
-      riverPos[s * 6 + 3] = p.x - nx * w - CENTER; riverPos[s * 6 + 5] = p.y - ny * w - CENTER;
-    });
-    riverGeo.computeVertexNormals();
   }
-  // 하구: 강물 띠의 끝 쪽 색을 바다 색에 가깝게 천천히 바꿔, 네모로 끊겨 보이지 않고 바다와 이어지게 한다.
-  const riverCol = new Float32Array(inBlock.length * 2 * 3).fill(1);
-  inBlock.forEach((p, s) => {
-    const f = clamp((p.x - (N - 1 - 34)) / 34), k = 1 - 0.17 * smooth(0, 1, f);
-    riverCol.fill(k, s * 6, s * 6 + 6);
-  });
-  riverGeo.setAttribute('color', new THREE.BufferAttribute(riverCol, 3));
-  const river = new THREE.Mesh(riverGeo, new THREE.MeshStandardMaterial({ color: 0x2f86c9, vertexColors: true, roughness: 0.35, side: THREE.DoubleSide }));
+  // 강물 자리: 중심선에서 옆 이동량과 w만큼 떨어진 점. 블록 밖으로 나가지 않게 가장자리에서 자른다.
+  const inside = v => clamp(v, 0, N - 1);
+  const waterX = (p, w) => inside(p.x - Math.sin(p.th) * (model.offset[p.s] + w));
+  const waterY = (p, w) => inside(p.y + Math.cos(p.th) * (model.offset[p.s] + w));
+  const RIVER_W = CHANNEL * 0.92;
+  const river = new THREE.Mesh(riverGeo, new THREE.MeshStandardMaterial({ color: 0x2f86c9, roughness: 0.35, side: THREE.DoubleSide }));
   river.frustumCulled = false;
   group.add(river);
 
@@ -99,7 +92,7 @@ export function createBlock(model) {
   group.add(dots);
   const m4 = new THREE.Matrix4();
 
-  // 강 위의 정지 화살표: 바다 쪽(물이 흐르는 쪽)을 가리킨다. 계산이 끝나 움직임이 멈춰도 보인다.
+  // 강 위의 정지 화살표: 하류 쪽(물이 흐르는 쪽)을 가리킨다. 계산이 끝나 움직임이 멈춰도 보인다.
   const ARROWS = 9;
   const arrowShape = new THREE.Shape();
   arrowShape.moveTo(1, 0); arrowShape.lineTo(-1, 1); arrowShape.lineTo(-0.35, 0); arrowShape.lineTo(-1, -1); arrowShape.closePath();
@@ -110,14 +103,6 @@ export function createBlock(model) {
   const arrowAt = Array.from({ length: ARROWS }, (_, k) => Math.floor((inBlock.length - 1) * (0.04 + 0.88 * (k / (ARROWS - 1)))));
   group.add(arrows);
   const rot = new THREE.Matrix4(), scl = new THREE.Matrix4().makeScale(3.6, 1, 2.1);
-
-  // 바다: 강 끝의 높이(침식 기준면)를 보여 준다.
-  const sea = new THREE.Mesh(new THREE.BoxGeometry(SEA_WIDTH, 1, N), new THREE.MeshStandardMaterial({ color: 0x276fa8, roughness: 0.3 }));
-  sea.position.set(CENTER + SEA_WIDTH / 2 - 1, 0, 0);
-  group.add(sea);
-  const seaBase = new THREE.Mesh(new THREE.BoxGeometry(SEA_WIDTH, 1, N), new THREE.MeshBasicMaterial({ color: 0x3d372f }));
-  seaBase.position.set(CENTER + SEA_WIDTH / 2 - 1, 0, 0);
-  group.add(seaBase);
 
   // 단면을 자른 위치를 지형 위에 표시
   const SECTION_POINTS = 120;
@@ -130,7 +115,7 @@ export function createBlock(model) {
   group.add(sectionLine);
 
   function syncTerrain() {
-    const { h, age, bed, lifted, count, seaLevel } = model;
+    const { h, age, bed, lifted, count, lastCut, clock } = model;
     // 벽 칸만 둘레와 평균해 그린다. 가파른 벽에 칸 무늬(톱니)가 생기지 않게 하는 그림 처리이고, 계산 값은 그대로다.
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const k = j * N + i;
@@ -164,6 +149,9 @@ export function createBlock(model) {
         }
         // 얇은 자갈층이 끝나는 가장자리는 어둡게 이어 준다.
         if (a >= 0) v += (ROCK_A[q] - v) * smooth(0.35, 1.3, slope) * 0.8;
+        // 방금 물이 깎아 낸 자리는 잠깐 밝은 흙색으로 보여 준다.
+        const fresh = lastCut[k] < 0 ? 0 : 1 - (clock - lastCut[k]) / FRESH_SECONDS;
+        if (fresh > 0) v += (FRESH[q] - v) * fresh * 0.85;
         col[k * 3 + q] = v * (a < 0 ? 1 + (speckle[k] - 1) * 0.25 : speckle[k]);
       }
     }
@@ -178,22 +166,19 @@ export function createBlock(model) {
     skirtGeo.attributes.position.needsUpdate = true;
     inBlock.forEach((p, s) => {
       const y = bed[p.s] + 0.62;
-      riverPos[s * 6 + 1] = y; riverPos[s * 6 + 4] = y;
+      riverPos[s * 6] = waterX(p, RIVER_W) - CENTER; riverPos[s * 6 + 1] = y; riverPos[s * 6 + 2] = waterY(p, RIVER_W) - CENTER;
+      riverPos[s * 6 + 3] = waterX(p, -RIVER_W) - CENTER; riverPos[s * 6 + 4] = y; riverPos[s * 6 + 5] = waterY(p, -RIVER_W) - CENTER;
     });
     riverGeo.attributes.position.needsUpdate = true;
     riverGeo.computeVertexNormals();
     arrowAt.forEach((i, k) => {
-      const p = inBlock[i];
-      rot.makeRotationY(-p.th).multiply(scl);
-      rot.setPosition(p.x - CENTER, bed[p.s] + 0.62 + 0.12, p.y - CENTER);
+      const p = inBlock[i], a = inBlock[Math.max(0, i - 4)], b = inBlock[Math.min(inBlock.length - 1, i + 4)];
+      // 화살표는 옮겨 간 물길이 지금 향하는 쪽을 가리킨다.
+      rot.makeRotationY(-Math.atan2(waterY(b, 0) - waterY(a, 0), waterX(b, 0) - waterX(a, 0))).multiply(scl);
+      rot.setPosition(waterX(p, 0) - CENTER, bed[p.s] + 0.62 + 0.12, waterY(p, 0) - CENTER);
       arrows.setMatrixAt(k, rot);
     });
     arrows.instanceMatrix.needsUpdate = true;
-    // 바다 높이
-    sea.scale.y = 1.2; // 윗면이 강물 띠(바닥 위 0.62)와 같은 높이라 하구에서 이어진다
-    sea.position.y = seaLevel;
-    seaBase.scale.y = Math.max(0.01, seaLevel - 0.6 - BOTTOM);
-    seaBase.position.y = BOTTOM + seaBase.scale.y / 2;
     // 단면선
     const { top } = sectionProfile(model, SECTION_POINTS);
     const S = model.section, lp = sectionLine.geometry.attributes.position;
@@ -214,11 +199,11 @@ export function createBlock(model) {
       const p = inBlock[Math.min(L - 1, Math.floor(f * L))];
       const off = Math.sin(d * 12.9) * CHANNEL * 0.45;
       m4.makeScale(0.55, 0.28, 0.55);
-      m4.setPosition(p.x - Math.sin(p.th) * off - CENTER, bed[p.s] + 0.75, p.y + Math.cos(p.th) * off - CENTER);
+      m4.setPosition(waterX(p, off) - CENTER, bed[p.s] + 0.75, waterY(p, off) - CENTER);
       dots.setMatrixAt(d, m4);
     }
     dots.instanceMatrix.needsUpdate = true;
   }
 
-  return { group, syncTerrain, syncFlow, arrowCount: ARROWS };
+  return { group, terrain, syncTerrain, syncFlow, arrowCount: ARROWS };
 }

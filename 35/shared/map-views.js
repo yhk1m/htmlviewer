@@ -8,7 +8,24 @@ const fitCanvas = canvas => {
   return { ctx, W: r.width, H: r.height };
 };
 
-// 실제 높이로 그린 등고선 지형도. north가 true면 위쪽이 북쪽임을 표시한다.
+// 방위표: 지도 오른쪽 위 안쪽에 위쪽을 가리키는 화살표와 N 글자를 그린다. 크기는 지도 칸에 비례한다.
+const northBox = (ox, oy, side) => { const h = Math.max(38, Math.min(66, side * 0.1)), w = h * 0.62; return { x: ox + side - 10 - w, y: oy + 8, w, h }; };
+function drawNorth(ctx, ox, oy, side) {
+  const { x, y, w, h } = northBox(ox, oy, side), cx = x + w / 2;
+  const font = h * 0.36, top = y + font + 5, bottom = y + h - 4, half = w * 0.3;
+  ctx.save();
+  // 등고선과 숫자가 비치지 않게 바탕을 깐다.
+  ctx.fillStyle = 'rgba(244,239,226,.95)'; ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+  ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = '#222'; ctx.font = `700 ${font}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('N', cx, y + font + 1);
+  ctx.lineJoin = 'round'; ctx.lineWidth = 1.4; ctx.strokeStyle = '#222';
+  ctx.beginPath(); ctx.moveTo(cx, top); ctx.lineTo(cx + half, bottom); ctx.lineTo(cx, bottom - (bottom - top) * 0.28); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, top); ctx.lineTo(cx - half, bottom); ctx.lineTo(cx, bottom - (bottom - top) * 0.28); ctx.closePath(); ctx.stroke();
+  ctx.restore();
+}
+
+// 실제 높이로 그린 등고선 지형도. north가 true면 위쪽이 북쪽임을 방위표로 표시한다.
 // sizeM이 null이면 실제 지역이 아니므로 축척 막대를 그리지 않고 높이 단위도 붙이지 않는다.
 export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay }) {
   const { ctx, W, H } = fitCanvas(canvas);
@@ -28,9 +45,10 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay }) {
     for (let s = 0; s < seg.length; s += 4) { ctx.moveTo(ox + seg[s] * sc, oy + seg[s + 1] * sc); ctx.lineTo(ox + seg[s + 2] * sc, oy + seg[s + 3] * sc); }
     ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = index ? 1.3 : 0.5; ctx.stroke();
     if (index && seg.length) {
-      const m = (seg.length / 8 | 0) * 4;
+      const m = (seg.length / 8 | 0) * 4, tx = ox + seg[m] * sc + 2, ty = oy + seg[m + 1] * sc - 2, box = northBox(ox, oy, side);
       ctx.fillStyle = '#6b431c'; ctx.font = '11px "Malgun Gothic",sans-serif';
-      ctx.fillText(`${level}`, ox + seg[m] * sc + 2, oy + seg[m + 1] * sc - 2);
+      // 방위표와 겹치는 등고선 숫자는 쓰지 않는다.
+      if (!north || tx < box.x - 30 || ty > box.y + box.h + 12) ctx.fillText(`${level}`, tx, ty);
     }
   }
   if (overlay) overlay(ctx, { ox, oy, sc, side });
@@ -44,7 +62,7 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay }) {
   } else {
     ctx.fillText('설명용 모형이라 축척이 없습니다.', ox + 10, oy + 18);
   }
-  if (north) ctx.fillText('위쪽이 북쪽', ox + side - 76, oy + 18);
+  if (north) drawNorth(ctx, ox, oy, side);
 }
 
 // 두 점을 잇는 실제 땅의 단면. ve는 세로 과장 배율이다.

@@ -12,6 +12,7 @@ import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap, drawProfile } from '../../shared/map-views.js';
 import { createHeightScale } from '../../shared/height.js';
 import { createLabelLayer } from '../../shared/labels.js';
+import { setupPivot } from '../../shared/pivot.js';
 import { buildDonggang, sampleH, N, SIZE, CELL, WATER_LEVEL } from './sim.js';
 import { createSchematic } from './schematic.js';
 
@@ -88,6 +89,8 @@ async function start() {
   terrain.castShadow = terrain.receiveShadow = true;
   terrain.frustumCulled = false;
   scene.add(terrain);
+  const pivot = setupPivot(THREE, { dom: renderer.domElement, camera, controls, targets: () => [terrain], invalidate, scene });
+  window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
   // 물 흐르는 방향: 본류 위에 납작한 흰 세모를 일정한 간격으로 놓는다(정지 그림). 물길 번호가 커지는 쪽이 아래쪽이다.
   const main = sim.paths[MAIN], ARROW_STEP = 55;
@@ -231,6 +234,6 @@ async function start() {
 }
 
 document.getElementById('note').textContent = '정선, 평창, 영월이 만나는 곳의 동강입니다. 강이 깊은 골짜기 속에서 크게 굽이칩니다. 위에서 보거나 등고선 지형도로 보면 굽이가 또렷합니다.';
-document.getElementById('foot').textContent = '고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA. 물길, 논밭, 숲, 암벽은 땅 높이에서 규칙으로 만든 예시입니다. 표면 재질: ambientCG (CC0)';
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물길, 논밭, 숲, 암벽은 땅 높이에서 규칙으로 만든 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

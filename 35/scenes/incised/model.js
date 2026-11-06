@@ -1,8 +1,9 @@
 // © 2026 김용현
 // 감입 곡류와 하안 단구 형성 모형의 계산. 화면과 분리되어 있어 node에서도 실행할 수 있다.
 // 넓은 범람원을 자유 곡류하는 강에서 시작한다. 땅이 솟으면 강은 같은 굽이를 지키며 아래로 파고들고,
-// 멈춘 동안에는 옆으로 깎아 바닥을 넓힌다. 다음 솟음 때 그 바닥의 남은 조각이 단구면이 된다.
-// 강의 중심선은 경사를 따라가며 찾지 않고 처음부터 수식으로 정한다. 그래서 수치가 조금 달라도 갈라지지 않는다.
+// 멈춘 동안에는 강이 좌우로 옮겨 다니며 물이 닿은 사면 발치만 깎아 바닥을 넓힌다. 다음 솟음 때 그 바닥의 남은 조각이 단구면이 된다.
+// 강의 큰 중심선은 경사를 따라가며 찾지 않고 처음부터 수식으로 정한다. 옆 이동도 수식이고, 정지기가 끝나면 중심선으로 돌아온다.
+// 그래서 수치가 조금 달라도 갈라지지 않고, 곡류 모양이 다음 파고듦으로 이어진다.
 import { rng32 } from '../../shared/rng.js';
 
 export const N = 256;
@@ -14,8 +15,14 @@ const RISE_SECONDS = 4;
 const CUT_SECONDS = 4;
 const WAVE_SECONDS = 3; // 파고듦이 강 끝에서 위쪽으로 올라가는 데 걸리는 시간
 const FREE_SECONDS = 4;
-const WIDEN_RATE = 3.3; // 초당 넓어지는 칸 수(평균)
-const WIDEN_SECONDS = [2, 6, 10]; // 남은 솟음이 0, 1, 2번일 때의 정지기 길이
+const WIDEN_WIDTH = [6.6, 19.8, 33]; // 남은 솟음이 0, 1, 2번일 때 정지기 동안 넓어지는 칸 수(평균)
+const WIDEN_SECONDS = [6, 8, 12]; // 같은 순서의 정지기 길이
+const SWING_LENGTH = 160; // 강의 옆 이동 파동의 길이(칸)
+const SWING_SECONDS = 5; // 한 점이 한 번 왕복하는 데 걸리는 시간(약)
+const MIN_SWINGS = 1.6; // 정지기마다 최소 왕복 수. 강의 어느 점이든 진폭이 큰 동안 양쪽을 한 번씩 지나게 한다.
+const GRID = 60; // 옆 이동을 계산하는 고정 시간 격자(초당). tick 크기와 무관하게 같은 지형이 나온다.
+const INNER_LIMIT = 0.7; // 안쪽 굽이로 옮겨 갈 수 있는 거리(곡률 반지름에 대한 비). 물띠가 꼬이지 않게 한다.
+const BEND_EFFECT = 0.35; // 바깥 굽이는 이 비율만큼 더, 안쪽 굽이는 덜 깎인다.
 
 export const OPTIONS = {
   uplift: { none: 0, low: 7, mid: 10, high: 14 },
@@ -31,6 +38,24 @@ export const PRESETS = {
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const idx = (i, j) => j * N + i;
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+const swingsIn = seconds => Math.max(MIN_SWINGS, seconds / SWING_SECONDS);
+// 옆 이동의 크기: 처음부터 천천히 커지고 끝에서 0으로 돌아온다.
+const swingSize = u => smooth(0, 0.4, u) * (1 - smooth(0.85, 1, u));
+
+// 파동의 위상마다 그 점이 정지기 동안 닿는 가장 큰 비율. 진폭을 이 값으로 나누면 점마다 목표 너비에 닿는다.
+function swingPeaks(swings) {
+  const PH = 64, table = new Float32Array(PH * 2);
+  for (let ph = 0; ph < PH; ph++) for (let i = 1; i < 120; i++) {
+    const u = i / 120, v = swingSize(u) * Math.sin(2 * Math.PI * (ph / PH - swings * u));
+    if (v > table[ph * 2 + 1]) table[ph * 2 + 1] = v;
+    if (-v > table[ph * 2]) table[ph * 2] = -v;
+  }
+  return (s, c) => {
+    const f = ((s / SWING_LENGTH) % 1) * PH, a = Math.floor(f) % PH, b = (a + 1) % PH, w = f - Math.floor(f);
+    return Math.max(0.3, table[a * 2 + c] * (1 - w) + table[b * 2 + c] * w);
+  };
+}
 
 function valueNoise(seed) {
   const r = rng32(seed), S = 256;
@@ -126,25 +151,31 @@ export function createModel(seed = 11) {
   const wallRough = new Float32Array(N * N);
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) wallRough[idx(i, j)] = (noise(i * 0.09, j * 0.09, 3) - 0.5) * 6;
 
-  let h, rock, age, bed, plan, clock, step, stepClock, seaLevel, widths, sectionAt, lifted;
+  const off = new Float32Array(M); // 중심선 점마다 지금 강이 옆으로 옮겨 간 거리. +는 side 1 쪽이다.
+  const reach = new Float32Array(M * 2); // 이번 정지기에 물 가장자리가 쪽별로 닿은 가장 먼 거리. 벽 발치가 여기까지 물러난다.
+  const lastCut = new Float32Array(N * N); // 칸이 옆으로 깎여 바닥이 된 시각. 방금 깎인 자리를 칠할 때 쓴다.
+
+  let h, rock, age, bed, plan, clock, step, stepClock, seaLevel, widths, amps, sectionAt, lifted, gridDone, contactId;
 
   const lowering = () => OPTIONS.uplift[options.uplift] + OPTIONS.sea[options.sea];
   const count = () => OPTIONS.times[options.times];
 
-  // 정지기마다 강둑의 어느 곳이 얼마나 넓어질지 정한다. 굽이 안쪽이 더 넓고, 곳곳이 들쭉날쭉해 조각이 남는다.
+  // 정지기마다 강둑의 어느 곳까지 물이 갈지 정한다. 굽이 바깥이 더 멀리 가고, 곳곳이 들쭉날쭉해 조각이 남는다.
   function buildWidths() {
-    widths = [];
+    widths = []; amps = [];
     const n = count();
-    const oldest = WIDEN_SECONDS[n - 1] * WIDEN_RATE * 1.3;
+    const oldest = WIDEN_WIDTH[n - 1] * 1.3;
     for (let e = 0; e < n; e++) {
       const left = n - 1 - e, w = new Float32Array(M * 2);
-      const target = WIDEN_SECONDS[left] * WIDEN_RATE;
+      const target = WIDEN_WIDTH[left];
       for (let s = 0; s < M; s++) for (let c = 0; c < 2; c++) {
         const inner = clamp(curve[s] * 45, -1, 1) * (c === 1 ? 1 : -1);
         const rough = clamp(0.8 + (noise(s * 0.03 + 50 * e + 3, c * 37 + e * 11 + 5, 2) - 0.5) * 3.2, 0.15, 1.3);
         // 옆 굽이가 가까우면 계단 전체를 같은 비율로 줄여 산줄기(곡류 안쪽 언덕)를 남긴다.
-        const fit = Math.min(1, (room[s * 2 + c] * 0.8 - CHANNEL - 1) / oldest);
-        w[s * 2 + c] = CHANNEL + 1 + target * rough * (1 + 0.25 * inner) * fit;
+        // 안쪽 굽이는 곡률 반지름 안에서만 옮겨 갈 수 있으므로 같은 방법으로 줄인다.
+        const bend = inner > 0 ? (INNER_LIMIT / Math.max(1e-3, Math.abs(curve[s]))) / oldest : 1;
+        const fit = Math.min(1, (room[s * 2 + c] * 0.8 - CHANNEL - 1) / oldest, bend);
+        w[s * 2 + c] = CHANNEL + 1 + target * rough * (1 - BEND_EFFECT * inner) * fit;
       }
       // 강을 따라 부드럽게 이어지게 한다.
       const out = new Float32Array(M * 2);
@@ -154,6 +185,10 @@ export function createModel(seed = 11) {
         out[s * 2 + c] = Math.max(CHANNEL + 1, sum / cnt);
       }
       widths.push(out);
+      // 물 가장자리가 위 너비에 닿도록 쪽별 진폭을 정한다.
+      const peak = swingPeaks(swingsIn(WIDEN_SECONDS[left])), amp = new Float32Array(M * 2);
+      for (let s = 0; s < M; s++) for (let c = 0; c < 2; c++) amp[s * 2 + c] = (out[s * 2 + c] - CHANNEL) / peak(s, c);
+      amps.push(amp);
     }
   }
 
@@ -198,40 +233,89 @@ export function createModel(seed = 11) {
       }
     }
     bed = z0.slice();
-    clock = 0; stepClock = 0; step = 0; seaLevel = 0; lifted = 0;
+    clock = 0; stepClock = 0; step = 0; seaLevel = 0; lifted = 0; gridDone = 0; contactId = null;
+    off.fill(0); reach.fill(CHANNEL + 1); lastCut.fill(-99);
+    for (let k = 0; k < N * N; k++) mask[k] = dist[k] < CHANNEL ? 2 : 0;
     buildWidths();
     chooseSection();
     plan = [{ kind: 'free', e: -1, t: FREE_SECONDS }];
     const n = count();
     for (let e = 0; e < n; e++) {
       plan.push({ kind: 'cut', e, t: RISE_SECONDS + CUT_SECONDS });
-      plan.push({ kind: 'widen', e, t: WIDEN_SECONDS[n - 1 - e] });
+      const t = WIDEN_SECONDS[n - 1 - e];
+      plan.push({ kind: 'widen', e, t, swings: swingsIn(t) });
     }
   }
 
-  // 한 번에 격자 전체를 깎는다.
-  function carve(e, widen, progress) {
+  // 고정 격자 한 칸만큼 강을 옮기고, 물 가장자리가 닿은 가장 먼 거리를 늘린다.
+  function swingTo(e, u, swings) {
+    const amp = amps[e], size = swingSize(u);
+    // 중심선의 맨 끝 점은 블록 밖에 있고, 그 점이 가장 가까운 칸은 강의 옆이 아니므로 옮기지 않는다.
+    for (let s = 1; s < M - 1; s++) {
+      const v = Math.sin(2 * Math.PI * (s / SWING_LENGTH - swings * u));
+      // 쪽마다 진폭이 달라도 강이 중심선을 지날 때 꺾이지 않도록 두 진폭을 부드럽게 섞는다.
+      const a0 = amp[s * 2], a1 = amp[s * 2 + 1], o = size * v * (a0 + (a1 - a0) * (1 + v) / 2);
+      off[s] = o;
+      const c = s * 2 + (o > 0 ? 1 : 0), edge = Math.abs(o) + CHANNEL;
+      if (edge > reach[c]) reach[c] = edge;
+    }
+  }
+
+  // 한 번에 격자 전체를 깎는다. 정지기(widen)에는 물이 닿았던 곳까지만 바닥이 되고, 물길 홈은 지금 물이 있는 곳에만 있다.
+  function carve(e, widen) {
     if (lowering() <= 0) return;
-    const w = widen ? widths[e] : null;
     const surface = e + 1;
     for (let k = 0; k < N * N; k++) {
       const s = near[k], d = dist[k], bedS = bed[s];
       const floor = bedS + FLOOR_UP;
-      const W = widen ? CHANNEL + 1 + (w[s * 2 + side[k]] - CHANNEL - 1) * progress : CHANNEL + 1;
+      const W = widen ? reach[s * 2 + side[k]] : CHANNEL + 1;
       if (d <= W) {
-        if (h[k] > floor) { h[k] = floor; age[k] = surface; }
+        if (h[k] >= floor) {
+          if (widen && age[k] !== surface) lastCut[k] = clock;
+          h[k] = floor; age[k] = surface;
+        }
         if (age[k] === surface && rock[k] > floor - GRAVEL) rock[k] = floor - GRAVEL;
       } else {
         const out = d - W;
         const top = floor + WALL * out + wallRough[k] * Math.min(1, out / 6);
         if (h[k] > top) { h[k] = Math.max(top, floor); age[k] = -1; }
       }
-      if (d < CHANNEL) {
+      if (widen) {
+        // 물이 떠난 자리에는 자갈이 쌓여 바닥 높이로 돌아온다.
+        const q = Math.abs((side[k] ? d : -d) - off[s]) / CHANNEL;
+        if (age[k] === surface) h[k] = q < 1 ? bedS + FLOOR_UP * q * q : floor;
+        mask[k] = q < 1 ? 2 : 0;
+      } else if (d < CHANNEL) {
         const c = bedS + FLOOR_UP * (d / CHANNEL) ** 2;
         if (h[k] > c) { h[k] = c; age[k] = surface; }
       }
       if (rock[k] > h[k]) rock[k] = h[k];
     }
+  }
+
+  // 지금 물이 벽에 닿아 깎고 있는 대표 지점. 파동의 마루 하나를 따라가므로 같은 굽이를 타고 하류로 움직인다.
+  function contact() {
+    const p = plan[step];
+    if (!p || p.kind !== 'widen' || lowering() <= 0) return null;
+    const u = gridDone / Math.round(p.t * GRID);
+    let best = null;
+    for (const c of [0, 1]) {
+      const q = c ? 0.25 : 0.75, base = p.swings * u + q;
+      for (let n = Math.ceil(-base); ; n++) {
+        const s = Math.round(SWING_LENGTH * (base + n));
+        if (s >= M) break;
+        if (s < 0) continue;
+        const o = off[s], a = path[s];
+        if ((o > 0 ? 1 : 0) !== c || Math.abs(o) < 2 || reach[s * 2 + c] - (Math.abs(o) + CHANNEL) >= 1.2) continue;
+        const r = o + (c ? CHANNEL - 0.5 : 0.5 - CHANNEL), x = a.x - Math.sin(a.th) * r, y = a.y + Math.cos(a.th) * r;
+        if (x < 12 || y < 12 || x > N - 13 || y > N - 13) continue;
+        const id = c * 1000 + n, keep = id === contactId;
+        if (!best || keep || (!best.keep && Math.abs(o) > Math.abs(off[best.s]))) best = { x, y, s, side: c, id, keep };
+      }
+    }
+    if (!best) return null;
+    contactId = best.id;
+    return { x: best.x, y: best.y, s: best.s, side: best.side };
   }
 
   function advanceStep(p, dt) {
@@ -247,9 +331,15 @@ export function createModel(seed = 11) {
         if (after > delay) bed[s] = Math.max(z0[s] + seaLevel, bed[s] - speed * dt);
       }
       if (after >= p.t - 1e-6) for (let s = 0; s < M; s++) bed[s] = z0[s] + seaLevel;
-      carve(p.e, false, 0);
+      carve(p.e, false);
     } else if (p.kind === 'widen') {
-      carve(p.e, true, clamp((stepClock + dt) / p.t));
+      if (stepClock === 0) { reach.fill(CHANNEL + 1); gridDone = 0; contactId = null; }
+      if (lowering() <= 0) return;
+      const total = Math.round(p.t * GRID), after = stepClock + dt;
+      const target = after >= p.t - 1e-9 ? total : Math.min(total, Math.floor(after * GRID + 1e-9));
+      if (target <= gridDone) return;
+      while (gridDone < target) swingTo(p.e, ++gridDone / total, p.swings);
+      carve(p.e, true);
     }
   }
 
@@ -342,12 +432,13 @@ export function createModel(seed = 11) {
 
   reset();
   return {
-    tick, reset, sample, sampleRock, spots,
+    tick, reset, sample, sampleRock, spots, contact,
     applyPreset(name) { Object.assign(options, PRESETS[name].options); reset(); },
     setOption(name, value) { options[name] = value; },
     get options() { return options; },
     get h() { return h; }, get rock() { return rock; }, get age() { return age; },
     get mask() { return mask; }, get path() { return path; }, get bed() { return bed; }, get z0() { return z0; },
+    get offset() { return off; }, get reach() { return reach; }, get lastCut() { return lastCut; },
     get near() { return near; }, get dist() { return dist; }, get side() { return side; },
     get clock() { return clock; }, get seaLevel() { return seaLevel; }, get lifted() { return lifted; }, get section() { return sectionAt; },
     get phase() { return step >= plan.length ? 'done' : plan[step].kind; },

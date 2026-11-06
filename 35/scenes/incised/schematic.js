@@ -7,7 +7,7 @@ export const ZONE_TEXT = {
   old: { name: '옛 범람원', text: '땅이 솟기 전 강이 흐르던 넓은 범람원입니다. 지금은 가장 높은 곳에 남았고 자갈층이 얇게 있습니다. 솟은 횟수가 둘 이상이면 계단의 맨 위이므로 가장 높은 단구면이기도 합니다.' },
   tread: { name: '단구면', text: '옛 골짜기 바닥이 강보다 높은 곳에 남은 평평한 면입니다. 높을수록 오래되었습니다. 홍수에 잠기지 않아 마을과 밭이 들어서기도 합니다.' },
   scarp: { name: '단구애', text: '단구면 앞의 가파른 경사입니다. 강이 파고들 때 깎여 생겼습니다.' },
-  floor: { name: '지금 범람원', text: '지금의 강이 옆으로 깎아 넓힌 낮은 바닥입니다. 홍수 때 물에 잠깁니다.' },
+  floor: { name: '지금 범람원', text: '지금의 강이 좌우로 옮겨 다니며 사면 아래를 깎아 넓힌 낮은 바닥입니다. 물이 떠난 자리에는 자갈이 쌓이고, 홍수 때 물에 잠깁니다.' },
 };
 
 // 조건(kind)마다 말이 다르다. uplift는 땅이 솟음, sea는 해수면이 낮아짐, both는 둘 다, still은 아무 변화 없음.
@@ -20,7 +20,7 @@ export const STAGE_NAMES = {
 };
 const HEAD = {
   uplift: ['땅이 솟기 전', '한 번 솟음', '두 번 솟음', '세 번 솟음'],
-  sea: ['해수면이 낮아지기 전', '해수면이 한 번 낮아짐', '해수면이 두 번 낮아짐', '해수면이 세 번 낮아짐'],
+  sea: ['멀리 하류의 해수면이 낮아지기 전', '멀리 하류의 해수면이 한 번 낮아짐', '멀리 하류의 해수면이 두 번 낮아짐', '멀리 하류의 해수면이 세 번 낮아짐'],
   both: ['땅이 솟거나 해수면이 낮아지기 전', '땅이 솟거나 해수면이 낮아져 한 번 파고듦', '땅이 솟거나 해수면이 낮아져 두 번 파고듦', '땅이 솟거나 해수면이 낮아져 세 번 파고듦'],
 };
 function noteFor(stage, kind) {
@@ -28,7 +28,7 @@ function noteFor(stage, kind) {
   const head = HEAD[kind][stage];
   if (stage === 0) return `${head}: 강이 넓은 범람원 위를 자유롭게 굽이쳐 흐릅니다.`;
   if (stage === 1) return `${head}: ` + (kind === 'sea'
-    ? '강 끝이 낮아져 강이 굽이 모양 그대로 파고듭니다. 땅은 솟지 않았지만 옛 범람원이 강 양옆의 높은 평탄면으로 남습니다.'
+    ? '강의 침식 기준면이 낮아져 하류부터 위쪽으로 차례로 굽이 모양 그대로 파고듭니다. 땅은 솟지 않았지만 옛 범람원이 강 양옆의 높은 평탄면으로 남습니다.'
     : '강이 굽이 모양 그대로 파고든 감입 곡류가 됩니다. 옛 범람원이 강 양옆의 높은 평탄면으로 남습니다.');
   if (stage === 2) return `${head}: 두 번 파고들어 전의 골짜기 바닥이 단구면으로 남고, 그 앞에 단구애가 생깁니다. 옛 범람원은 가장 높은 단구면이 됩니다.`;
   return `${head}: 세 번 파고들어 계단이 남았습니다. 맨 위는 옛 범람원(가장 높은 단구면)이고, 그 아래 두 층은 옛 골짜기 바닥이 남은 단구면입니다. 높을수록 오래되었습니다.`;
@@ -127,7 +127,7 @@ function section(stage, kind) {
   const arrows = stage > 0 ? `${upArrows}
     <g stroke="${WATER}" stroke-width="2.4" fill="${WATER}"><path d="M${RIVER} ${f1(BED + 8)}v30" fill="none"/><path d="M${RIVER} ${f1(BED + 44)}l-6-12h12z"/></g>
     <text x="${RIVER + 12}" y="${f1(BED + 36)}" font-size="17" font-weight="700" fill="${WATER}">하방 침식</text>` : '';
-  const sideArrow = stage > 0 ? `<g stroke="${WATER}" stroke-width="2.4"><path d="M${f1(RIVER + 18)} ${f1(BED - 18)}h22" fill="none"/></g><path d="M${f1(RIVER + 46)} ${f1(BED - 18)}l-10-5v10z" fill="${WATER}"/><text x="${f1(RIVER + 18)}" y="${f1(BED - 26)}" font-size="16" font-weight="700" fill="${WATER}">측방 침식</text>` : '';
+  const sideArrow = stage > 0 ? `<g stroke="${WATER}" stroke-width="2.4"><path d="M${f1(RIVER + 18)} ${f1(BED - 18)}h34" fill="none"/></g><path d="M${f1(RIVER + 62)} ${f1(BED - 18)}l-10-5v10z" fill="${WATER}"/><text x="${f1(RIVER + 18)}" y="${f1(BED - 26)}" font-size="16" font-weight="700" fill="${WATER}">측방 침식</text>` : '';
   return `<svg class="sec" viewBox="0 0 ${W} ${H}" role="img" aria-label="골짜기를 A에서 B로 자른 단면. 솟은 횟수만큼 면이 계단처럼 남고, 면 위에는 자갈층이 얇게 있다.">
     <defs><pattern id="incRock" width="18" height="12" patternUnits="userSpaceOnUse"><rect width="18" height="12" fill="${ROCK}"/><path d="M0 6h18M9 0v6" stroke="${ROCK_LINE}" stroke-width="1"/></pattern></defs>
     <polygon points="${ground}" fill="url(#incRock)"/>

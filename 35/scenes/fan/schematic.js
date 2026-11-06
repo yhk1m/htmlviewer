@@ -9,6 +9,9 @@ export const ZONE_TEXT = {
 };
 
 const STAGES = [{ t: 0.34 }, { t: 0.68 }, { t: 1 }];
+export const STAGE_T = STAGES.map(s => s.t);
+// 선정, 선앙, 선단의 경계(곡구에서 부채꼴 끝까지의 비율). 평면과 단면이 같은 값을 쓴다.
+export const ZONE_BOUNDS = [0.28, 0.72];
 const WATER = '#6fb6d8';
 const SED = '#c9a877';
 const SED_FINE = '#dcc7a0';
@@ -17,7 +20,7 @@ const MTN = '#3f5a44';
 const ACCENT = '#e4b15a';
 const WATER_DARK = '#1f6f9c';
 
-const X0 = 190; // 단면에서 곡구의 위치
+export const X0 = 190; // 단면에서 곡구의 위치
 const LEN = 400; // 다 자란 선상지의 길이
 
 function rand32(seed) {
@@ -33,28 +36,33 @@ function rand32(seed) {
 
 const f1 = v => v.toFixed(1);
 const bedrock = x => (x < X0 ? 14 + (Math.max(x, 0) / X0) ** 0.7 * 208 : 222 + 46 * (1 - Math.exp(-(x - X0) / 240)));
-const fanLen = t => LEN * (0.4 + 0.6 * t);
+export const fanLen = t => LEN * (0.4 + 0.6 * t);
+const smoothEnd = u => { const v = Math.min(1, Math.max(0, (1 - u) / 0.1)); return v * v * (3 - 2 * v); };
 // 퇴적면: 곡구에서 오목하게 낮아지고, 위쪽으로 이으면 산지 사면과 만난다.
 // 그래서 선정은 산지에 바로 붙고, 퇴적물은 골짜기 입구를 메운다.
 const fanTop = (x, t) => {
   const L = fanLen(t), T = 56 * Math.sqrt(t);
   if (x >= X0) {
     const u = (x - X0) / L;
-    return u >= 1 ? bedrock(x) : bedrock(x) - T * (1 - u) ** 1.5;
+    // 곡구에서 오목하게 얇아지다가, 끝의 얇은 층이 막대 끝(u=1)에서 자연스럽게 사라진다.
+    return u >= 1 ? bedrock(x) : bedrock(x) - T * (1 - u) ** 1.15 - 5 * smoothEnd(u);
   }
   return fanTop(X0, t) + 0.3 * (x - X0);
 };
 const surface = (x, t) => Math.min(bedrock(x), fanTop(x, t));
-const thickness = (x, t) => Math.max(0, bedrock(x) - surface(x, t));
+export const thickness = (x, t) => Math.max(0, bedrock(x) - surface(x, t));
 // 퇴적면이 산지 사면과 만나는 곳이 선정의 맨 위다.
 const origin = t => {
   for (let x = X0; x > 0; x -= 1) if (fanTop(x, t) >= bedrock(x)) return x;
   return 0;
 };
-const zoneX = t => {
-  const L = fanLen(t), o = origin(t);
-  return { apex: [o, X0 + L * 0.28], mid: [X0 + L * 0.28, X0 + L * 0.72], toe: [X0 + L * 0.72, X0 + L] };
+// 구역은 곡구부터 잰다. 곡구 뒤 골짜기 안의 메워진 면은 산지 사면으로 이어지지만 선정 막대에는 넣지 않는다.
+export const zoneX = t => {
+  const L = fanLen(t), [a, b] = ZONE_BOUNDS;
+  return { apex: [X0, X0 + L * a], mid: [X0 + L * a, X0 + L * b], toe: [X0 + L * b, X0 + L] };
 };
+// 입자 반지름. 곡구 쪽이 크고 선단으로 갈수록 작아진다. r은 0~1의 난수로, 같은 곳에도 크기가 조금씩 섞인다.
+export const grainSize = (x, t, r) => Math.max(0.9, (1 - Math.max(0, x - X0) / fanLen(t)) ** 1.4 * (2.6 + r * 5));
 
 function poly(fn, a, b, step = 5) {
   const pts = [];
@@ -72,8 +80,7 @@ function grainDots(t) {
     const x = o + rand() * (X0 + fanLen(t) - o);
     const th = thickness(x, t);
     if (th < 3) continue;
-    const u = Math.max(0, x - X0) / fanLen(t);
-    const r = Math.max(0.9, (1 - u) ** 1.4 * (2.6 + rand() * 5));
+    const r = grainSize(x, t, rand());
     const y = bedrock(x) - rand() * (th - r * 2 - 1) - r - 0.5;
     if (y - r < surface(x, t)) continue;
     s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#8d8373" stroke="#3d3a33" stroke-width=".6"/>`;
@@ -85,7 +92,7 @@ const house = (x, y) => `<path d="M${x - 11} ${y}v-12l11-10 11 10v12z" fill="#23
 const tree = (x, y) => `<path d="M${x} ${y}v-11" stroke="currentColor" stroke-width="2"/><circle cx="${x}" cy="${y - 18}" r="8" fill="#23302a" stroke="currentColor" stroke-width="2"/>`;
 const paddy = (x, y) => `<path d="M${x - 13} ${y}h26M${x - 8} ${y}v-12M${x} ${y}v-15M${x + 8} ${y}v-12" fill="none" stroke="currentColor" stroke-width="2"/>`;
 
-function section(stage) {
+export function section(stage) {
   const { t } = STAGES[stage];
   const L = fanLen(t);
   const z = zoneX(t);
@@ -103,15 +110,16 @@ function section(stage) {
     const spring = z.toe[0] + (z.toe[1] - z.toe[0]) * 0.45;
     const under = x => {
       const p = (x - sink) / (spring - sink);
-      return ly(x) + Math.sin(Math.PI * p) * 30 + 1;
+      // 땅속 물은 퇴적층 안으로 흐른다.
+      return ly(x) + Math.min(Math.sin(Math.PI * p) * 30, thickness(x, t) * 0.7) + 1;
     };
     water = `
       <polyline points="${poly(x => ly(x) - 2, Math.max(0, o - 34), sink).join(' ')}" fill="none" stroke="${WATER}" stroke-width="4" marker-end="url(#fanArrow)"/>
       <polyline points="${poly(under, sink, spring).join(' ')}" fill="none" stroke="${WATER}" stroke-width="2.6" stroke-dasharray="7 6"/>
       <polyline points="${poly(x => ly(x) - 2, spring, end - 6).join(' ')}" fill="none" stroke="${WATER}" stroke-width="4" marker-end="url(#fanArrow)"/>
       <text x="${f1((sink + spring) / 2)}" y="${f1(under((sink + spring) / 2) + 22)}" text-anchor="middle" fill="${WATER}" font-size="17" font-weight="700">물이 땅속으로 (복류)</text>
-      <path d="M${f1(spring)} ${f1(ly(spring) - 2)}v-18" stroke="${WATER}" stroke-width="2.4"/>
-      <text x="${f1(spring - 6)}" y="${f1(ly(spring) - 26)}" text-anchor="middle" fill="${WATER}" font-size="17" font-weight="700">다시 솟아남 (용천)</text>`;
+      <path d="M${f1(spring)} ${f1(ly(spring) - 2)}v-32" stroke="${WATER}" stroke-width="2.4"/>
+      <text x="${f1(spring - 6)}" y="${f1(ly(spring) - 40)}" text-anchor="middle" fill="${WATER}" font-size="17" font-weight="700">다시 솟아남 (용천)</text>`;
   } else {
     water = `<polyline points="${poly(x => ly(x) - 2, Math.max(0, o - 34), Math.min(X0 + L + 40, end - 6)).join(' ')}" fill="none" stroke="${WATER}" stroke-width="4" marker-end="url(#fanArrow)"/>
       <text x="${f1(X0 + L * 0.55)}" y="${f1(ly(X0 + L * 0.55) - 12)}" text-anchor="middle" fill="${WATER}" font-size="17" font-weight="700">홍수 때 물길</text>`;
@@ -119,19 +127,26 @@ function section(stage) {
 
   const uses = stage === 2 ? `
     <g color="#efe9d8">
-      ${house(Math.round(z.apex[0] + 44), Math.round(ly(z.apex[0] + 44) - 5))}
+      ${house(Math.round(z.apex[0] + 56), Math.round(ly(z.apex[0] + 56) - 5))}
       ${tree(Math.round(z.mid[0] + 62), Math.round(ly(z.mid[0] + 62) - 4))}${tree(Math.round(z.mid[0] + 86), Math.round(ly(z.mid[0] + 86) - 4))}
-      ${paddy(Math.round(z.toe[1] + 50), Math.round(ly(z.toe[1] + 50) - 5))}${house(Math.round(z.toe[1] + 20), Math.round(ly(z.toe[1] + 20) - 5))}
+      ${paddy(Math.round(z.toe[1] - 18), Math.round(ly(z.toe[1] - 18) - 5))}${house(Math.round(z.toe[1] - 48), Math.round(ly(z.toe[1] - 48) - 5))}
     </g>` : '';
 
+  // 구역 띠: 막대에서 퇴적면까지를 옅게 칠해 어디까지인지 읽히게 한다. 구역마다 명도가 다르다.
+  const SHADE = { apex: 0.1, mid: 0.05, toe: 0.1 };
   const band = (key) => {
     const [a, b] = z[key];
     return `<g data-zone="${key}" class="zone" style="cursor:pointer">
+      <polygon points="${f1(a)},44 ${f1(b)},44 ${poly(ly, a, b).reverse().join(' ')}" fill="#fff" fill-opacity="${SHADE[key]}"/>
       <rect class="zone-band" x="${f1(a)}" y="44" width="${f1(b - a)}" height="262" fill="${ACCENT}" fill-opacity="0"/>
       <line x1="${f1(a + 3)}" x2="${f1(b - 3)}" y1="42" y2="42" stroke="currentColor" stroke-width="1.5"/>
       <text x="${f1((a + b) / 2)}" y="33" text-anchor="middle" font-size="21" font-weight="700" fill="currentColor">${ZONE_TEXT[key].name}</text>
     </g>`;
   };
+  // 구역 경계 점선(막대에서 퇴적면까지)과 곡구 표시. 곡구 선은 선정 막대의 왼쪽 끝과 같은 자리다.
+  const edges = [z.mid[0], z.mid[1], z.toe[1]].map(x => `<line data-mark="zone-edge" x1="${f1(x)}" x2="${f1(x)}" y1="43" y2="${f1(ly(x))}" stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" stroke-opacity=".75"/>`).join('');
+  const mouth = `<line data-mark="mouth" x1="${f1(X0)}" x2="${f1(X0)}" y1="36" y2="${f1(ly(X0))}" stroke="${ACCENT}" stroke-width="1.6" stroke-dasharray="4 4"/>
+    <text x="${f1(X0 - 7)}" y="54" text-anchor="end" font-size="18" font-weight="700" fill="${ACCENT}">곡구</text>`;
 
   return `<svg class="sec" viewBox="0 0 720 340" role="img" aria-label="선상지를 A에서 B로 자른 단면. 곡구에서 멀어질수록 퇴적물이 얇아지고 입자가 작아지며, 물은 선앙에서 땅속으로 들어갔다가 선단에서 다시 솟아난다.">
     <defs>
@@ -144,6 +159,7 @@ function section(stage) {
     <style>svg.sec text{paint-order:stroke;stroke:#1c211e;stroke-width:3.5px;stroke-linejoin:round}</style>
     ${grainDots(t)}
     ${band('apex')}${band('mid')}${band('toe')}
+    ${edges}${mouth}
     ${water}
     ${uses}
     <text x="20" y="312" font-size="17" font-weight="700" fill="#efe9d8">기반암</text>
@@ -159,10 +175,16 @@ function section(stage) {
   </svg>`;
 }
 
-function plan(stage) {
+// 평면의 구역: 경계 원호의 반지름과 이름을 놓을 자리(부채꼴 반지름에 대한 비).
+export function planZones(stage) {
+  const R = 228 * (0.4 + 0.6 * STAGES[stage].t), [a, b] = ZONE_BOUNDS;
+  return { R, bounds: ZONE_BOUNDS.map(u => R * u), names: { apex: a / 2, mid: (a + b) / 2, toe: (b + 1) / 2 } };
+}
+
+export function plan(stage) {
   const { t } = STAGES[stage];
   const cx = 360, cy = 58;
-  const R = 228 * (0.4 + 0.6 * t);
+  const { R, bounds, names } = planZones(stage);
   const SPREAD = 72 * (Math.PI / 180);
   const pt = (r, a) => [cx + Math.sin(a) * r, cy + Math.cos(a) * r];
   const arc = (r) => {
@@ -170,7 +192,7 @@ function plan(stage) {
     return `M${f1(x0)} ${f1(y0)}A${f1(r)} ${f1(r)} 0 0 0 ${f1(x1)} ${f1(y1)}`;
   };
   const fan = `M${cx} ${cy}L${pt(R, -SPREAD).map(f1).join(' ')}A${f1(R)} ${f1(R)} 0 0 0 ${pt(R, SPREAD).map(f1).join(' ')}Z`;
-  const contours = [0.2, 0.4, 0.6, 0.8].map(u => `<path d="${arc(R * u)}" fill="none" stroke="#6b5a3c" stroke-width="1.2"/>`).join('');
+  const contours = bounds.map(r => `<path d="${arc(r)}" fill="none" stroke="#4d3f27" stroke-width="2.2"/>`).join('');
   const ridge = [];
   for (let x = 20; x < 720; x += 44) ridge.push(`<path d="M${x - 16} 44L${x} ${14 + (x % 3) * 4}L${x + 16} 44" fill="none" stroke="#7f9a84" stroke-width="1.6"/>`);
   const channel = (a, b, r0, r1) => {
@@ -209,11 +231,11 @@ function plan(stage) {
     <path d="${fan}" fill="url(#fanPlanFill)" stroke="#6b5a3c" stroke-width="1.4"/>
     ${contours}
     ${water}
-    ${lab('apex', 0.2)}${lab('mid', 0.53)}${lab('toe', 0.87)}
+    ${lab('apex', names.apex)}${lab('mid', names.mid)}${lab('toe', names.toe)}
     <circle cx="${cx}" cy="${cy}" r="4.5" fill="${ACCENT}"/>
     <text x="${cx + 14}" y="${cy - 16}" font-size="18" font-weight="700" fill="#f3f1ea">곡구</text>
-    <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${f1(by - 2)}" stroke="${ACCENT}" stroke-width="1.5" stroke-dasharray="3 5"/>
-    <text x="${cx - 26}" y="${cy - 12}" font-size="19" font-weight="800" fill="${ACCENT}">A</text>
+    <line x1="${cx}" y1="8" x2="${cx}" y2="${f1(by - 2)}" stroke="${ACCENT}" stroke-width="1.5" stroke-dasharray="3 5"/>
+    <text x="${cx - 22}" y="22" font-size="19" font-weight="800" fill="${ACCENT}">A</text>
     <text x="${cx - 22}" y="${f1(by + 2)}" font-size="19" font-weight="800" fill="${ACCENT}">B</text>
   </svg>`;
 }

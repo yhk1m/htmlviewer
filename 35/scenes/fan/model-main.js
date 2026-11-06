@@ -8,6 +8,7 @@ import { QUALITY, currentQuality, setupQualityButton } from '../../shared/qualit
 import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap } from '../../shared/map-views.js';
 import { createLabelLayer } from '../../shared/labels.js';
+import { setupPivot } from '../../shared/pivot.js';
 import { createModel, N, MOUTH, GRAINS } from './model.js';
 import { createBlock } from './block.js';
 
@@ -114,6 +115,8 @@ const toScreen = (x, y, z) => {
 };
 let labelsOn = true;
 function syncLabels() {
+  // 멈춘 동안 시점이 바뀌면 그리기 전에 여기로 오므로 카메라 행렬을 먼저 맞춘다.
+  camera.updateMatrixWorld();
   if (showing !== '3d' || !labelsOn) { labels.place([]); return; }
   const list = [];
   const put = (key, x, y, z, priority, keep = false) => { const s = toScreen(x, y, z); if (s) list.push({ key, ...s, priority, keep }); };
@@ -306,6 +309,10 @@ function loop(now) {
   renderer.render(scene, camera);
   meter();
 }
+
+// 두 번 누르면 그 자리가 회전 중심이 된다. 그리기를 멈춘 뒤에도 깨워서 움직인다. 숨긴 비교 블록은 대상에서 저절로 빠진다.
+const pivot = setupPivot(THREE, { dom: renderer.domElement, camera, controls, targets: () => [blockA.terrain, blockB.terrain], invalidate: () => { dirty = true; }, scene });
+window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
 setView('oblique');
 setPanel = setupPanel(document.getElementById('panelToggle'), fit, isPhone());

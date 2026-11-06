@@ -8,8 +8,9 @@ import { QUALITY, currentQuality, setupQualityButton } from '../../shared/qualit
 import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap } from '../../shared/map-views.js';
 import { createLabelLayer } from '../../shared/labels.js';
+import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, N, OPTIONS } from './model.js';
-import { createBlock, SEA_WIDTH } from './block.js';
+import { createBlock } from './block.js';
 import { createSchematic } from './schematic.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
@@ -46,7 +47,7 @@ controls.minDistance = 40;
 controls.maxDistance = 2000;
 
 const VIEWS = {
-  oblique: { p: [-91, 643, 544], t: [22, 0, 16] },
+  oblique: { p: [-102, 643, 544], t: [11, 0, 16] },
   above: { p: [0, 720, 60], t: [0, 0, 0] },
   compare: { p: [0, 600, 800], t: [0, 4, 20] },
 };
@@ -82,7 +83,7 @@ scene.add(sun);
 
 const blockA = createBlock(model);
 scene.add(blockA.group);
-const COMPARE_GAP = (N + SEA_WIDTH + 14) / 2;
+const COMPARE_GAP = (N + 14) / 2;
 const modelB = createModel();
 const blockB = createBlock(modelB);
 blockB.group.visible = false;
@@ -107,6 +108,8 @@ document.querySelectorAll('[data-show]').forEach(b => b.onclick = () => setShowi
 // 이름표
 const labels = createLabelLayer(document.getElementById('labels'));
 labels.add('river', '감입 곡류');
+labels.add('lateral', '측방 침식', '', 'water');
+labels.add('down', '하방 침식', '', 'water');
 labels.add('free', '자유 곡류');
 labels.add('plain', '범람원');
 labels.add('old', '옛 범람원');
@@ -117,7 +120,8 @@ labels.add('tread2', '단구면 (새로움)');
 labels.add('tread', '단구면');
 labels.add('scarp', '단구애');
 labels.add('floor', '지금 범람원');
-labels.add('sea', '바다', '', 'water');
+labels.add('upstream', '상류', '', 'water');
+labels.add('downstream', '하류로 이어짐', '', 'water');
 labels.add('a', 'A', '', 'mark');
 labels.add('b', 'B', '', 'mark');
 labels.add('left', '한 번 솟음', '', 'cmp');
@@ -136,8 +140,13 @@ function isDug(x, y) {
   return rim - model.sample(x, y) > 3;
 }
 let labelsOn = true, spotCache = null, spotFrame = -99;
+// 측방 침식 이름표 자리. 물이 닿은 지점을 따라가되 다른 굽이로 넘어갈 때 튀지 않게 천천히 옮긴다.
+let lateralAt = null;
+const DOWN_AT = 0.72; // 하방 침식 이름표를 놓을 강의 위치(강 길이의 비율). 파고듦이 먼저 닿는 아래쪽이다.
 function syncLabels() {
   if (showing !== '3d' || !labelsOn) { labels.place([]); return; }
+  // 멈춘 동안 시점을 바꾸면 그리기 전에 여기로 오므로 카메라 행렬을 먼저 맞춘다. 안 그러면 이름표가 화면 밖으로 사라진다.
+  camera.updateMatrixWorld();
   if (!spotCache || frame - spotFrame >= 20) { spotCache = model.spots(); spotFrame = frame; }
   const p = spotCache, list = [];
   const put = (key, x, y, z, priority, keep = true) => { const s = toScreen(x, y, z); if (s) list.push({ key, ...s, priority, keep }); };
@@ -162,8 +171,22 @@ function syncLabels() {
     }
     if (p.scarp && p.treads.length) put('scarp', p.scarp.x, model.sample(p.scarp.x, p.scarp.y) + 3, p.scarp.y, 9);
     if (p.floor && model.finished) put('floor', p.floor.x, model.sample(p.floor.x, p.floor.y) + 2, p.floor.y, 7, false);
+    // 지금 일어나는 침식의 이름은 실제로 일어나는 자리에 붙인다.
+    const touch = model.phase === 'widen' ? model.contact() : null;
+    if (touch) {
+      lateralAt = lateralAt ?? { x: touch.x, y: touch.y };
+      lateralAt.x += (touch.x - lateralAt.x) * 0.25; lateralAt.y += (touch.y - lateralAt.y) * 0.25;
+    } else if (model.phase !== 'widen') lateralAt = null;
+    if (lateralAt) put('lateral', lateralAt.x, model.sample(lateralAt.x, lateralAt.y) + 4, lateralAt.y, 11);
+    if (model.phase === 'cut') {
+      const s = Math.floor(model.path.length * DOWN_AT), a = model.path[s];
+      if (model.bed[s] > model.z0[s] + model.seaLevel + 0.3) put('down', a.x, model.bed[s] + 3, a.y, 11);
+    }
   }
-  put('sea', N + 8, model.seaLevel + 2, CENTER + 96, 3, false);
+  // 강은 블록 밖으로 이어진다. 바다는 훨씬 하류에 있어 이 블록에 없다.
+  const up = model.path.find(a => a.x >= 2), downAt = model.path.findLast(a => a.x <= N - 3);
+  put('upstream', up.x, model.sample(up.x, up.y) + 2, up.y, 3);
+  put('downstream', downAt.x, model.sample(downAt.x, downAt.y) + 2, downAt.y, 3);
   const S = model.section;
   put('a', S.ax, model.sample(S.ax, S.ay) + 1, S.ay, 5, false);
   put('b', S.bx, model.sample(S.bx, S.by) + 1, S.by, 5, false);
@@ -255,7 +278,7 @@ const noteEl = document.getElementById('now');
 // 조건에 맞게 부르는 말
 const WORDS = {
   uplift: { before: '땅이 솟기 전', stop: '땅이 멈춘 동안', first: '땅이 솟아오릅니다. 강은 높아진 만큼 아래로 파고듭니다(하방 침식). 굽이 모양을 지킨 채 깊은 골짜기 속을 흐르게 되니, 이것이 감입 곡류입니다.', again: '땅이 다시 솟습니다. 강이 또 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
-  sea: { before: '해수면이 낮아지기 전', stop: '해수면이 멈춘 동안', first: '해수면이 낮아졌습니다. 강 끝이 낮아지니 아래쪽부터 강이 파고들어 위쪽으로 올라갑니다. 강의 굽이는 그대로입니다.', again: '해수면이 또 낮아졌습니다. 강이 다시 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
+  sea: { before: '멀리 하류의 해수면이 낮아지기 전', stop: '해수면이 멈춘 동안', first: '멀리 하류의 바다 해수면이 낮아지면 강의 침식 기준면이 낮아져, 하류부터 위쪽으로 차례로 파고듭니다. 강의 굽이는 그대로입니다.', again: '멀리 하류의 해수면이 또 낮아졌습니다. 강이 다시 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
   both: { before: '땅이 솟거나 해수면이 낮아지기 전', stop: '땅과 해수면이 멈춘 동안', first: '땅이 솟거나 해수면이 낮아져 강이 아래로 파고듭니다(하방 침식). 굽이 모양을 지킨 채 깊은 골짜기 속을 흐르게 되니, 이것이 감입 곡류입니다.', again: '땅이 다시 솟거나 해수면이 또 낮아집니다. 강이 또 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
 };
 function noteText(m = model) {
@@ -264,7 +287,7 @@ function noteText(m = model) {
   const w = WORDS[kind];
   if (m.phase === 'free') return `${w.before}입니다. 강은 넓은 범람원 위를 자유롭게 굽이쳐 흐릅니다. 이것이 자유 곡류입니다.`;
   if (m.phase === 'cut') return m.risen === 1 ? w.first : w.again;
-  if (m.phase === 'widen') return `${w.stop} 강은 더 파고들지 않고 옆으로 깎습니다(측방 침식). 골짜기 바닥이 넓어지고 그 위에 자갈이 얇게 쌓입니다.`;
+  if (m.phase === 'widen') return `${w.stop} 강이 좌우로 옮겨 다니며 사면 아래를 때려 깎습니다(측방 침식). 물이 닿은 곳만 깎이고, 물이 떠난 자리에는 자갈이 쌓여 바닥이 넓어집니다.`;
   // 완성: 두세 문장. n번 파고들면 지금 범람원 위로 n층의 면이 남는다. 맨 위는 옛 범람원(가장 높은 단구면)이다.
   if (m.count === 1) return '감입 곡류가 완성되었습니다. 강이 곡류 모양 그대로 파고들었고, 옛 범람원이 강 양옆의 높은 평탄면으로 남았습니다.';
   return `하안 단구가 완성되었습니다. ${KOR[m.count]} 번 파고들어 계단이 ${KOR[m.count]} 층 남았습니다. 맨 위는 옛 범람원(가장 높은 단구면)이고, 높은 면일수록 오래되었습니다.`;
@@ -274,7 +297,7 @@ function brief(m) {
   if (kindFor(m) === 'still') return '변화가 없어 강이 파고들지 않습니다';
   if (m.phase === 'free') return '아직 파고들기 전입니다';
   if (m.phase === 'cut') return '강이 파고드는 중입니다';
-  if (m.phase === 'widen') return '옆으로 깎아 골짜기 바닥을 넓히는 중입니다';
+  if (m.phase === 'widen') return '강이 좌우로 옮겨 다니며 사면을 깎아 바닥을 넓히는 중입니다';
   return m.count === 1 ? '한 번 파고들어 감입 곡류가 되었고 계단은 없습니다' : `${KOR[m.count]} 번 파고들어 계단이 ${KOR[m.count]} 층 남았습니다`;
 }
 function stepsText() {
@@ -293,6 +316,7 @@ function syncInfo() {
   }
   noteEl.textContent = noteText();
   document.getElementById('steps').textContent = stepsText();
+  document.getElementById('seaBadge').textContent = OPTIONS.sea[model.options.sea] > 0 ? '해수면 낮아짐' : '해수면: 그대로';
   const kind = kindOf();
   schematic.setStage(model.finished ? model.count : dugOf(model), kind);
 }
@@ -320,7 +344,7 @@ addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); fi
 const playBtn = document.getElementById('playBtn');
 const setPlaying = on => { playing = on; playBtn.textContent = on ? '멈춤' : '재생'; playBtn.classList.toggle('on', on); };
 playBtn.onclick = () => setPlaying(!playing);
-const restart = () => { spotCache = null; settle = 0; if (viewNow === 'valley') setView('valley'); frameSync(true); setPlaying(true); };
+const restart = () => { spotCache = null; settle = 0; lateralAt = null; if (viewNow === 'valley') setView('valley'); frameSync(true); setPlaying(true); };
 document.getElementById('resetBtn').onclick = () => { model.reset(); if (compare) modelB.reset(); restart(); };
 document.getElementById('fastBtn').onclick = e => { speed = speed === 1 ? 3 : 1; e.currentTarget.classList.toggle('on', speed === 3); e.currentTarget.textContent = speed === 3 ? '3배 빠르게' : '빠르게'; };
 document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); dirty = true; };
@@ -418,6 +442,10 @@ function loop(now) {
   meter();
 }
 
+// 두 번 누르면 그 자리가 회전 중심이 된다. 그리기를 멈춘 뒤에도 깨워서 움직인다. 숨긴 비교 블록은 대상에서 저절로 빠진다.
+const pivot = setupPivot(THREE, { dom: renderer.domElement, camera, controls, targets: () => [blockA.terrain, blockB.terrain], invalidate: () => { dirty = true; }, scene });
+window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
+
 setView('oblique');
 setPanel = setupPanel(document.getElementById('panelToggle'), fit, isPhone());
 setupQualityButton(document.getElementById('qualityBtn'), QUALITY_NAME);
@@ -426,7 +454,7 @@ requestAnimationFrame(t => { last = t; loop(t); });
 
 window.__MODEL = {
   model, modelB, setView, setPlaying, setCompare,
-  advance(seconds) { setPlaying(false); for (let t = 0; t < seconds * 30; t++) { model.tick(1 / 30); if (compare) modelB.tick(1 / 30); } spotCache = null; frameSync(true); renderer.render(scene, camera); return { clock: +model.clock.toFixed(1), phase: model.phase, risen: model.risen, finished: model.finished, spots: model.spots() }; },
+  advance(seconds) { setPlaying(false); for (let t = 0; t < seconds * 30; t++) { model.tick(1 / 30); if (compare) modelB.tick(1 / 30); } spotCache = null; lateralAt = null; frameSync(true); renderer.render(scene, camera); return { clock: +model.clock.toFixed(1), phase: model.phase, risen: model.risen, finished: model.finished, spots: model.spots() }; },
   preset: n => document.querySelector(`[data-preset="${n}"]`).click(),
   setOption: (n, v) => document.querySelector(`[data-opt="${n}:${v}"]`).click(),
   draws: () => renderer.info.render.frame,
