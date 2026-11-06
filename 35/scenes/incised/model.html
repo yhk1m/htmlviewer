@@ -38,6 +38,8 @@
   body.comparing #section, body.comparing #sectionB { width:84% !important; }
   #sectionB[hidden] { display:none; }
   body.comparing .cond, body.comparing .nocmp, body.comparing #schem { display:none; }
+  /* 미앤더 핵 조건은 물길 모양이 정해져 있어 솟는 양을 고르지 않고, 비교도 하지 않는다. */
+  body.core-mode .opts, body.core-mode .cmprow { display:none; }
   #mapView { --ml:calc(min(360px,100vw - 40px) + 40px); --mr:min(600px,42vw); --mt:0px; position:fixed; left:var(--ml); top:var(--mt); width:calc(100vw - var(--ml) - var(--mr)); height:calc(100vh - var(--mt)); z-index:2; }
   #mapView[hidden] { display:none; }
   body.panel-closed #mapView { --ml:0px; --mt:76px; }
@@ -67,16 +69,16 @@
   </div>
   <hr>
   <div class="row"><button id="playBtn" class="on">멈춤</button><button id="resetBtn">처음부터</button><button id="fastBtn">빠르게</button></div>
-  <div class="row cond"><span class="lab">조건</span><button data-preset="textbook" class="on">교과서 하안 단구</button><button data-preset="once">솟음 한 번</button><button data-preset="sea">해수면 낮아짐</button></div>
-  <div class="row cond"><span class="lab">솟는 정도</span><button data-opt="uplift:none">없음</button><button data-opt="uplift:low">적음</button><button data-opt="uplift:mid" class="on">보통</button><button data-opt="uplift:high">많음</button></div>
-  <div class="row cond"><span class="lab">솟는 횟수</span><button data-opt="times:1">1회</button><button data-opt="times:2">2회</button><button data-opt="times:3" class="on">3회</button></div>
-  <div class="row cond"><span class="lab" style="width:auto">멀리 하류의 해수면</span><button data-opt="sea:same" class="on">그대로</button><button data-opt="sea:low">낮아짐</button></div>
+  <div class="row cond"><span class="lab">조건</span><button data-preset="textbook" class="on">교과서 하안 단구</button><button data-preset="once">솟음 한 번</button><button data-preset="sea">해수면 낮아짐</button><button data-preset="core">미앤더 핵</button></div>
+  <div class="row cond opts"><span class="lab">솟는 정도</span><button data-opt="uplift:none">없음</button><button data-opt="uplift:low">적음</button><button data-opt="uplift:mid" class="on">보통</button><button data-opt="uplift:high">많음</button></div>
+  <div class="row cond opts"><span class="lab">솟는 횟수</span><button data-opt="times:1">1회</button><button data-opt="times:2">2회</button><button data-opt="times:3" class="on">3회</button></div>
+  <div class="row cond opts"><span class="lab" style="width:auto">멀리 하류의 해수면</span><button data-opt="sea:same" class="on">그대로</button><button data-opt="sea:low">낮아짐</button></div>
   <div class="row cmprow"><button id="compareBtn">비교: 한 번과 세 번</button></div>
   <hr>
   <div class="row"><button data-show="3d" class="on">3D</button><button data-show="map" class="nocmp">등고선 지형도</button></div>
   <div class="row"><button data-view="oblique" class="on">비스듬히</button><button data-view="above" class="nocmp">위에서</button><button data-view="valley" class="nocmp">골짜기 쪽</button><button id="labelsBtn" class="on">이름표</button><button id="qualityBtn"></button></div>
   <p class="cap">두 번 누르면 그 자리를 중심으로 돕니다. 조건을 바꾸면 처음부터 다시 만듭니다. 많이 솟을수록 골짜기가 깊고, 여러 번 솟을수록 계단이 많습니다.</p>
-  <p class="cap">실제 지역이 아닌 설명용 모형입니다. 크기와 시간은 압축했고 높이는 크게 과장했습니다. 솟는 양과 깎이는 빠르기는 교육용으로 정한 값입니다. 강의 큰 굽이와 옆으로 옮겨 다니는 움직임은 수식으로 정했고, 끝나면 강은 제자리로 돌아옵니다. 논밭 무늬는 예시입니다. 바다는 이 블록보다 훨씬 하류에 있어 보이지 않습니다. 오래되어 깎이며 작아지는 과정은 넣지 않았습니다.</p>
+  <p class="cap">실제 지역이 아닌 설명용 모형입니다. 크기와 시간은 압축했고 높이는 크게 과장했습니다. 솟는 양과 깎이는 빠르기는 교육용으로 정한 값입니다. 강의 큰 굽이와 옆으로 옮겨 다니는 움직임은 수식으로 정했고, 끝나면 강은 제자리로 돌아옵니다. 논밭 무늬는 예시입니다. 바다는 이 블록보다 훨씬 하류에 있어 보이지 않습니다. 오래되어 깎이며 작아지는 과정은 넣지 않았습니다. 목이 잘리는 시점과 위치는 설명을 위해 정한 값입니다.</p>
 </section>
 <button id="compareEnd">비교 끝내기</button>
 <div id="seaBadge">해수면: 그대로</div>

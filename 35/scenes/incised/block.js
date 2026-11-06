@@ -65,31 +65,11 @@ export function createBlock(model) {
 
   // 강물 띠: 칸 무늬가 드러나지 않도록 중심선을 따라 따로 그린다. 측방 침식 동안 강과 함께 옆으로 옮겨 간다.
   // 강은 블록 밖으로 계속 흐르므로, 블록 끝을 조금 넘는 점까지 잡아 물띠가 잘린 면에 딱 맞게 끝나게 한다.
-  const inBlock = model.path.map((p, s) => ({ ...p, s })).filter(p => p.x >= -3 && p.x <= N + 2);
-  const riverPos = new Float32Array(inBlock.length * 2 * 3);
-  const riverGeo = new THREE.BufferGeometry();
-  riverGeo.setAttribute('position', new THREE.BufferAttribute(riverPos, 3));
-  {
-    const idx = [];
-    for (let s = 0; s < inBlock.length - 1; s++) {
-      const a = s * 2, b = a + 1, c = a + 2, d = a + 3;
-      idx.push(a, b, c, b, d, c);
-    }
-    riverGeo.setIndex(idx);
-  }
-  // 강물 자리: 중심선에서 옆 이동량과 w만큼 떨어진 점. 블록 밖으로 나가지 않게 가장자리에서 자른다.
+  // 물길은 보통 하나지만, 미앤더 핵 조건에서는 옛 고리 물길과 지름길 물길 둘이고 물띠 폭(wide)이 시간에 따라 바뀐다.
   const inside = v => clamp(v, 0, N - 1);
-  const waterX = (p, w) => inside(p.x - Math.sin(p.th) * (model.offset[p.s] + w));
-  const waterY = (p, w) => inside(p.y + Math.cos(p.th) * (model.offset[p.s] + w));
   const RIVER_W = CHANNEL * 0.92;
-  const river = new THREE.Mesh(riverGeo, new THREE.MeshStandardMaterial({ color: 0x2f86c9, roughness: 0.35, side: THREE.DoubleSide }));
-  river.frustumCulled = false;
-  group.add(river);
-
-  // 강이 흐르는 쪽을 보여 주는 물방울
-  const dots = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xbfe6ff, emissive: 0x1e6fa8, roughness: 0.3 }), FLOW_DOTS);
-  dots.frustumCulled = false;
-  group.add(dots);
+  const waterMat = new THREE.MeshStandardMaterial({ color: 0x2f86c9, roughness: 0.35, side: THREE.DoubleSide });
+  const dotGeo = new THREE.IcosahedronGeometry(1, 0), dotMat = new THREE.MeshStandardMaterial({ color: 0xbfe6ff, emissive: 0x1e6fa8, roughness: 0.3 });
   const m4 = new THREE.Matrix4();
 
   // 강 위의 정지 화살표: 하류 쪽(물이 흐르는 쪽)을 가리킨다. 계산이 끝나 움직임이 멈춰도 보인다.
@@ -98,11 +78,47 @@ export function createBlock(model) {
   arrowShape.moveTo(1, 0); arrowShape.lineTo(-1, 1); arrowShape.lineTo(-0.35, 0); arrowShape.lineTo(-1, -1); arrowShape.closePath();
   const arrowGeo = new THREE.ShapeGeometry(arrowShape);
   arrowGeo.rotateX(-Math.PI / 2);
-  const arrows = new THREE.InstancedMesh(arrowGeo, new THREE.MeshBasicMaterial({ color: 0xf2fbff, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), ARROWS);
-  arrows.frustumCulled = false;
-  const arrowAt = Array.from({ length: ARROWS }, (_, k) => Math.floor((inBlock.length - 1) * (0.04 + 0.88 * (k / (ARROWS - 1)))));
-  group.add(arrows);
+  const arrowMat = new THREE.MeshBasicMaterial({ color: 0xf2fbff, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const rot = new THREE.Matrix4(), scl = new THREE.Matrix4().makeScale(3.6, 1, 2.1);
+
+  // 물길 하나의 물띠, 물방울, 화살표
+  function createStream(st) {
+    const pts = st.path.map((p, s) => ({ ...p, s })).filter(p => p.x >= -3 && p.x <= N + 2);
+    const posArr = new Float32Array(pts.length * 2 * 3), geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+    const idx = [];
+    for (let s = 0; s < pts.length - 1; s++) {
+      const a = s * 2, b = a + 1, c = a + 2, d = a + 3;
+      idx.push(a, b, c, b, d, c);
+    }
+    geom.setIndex(idx);
+    const ribbon = new THREE.Mesh(geom, waterMat);
+    ribbon.frustumCulled = false;
+    const dots = new THREE.InstancedMesh(dotGeo, dotMat, st.dots ?? FLOW_DOTS);
+    dots.frustumCulled = false;
+    const arrows = new THREE.InstancedMesh(arrowGeo, arrowMat, ARROWS);
+    arrows.frustumCulled = false;
+    const arrowAt = Array.from({ length: ARROWS }, (_, k) => Math.floor((pts.length - 1) * (0.04 + 0.88 * (k / (ARROWS - 1)))));
+    group.add(ribbon, dots, arrows);
+    return { st, pts, posArr, geom, ribbon, dots, arrows, arrowAt };
+  }
+  function dropStream(b) {
+    group.remove(b.ribbon, b.dots, b.arrows);
+    b.geom.dispose(); b.dots.dispose(); b.arrows.dispose();
+  }
+  // 조건이 바뀌어 물길이 달라졌을 때만 다시 만든다.
+  const sourceStreams = () => model.streams ?? [{ path: model.path, get bed() { return model.bed; }, get off() { return model.offset; }, wide: null }];
+  let streams = [];
+  function syncStreams() {
+    const src = sourceStreams();
+    if (streams.length === src.length && streams.every((b, n) => b.st.path === src[n].path)) { streams.forEach((b, n) => { b.st = src[n]; }); return; }
+    streams.forEach(dropStream);
+    streams = src.map(createStream);
+  }
+  // 강물 자리: 중심선에서 옆 이동량과 w만큼 떨어진 점. 블록 밖으로 나가지 않게 가장자리에서 자른다.
+  const waterX = (st, p, w) => inside(p.x - Math.sin(p.th) * (st.off[p.s] + w));
+  const waterY = (st, p, w) => inside(p.y + Math.cos(p.th) * (st.off[p.s] + w));
+  syncStreams();
 
   // 단면을 자른 위치를 지형 위에 표시
   const SECTION_POINTS = 120;
@@ -115,7 +131,7 @@ export function createBlock(model) {
   group.add(sectionLine);
 
   function syncTerrain() {
-    const { h, age, bed, lifted, count, lastCut, clock } = model;
+    const { h, age, lifted, count, lastCut, clock } = model;
     // 벽 칸만 둘레와 평균해 그린다. 가파른 벽에 칸 무늬(톱니)가 생기지 않게 하는 그림 처리이고, 계산 값은 그대로다.
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const k = j * N + i;
@@ -164,21 +180,26 @@ export function createBlock(model) {
       skirtPos.set([x, h[j * N + i], z, x, BOTTOM, z], s * 6);
     });
     skirtGeo.attributes.position.needsUpdate = true;
-    inBlock.forEach((p, s) => {
-      const y = bed[p.s] + 0.62;
-      riverPos[s * 6] = waterX(p, RIVER_W) - CENTER; riverPos[s * 6 + 1] = y; riverPos[s * 6 + 2] = waterY(p, RIVER_W) - CENTER;
-      riverPos[s * 6 + 3] = waterX(p, -RIVER_W) - CENTER; riverPos[s * 6 + 4] = y; riverPos[s * 6 + 5] = waterY(p, -RIVER_W) - CENTER;
-    });
-    riverGeo.attributes.position.needsUpdate = true;
-    riverGeo.computeVertexNormals();
-    arrowAt.forEach((i, k) => {
-      const p = inBlock[i], a = inBlock[Math.max(0, i - 4)], b = inBlock[Math.min(inBlock.length - 1, i + 4)];
-      // 화살표는 옮겨 간 물길이 지금 향하는 쪽을 가리킨다.
-      rot.makeRotationY(-Math.atan2(waterY(b, 0) - waterY(a, 0), waterX(b, 0) - waterX(a, 0))).multiply(scl);
-      rot.setPosition(waterX(p, 0) - CENTER, bed[p.s] + 0.62 + 0.12, waterY(p, 0) - CENTER);
-      arrows.setMatrixAt(k, rot);
-    });
-    arrows.instanceMatrix.needsUpdate = true;
+    syncStreams();
+    for (const { st, pts, posArr, geom, arrows, arrowAt } of streams) {
+      const bedS = st.bed, wide = st.wide;
+      pts.forEach((p, s) => {
+        const y = bedS[p.s] + 0.62, w = RIVER_W * (wide ? wide[p.s] : 1);
+        posArr[s * 6] = waterX(st, p, w) - CENTER; posArr[s * 6 + 1] = y; posArr[s * 6 + 2] = waterY(st, p, w) - CENTER;
+        posArr[s * 6 + 3] = waterX(st, p, -w) - CENTER; posArr[s * 6 + 4] = y; posArr[s * 6 + 5] = waterY(st, p, -w) - CENTER;
+      });
+      geom.attributes.position.needsUpdate = true;
+      geom.computeVertexNormals();
+      arrowAt.forEach((i, k) => {
+        const p = pts[i], a = pts[Math.max(0, i - 4)], b = pts[Math.min(pts.length - 1, i + 4)];
+        // 화살표는 옮겨 간 물길이 지금 향하는 쪽을 가리킨다. 물이 없는 곳에는 그리지 않는다.
+        if (wide && wide[p.s] < 0.6) { rot.makeScale(0, 0, 0); arrows.setMatrixAt(k, rot); return; }
+        rot.makeRotationY(-Math.atan2(waterY(st, b, 0) - waterY(st, a, 0), waterX(st, b, 0) - waterX(st, a, 0))).multiply(scl);
+        rot.setPosition(waterX(st, p, 0) - CENTER, bedS[p.s] + 0.62 + 0.12, waterY(st, p, 0) - CENTER);
+        arrows.setMatrixAt(k, rot);
+      });
+      arrows.instanceMatrix.needsUpdate = true;
+    }
     // 단면선
     const { top } = sectionProfile(model, SECTION_POINTS);
     const S = model.section, lp = sectionLine.geometry.attributes.position;
@@ -193,17 +214,23 @@ export function createBlock(model) {
   }
 
   function syncFlow() {
-    const { bed, clock } = model, L = inBlock.length;
-    for (let d = 0; d < FLOW_DOTS; d++) {
-      const f = ((d / FLOW_DOTS) + clock * 0.03) % 1;
-      const p = inBlock[Math.min(L - 1, Math.floor(f * L))];
-      const off = Math.sin(d * 12.9) * CHANNEL * 0.45;
-      m4.makeScale(0.55, 0.28, 0.55);
-      m4.setPosition(waterX(p, off) - CENTER, bed[p.s] + 0.75, waterY(p, off) - CENTER);
-      dots.setMatrixAt(d, m4);
+    const { clock } = model;
+    syncStreams();
+    for (const { st, pts, dots } of streams) {
+      const L = pts.length, n = dots.count, rate = st.rate ?? 0.03, wide = st.wide;
+      for (let d = 0; d < n; d++) {
+        const f = ((d / n) + clock * rate) % 1;
+        const p = pts[Math.min(L - 1, Math.floor(f * L))];
+        // 물이 없는 곳의 물방울은 숨긴다.
+        const shown = !wide || wide[p.s] >= 0.4;
+        const off = Math.sin(d * 12.9) * CHANNEL * 0.45 * (wide ? wide[p.s] : 1);
+        if (shown) m4.makeScale(0.55, 0.28, 0.55); else m4.makeScale(0, 0, 0);
+        m4.setPosition(waterX(st, p, off) - CENTER, st.bed[p.s] + 0.75, waterY(st, p, off) - CENTER);
+        dots.setMatrixAt(d, m4);
+      }
+      dots.instanceMatrix.needsUpdate = true;
     }
-    dots.instanceMatrix.needsUpdate = true;
   }
 
-  return { group, terrain, syncTerrain, syncFlow, arrowCount: ARROWS };
+  return { group, terrain, syncTerrain, syncFlow, arrowCount: ARROWS * streams.length };
 }

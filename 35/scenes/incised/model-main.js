@@ -120,6 +120,10 @@ labels.add('tread2', '단구면 (새로움)');
 labels.add('tread', '단구면');
 labels.add('scarp', '단구애');
 labels.add('floor', '지금 범람원');
+labels.add('neck', '목');
+labels.add('coreHill', '미앤더 핵');
+labels.add('oldChannel', '구하도');
+labels.add('shortcut', '신하도(지름길)', '', 'water');
 labels.add('upstream', '상류', '', 'water');
 labels.add('downstream', '하류로 이어짐', '', 'water');
 labels.add('a', 'A', '', 'mark');
@@ -163,7 +167,7 @@ function syncLabels() {
   put(dug ? 'river' : 'free', p.river.x, model.sample(p.river.x, p.river.y) + 3, p.river.y, 10);
   if (still) { if (p.old) put('plain', p.old.x, model.sample(p.old.x, p.old.y) + 3, p.old.y, 8); }
   else {
-    if (dug && p.old) put(p.treads.length >= 1 ? 'oldTop' : 'old', p.old.x, model.sample(p.old.x, p.old.y) + 3, p.old.y, 8);
+    if (dug && p.old) put(p.treads.length >= 1 ? 'oldTop' : 'old', p.old.x, model.sample(p.old.x, p.old.y) + 3, p.old.y, 8, !model.streams);
     if (p.treads.length === 1) put('tread', p.treads[0].x, model.sample(p.treads[0].x, p.treads[0].y) + 3, p.treads[0].y, 9);
     if (p.treads.length >= 2) {
       put('tread1', p.treads[0].x, model.sample(p.treads[0].x, p.treads[0].y) + 3, p.treads[0].y, 9);
@@ -182,6 +186,13 @@ function syncLabels() {
       const s = Math.floor(model.path.length * DOWN_AT), a = model.path[s];
       if (model.bed[s] > model.z0[s] + model.seaLevel + 0.3) put('down', a.x, model.bed[s] + 3, a.y, 11);
     }
+    // 미앤더 핵 조건: 그 일이 일어난 뒤에만 이름을 붙인다.
+    if (model.streams) {
+      const at = (key, q, up, priority) => put(key, q.x, model.sample(q.x, q.y) + up, q.y, priority);
+      if (!model.severed && dug) at('neck', p.neck, 4, 12);
+      if (model.severed) at('shortcut', p.shortcut, 3, 12);
+      if (model.severed && model.phase !== 'cutoff') { at('coreHill', p.core, 3, 13); at('oldChannel', p.oldChannel, 3, 12); }
+    }
   }
   // 강은 블록 밖으로 이어진다. 바다는 훨씬 하류에 있어 이 블록에 없다.
   const up = model.path.find(a => a.x >= 2), downAt = model.path.findLast(a => a.x <= N - 3);
@@ -198,6 +209,7 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height, samples = 280;
   const { top, rock, age } = sectionProfile(m, samples);
+  if (m.core) { drawCoreSection(ctx, m, W, H, samples, top, rock); return; }
   // 세로 배율: 끝까지 솟았을 때의 가장 높은 땅이 위쪽 이름 자리를 남기고 들어오도록 조건마다 정한다.
   const floorY = H - 34, lower = (OPTIONS.uplift[m.options.uplift] + OPTIONS.sea[m.options.sea]) * m.count;
   const VE = Math.min(6.2, (floorY - 120) / (18 + lower));
@@ -274,6 +286,63 @@ function drawSection(canvas, m) {
   ctx.textAlign = 'left';
 }
 
+// 미앤더 핵 조건의 단면: 물이 있는 곳을 모두 칠하고, 정해 둔 자리에 이름을 적는다.
+function drawCoreSection(ctx, m, W, H, samples, top, rock) {
+  const floorY = H - 34, lower = OPTIONS.uplift[m.options.uplift] * m.count;
+  const VE = Math.min(6.2, (floorY - 120) / (18 + lower));
+  const yOf = v => floorY - (v + 12) * VE, x = t => (t / (samples - 1)) * W;
+  const S = m.section;
+  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  ctx.beginPath(); ctx.moveTo(0, H);
+  for (let t = 0; t < samples; t++) ctx.lineTo(x(t), yOf(rock[t]));
+  ctx.lineTo(W, H); ctx.closePath();
+  ctx.fillStyle = '#5a5249'; ctx.fill();
+  ctx.fillStyle = '#c9b178';
+  for (let t = 0; t < samples - 1; t++) {
+    if (top[t] - rock[t] < 0.15) continue;
+    ctx.fillRect(x(t), yOf(top[t]), W / samples + 1, Math.max(1, (top[t] - rock[t]) * VE));
+  }
+  // 강물: 격자의 물 표시를 그대로 읽는다. 끊긴 옛 고리에는 물이 없다.
+  ctx.fillStyle = '#59b7f0';
+  for (let t = 0; t < samples; t++) {
+    const f = t / (samples - 1), px = S.ax + (S.bx - S.ax) * f, py = S.ay + (S.by - S.ay) * f;
+    const k = Math.round(py) * N + Math.round(px);
+    if (m.mask[k] > 0.4) {
+      // 잘린 뒤 지금 강에서 먼 물은 말라 가는 옛 고리의 물이다. 그 자리 땅 바로 위에 칠한다.
+      const level = m.severed && m.dist[k] > 8 ? top[t] + 0.5 : Math.max(m.bed[m.near[k]] + 0.62, top[t] + 0.3);
+      ctx.fillRect(x(t), yOf(level), W / samples + 1, Math.max(3, (level - top[t]) * VE));
+    }
+  }
+  ctx.font = '700 23px "Malgun Gothic",sans-serif'; ctx.textAlign = 'center';
+  const used = [{ x: 18, y: 32, w: 34 }, { x: W - 18, y: 32, w: 34 }];
+  const say = (text, f, color, gap = 12) => {
+    const t = Math.round(f * (samples - 1)), wd = ctx.measureText(text).width, cx = Math.min(W - wd / 2 - 4, Math.max(wd / 2 + 4, x(t)));
+    let cy = yOf(top[t]) - gap;
+    while (used.some(u => Math.abs(u.x - cx) < (u.w + wd) / 2 + 6 && Math.abs(u.y - cy) < 26)) cy -= 28;
+    used.push({ x: cx, y: cy, w: wd });
+    ctx.fillStyle = color; ctx.fillText(text, cx, cy);
+  };
+  const { ringA, core, ringB, river } = S.marks, dry = m.severed && m.phase !== 'cutoff';
+  if (dry) {
+    say('미앤더 핵', core, '#ffd36b');
+    say('구하도', ringA, '#f3a58a'); say('구하도', ringB, '#f3a58a');
+    say('지금 강', river, '#8fd6ff', 22);
+    say('옛 범람원', 0.03, '#f3f1ea');
+  } else if (m.phase !== 'free') {
+    say('언덕', core, '#f3f1ea');
+    say('강', ringA, '#8fd6ff', 22); say('강', ringB, '#8fd6ff', 22); say('강', river, '#8fd6ff', 22);
+    say('옛 범람원', 0.03, '#f3f1ea');
+  } else {
+    say('범람원', core, '#f3f1ea');
+  }
+  ctx.fillStyle = '#ffd36b'; ctx.font = '700 26px "Malgun Gothic",sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
+  ctx.fillStyle = '#efe9d8'; ctx.font = '700 19px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('기반암', 14, H - 12);
+  ctx.fillStyle = '#c9b178'; ctx.fillRect(96, H - 26, 16, 12);
+  ctx.fillStyle = '#efe9d8'; ctx.fillText('자갈층', 118, H - 12);
+}
+
 const noteEl = document.getElementById('now');
 // 조건에 맞게 부르는 말
 const WORDS = {
@@ -281,7 +350,23 @@ const WORDS = {
   sea: { before: '멀리 하류의 해수면이 낮아지기 전', stop: '해수면이 멈춘 동안', first: '멀리 하류의 바다 해수면이 낮아지면 강의 침식 기준면이 낮아져, 하류부터 위쪽으로 차례로 파고듭니다. 강의 굽이는 그대로입니다.', again: '멀리 하류의 해수면이 또 낮아졌습니다. 강이 다시 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
   both: { before: '땅이 솟거나 해수면이 낮아지기 전', stop: '땅과 해수면이 멈춘 동안', first: '땅이 솟거나 해수면이 낮아져 강이 아래로 파고듭니다(하방 침식). 굽이 모양을 지킨 채 깊은 골짜기 속을 흐르게 되니, 이것이 감입 곡류입니다.', again: '땅이 다시 솟거나 해수면이 또 낮아집니다. 강이 또 파고들면 전의 골짜기 바닥이 높은 곳에 남습니다. 이것이 단구면이고, 그 앞의 가파른 경사가 단구애입니다.' },
 };
+// 미앤더 핵 조건의 단계별 설명
+const CORE_NOTES = {
+  free: '땅이 솟기 전입니다. 강이 넓은 범람원 위를 크게 굽이치며 고리를 이룹니다. 고리의 밑동은 목처럼 좁습니다.',
+  cut1: '땅이 솟자 강이 고리 모양 그대로 아래로 파고듭니다(하방 침식). 고리 전체가 깊은 골짜기에 갇힌 감입 곡류가 됩니다.',
+  widen: '땅이 멈춘 동안 강이 벽을 때려 깎습니다(측방 침식). 목의 양쪽에서 물이 파고드니 목이 점점 얇아집니다. 물이 닿은 곳만 깎입니다.',
+  cutoff: '목이 잘렸습니다(목 절단). 양쪽의 물이 만나 잘린 곳으로 흐르기 시작합니다. 이 지름길이 신하도입니다.',
+  drain: '물이 짧은 지름길로 몰리자 옛 고리에는 물이 끊깁니다. 옛 물길의 평탄한 바닥과 자갈층만 남으니, 이것이 구하도입니다.',
+  cut2: '땅이 다시 솟습니다. 새 물길만 더 깊이 파고들고, 물이 없는 구하도는 그 높이 그대로 지금 강보다 높은 곳에 남습니다.',
+  widen2: '땅이 멈추자 지금 강이 좌우로 옮겨 다니며 새 골짜기 바닥을 조금 넓힙니다. 물이 닿지 않는 구하도는 그대로 남습니다.',
+  done: '미앤더 핵이 완성되었습니다. 구하도와 신하도 사이에 섬처럼 남은 언덕이 미앤더 핵(곡류핵)입니다. 구하도 바닥은 지금 강보다 높고, 자갈층이 옛날에 강이 흐른 곳임을 알려 줍니다.',
+};
+const CORE_STEPS = { free: '고리 모양 곡류', cut1: '첫 번째 솟음', widen: '목이 좁아지는 중', cutoff: '목 절단', drain: '물이 빠지는 중', cut2: '두 번째 솟음', widen2: '지금 강의 바닥이 넓어지는 중', done: '미앤더 핵 완성' };
+const corePhase = m => (m.phase === 'cut' ? (m.severed ? 'cut2' : 'cut1') : m.phase === 'widen' && m.severed ? 'widen2' : m.phase);
+// 모식도 단계: 0은 목 좁아짐, 1은 목 절단, 2는 미앤더 핵
+const coreStage = m => (!m.severed ? 0 : m.phase === 'cutoff' ? 1 : 2);
 function noteText(m = model) {
+  if (m.core) return CORE_NOTES[corePhase(m)];
   const kind = kindFor(m);
   if (kind === 'still') return '땅도 해수면도 그대로라 강이 파고들지 않고 자유 곡류로 남습니다.';
   const w = WORDS[kind];
@@ -301,6 +386,7 @@ function brief(m) {
   return m.count === 1 ? '한 번 파고들어 감입 곡류가 되었고 계단은 없습니다' : `${KOR[m.count]} 번 파고들어 계단이 ${KOR[m.count]} 층 남았습니다`;
 }
 function stepsText() {
+  if (model.core) return CORE_STEPS[corePhase(model)];
   const kind = kindOf();
   if (kind === 'still') return '변화 없음';
   const n = model.count;
@@ -318,12 +404,13 @@ function syncInfo() {
   document.getElementById('steps').textContent = stepsText();
   document.getElementById('seaBadge').textContent = OPTIONS.sea[model.options.sea] > 0 ? '해수면 낮아짐' : '해수면: 그대로';
   const kind = kindOf();
-  schematic.setStage(model.finished ? model.count : dugOf(model), kind);
+  if (model.core) schematic.setStage(coreStage(model), 'core');
+  else schematic.setStage(model.finished ? model.count : dugOf(model), kind);
 }
 
 // 조작
 // 모식도 구역을 누르면 3D 이름표가 강조된다.
-const ZONE_LABELS = { meander: ['river', 'free'], old: ['old', 'oldTop', 'plain'], tread: ['tread', 'tread1', 'tread2'], scarp: ['scarp'], floor: ['floor'] };
+const ZONE_LABELS = { meander: ['river', 'free'], old: ['old', 'oldTop', 'plain'], tread: ['tread', 'tread1', 'tread2'], scarp: ['scarp'], floor: ['floor'], neck: ['neck'], core: ['coreHill'], oldChannel: ['oldChannel'], shortcut: ['shortcut'] };
 const highlight = zone => {
   for (const [z, keys] of Object.entries(ZONE_LABELS)) for (const k of keys) labels.element(k).classList.toggle('hi', z === zone);
   dirty = true;
@@ -344,7 +431,7 @@ addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); fi
 const playBtn = document.getElementById('playBtn');
 const setPlaying = on => { playing = on; playBtn.textContent = on ? '멈춤' : '재생'; playBtn.classList.toggle('on', on); };
 playBtn.onclick = () => setPlaying(!playing);
-const restart = () => { spotCache = null; settle = 0; lateralAt = null; if (viewNow === 'valley') setView('valley'); frameSync(true); setPlaying(true); };
+const restart = () => { document.body.classList.toggle('core-mode', !!model.core); spotCache = null; settle = 0; lateralAt = null; if (viewNow === 'valley') setView('valley'); frameSync(true); setPlaying(true); };
 document.getElementById('resetBtn').onclick = () => { model.reset(); if (compare) modelB.reset(); restart(); };
 document.getElementById('fastBtn').onclick = e => { speed = speed === 1 ? 3 : 1; e.currentTarget.classList.toggle('on', speed === 3); e.currentTarget.textContent = speed === 3 ? '3배 빠르게' : '빠르게'; };
 document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); dirty = true; };
@@ -460,5 +547,6 @@ window.__MODEL = {
   draws: () => renderer.info.render.frame,
   section: () => model.section,
   arrowCount: () => blockA.arrowCount,
+  labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent),
 };
 window.__APP_READY = true;

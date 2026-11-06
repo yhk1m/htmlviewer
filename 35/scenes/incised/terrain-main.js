@@ -44,7 +44,7 @@ const PLACES = {
   river: { name: '동강', grid: [240, 185], lift: 60 },
   meander: { name: '감입 곡류', grid: [205, 342], lift: 90 },
   core: { name: '굽이 안쪽 언덕', grid: [186, 270], lift: 55 },
-  neck: { name: '좁아진 목', grid: [263, 196], lift: 60 },
+  neck: { name: '좁아진 목', sub: '이 목이 잘리면 미앤더 핵이 생깁니다.', grid: [263, 196], lift: 60 },
 };
 const PROFILE = { from: [110, 270], to: [340, 270] };
 
@@ -175,7 +175,7 @@ async function start() {
 
   let labelsOn = true;
   const labelLayer = createLabelLayer(document.getElementById('labels'));
-  for (const [key, l] of Object.entries(PLACES)) labelLayer.add(key, l.name);
+  for (const [key, l] of Object.entries(PLACES)) labelLayer.add(key, l.name, l.sub);
   const v3 = new THREE.Vector3();
   function placeLabels() {
     if (!labelsOn || showing !== '3d') { labelLayer.place([]); return; }

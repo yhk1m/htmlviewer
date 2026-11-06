@@ -8,6 +8,10 @@ export const ZONE_TEXT = {
   tread: { name: '단구면', text: '옛 골짜기 바닥이 강보다 높은 곳에 남은 평평한 면입니다. 높을수록 오래되었습니다. 홍수에 잠기지 않아 마을과 밭이 들어서기도 합니다.' },
   scarp: { name: '단구애', text: '단구면 앞의 가파른 경사입니다. 강이 파고들 때 깎여 생겼습니다.' },
   floor: { name: '지금 범람원', text: '지금의 강이 좌우로 옮겨 다니며 사면 아래를 깎아 넓힌 낮은 바닥입니다. 물이 떠난 자리에는 자갈이 쌓이고, 홍수 때 물에 잠깁니다.' },
+  neck: { name: '목', text: '고리의 밑동에서 강과 강 사이가 좁아진 땅입니다. 양쪽에서 강이 벽을 깎아 점점 얇아지다가 끝내 잘립니다.' },
+  shortcut: { name: '신하도', text: '잘린 목으로 난 새 물길입니다. 긴 고리를 돌지 않고 지름길로 흐릅니다.' },
+  oldChannel: { name: '구하도', text: '물이 끊긴 옛 고리입니다. 평탄한 바닥과 자갈층이 남아 있고, 강이 더 파고들면 지금 강보다 높은 곳에 남습니다.' },
+  core: { name: '미앤더 핵', text: '구하도와 신하도 사이에 섬처럼 남은 언덕입니다. 곡류핵이라고도 합니다. 꼭대기에는 옛 범람원 면이 남아 있습니다.' },
 };
 
 // 조건(kind)마다 말이 다르다. uplift는 땅이 솟음, sea는 해수면이 낮아짐, both는 둘 다, still은 아무 변화 없음.
@@ -18,6 +22,12 @@ export const STAGE_NAMES = {
   both: ['변화 전', '한 번 파고듦', '두 번 파고듦', '세 번 파고듦'],
   still: ['변화 없음', '변화 없음', '변화 없음', '변화 없음'],
 };
+export const CORE_STAGE_NAMES = ['목 좁아짐', '목 절단', '미앤더 핵'];
+const CORE_NOTES = [
+  '목 좁아짐: 감입 곡류의 고리가 깊어지면 고리 밑동이 좁아집니다. 목 양쪽에서 강이 벽을 깎아 목이 점점 얇아집니다.',
+  '목 절단: 양쪽의 침식이 만나 목이 잘립니다. 물은 잘린 곳으로 난 지름길(신하도)로 흐르기 시작하고, 옛 고리의 물은 줄어듭니다.',
+  '미앤더 핵: 옛 고리는 물이 끊긴 구하도가 되고, 구하도와 신하도 사이의 언덕은 섬처럼 남습니다. 강이 더 파고들면 구하도는 지금 강보다 높은 곳에 남습니다.',
+];
 const HEAD = {
   uplift: ['땅이 솟기 전', '한 번 솟음', '두 번 솟음', '세 번 솟음'],
   sea: ['멀리 하류의 해수면이 낮아지기 전', '멀리 하류의 해수면이 한 번 낮아짐', '멀리 하류의 해수면이 두 번 낮아짐', '멀리 하류의 해수면이 세 번 낮아짐'],
@@ -242,6 +252,135 @@ function plan(stage) {
   </svg>`;
 }
 
+// 미앤더 핵 과정의 모식도. 평면의 고리를 먼저 만들고, 단면은 평면의 A-B선을 걸으며 만난 구간을 그대로 옮겨 그린다.
+const CORE = { R: 78, R1: 26, cy: 118, cx: 330, valley: 46, floor: 28 };
+function coreLine() {
+  const { R, R1, cx, cy } = CORE, TURN = (5 * Math.PI) / 6, th = [], tail = 200, step = 2;
+  for (let d = tail; d > 0; d--) th.push(0.26 * Math.sin((2 * Math.PI * d * step) / 190));
+  const entry = Math.round((R1 * TURN) / step), loop = Math.round((R * 2 * TURN) / step);
+  for (let i = 1; i <= entry; i++) th.push((-TURN * i) / entry);
+  for (let i = 1; i <= loop; i++) th.push(-TURN + (2 * TURN * i) / loop);
+  for (let i = 1; i <= entry; i++) th.push(TURN * (1 - i / entry));
+  for (let d = 1; d <= tail; d++) th.push(0.26 * Math.sin((2 * Math.PI * d * step) / 190));
+  const pts = [[0, 0]];
+  for (let i = 1; i < th.length; i++) pts.push([pts[i - 1][0] + Math.cos(th[i]) * step, pts[i - 1][1] + Math.sin(th[i]) * step]);
+  const apex = tail + entry + (loop >> 1), dx = cx - pts[apex][0], dy = cy - R - pts[apex][1];
+  const out = pts.map(p => [p[0] + dx, p[1] + dy]);
+  // 강이 곧장 위로 향하는 곳이 목이다.
+  const neckFrom = tail + Math.round(entry * (90 / 150)), neckTo = 2 * apex - neckFrom;
+  return { pts: out, neckFrom, neckTo, apex };
+}
+function coreGeometry() {
+  const { pts, neckFrom, neckTo } = coreLine();
+  const back = 5, sa = neckFrom - back, sb = neckTo + back;
+  const neck = [(pts[neckFrom][0] + pts[neckTo][0]) / 2, (pts[neckFrom][1] + pts[neckTo][1]) / 2];
+  // 지름길: 목 위아래에서 옛 물길을 떠나 잘린 곳을 지나 다시 만난다.
+  const a = pts[sa], b = pts[sb], cut = [];
+  for (let i = 0; i <= 24; i++) {
+    const u = i / 24, v = 1 - u;
+    cut.push([v * v * a[0] + 2 * u * v * neck[0] + u * u * b[0], v * v * a[1] + 2 * u * v * (2 * neck[1] - (a[1] + b[1]) / 2) + u * u * b[1]]);
+  }
+  const before = pts.slice(0, sa + 1), after = pts.slice(sb), loop = pts.slice(sa, sb + 1);
+  const dirX = Math.cos(0.87), dirY = Math.sin(0.87), C = [CORE.cx, CORE.cy];
+  const A = [C[0] - dirX * (CORE.R + 44), C[1] - dirY * (CORE.R + 44)];
+  // B는 지금 강을 건너 옛 범람원에 닿는 곳에 둔다. 평면 그림 안에 들어와야 한다.
+  const B = [C[0] + dirX * 215, C[1] + dirY * 215];
+  return { pts, loop, before, after, cut, neck, A, B };
+}
+const distTo = (list, x, y) => { let best = Infinity; for (let i = 1; i < list.length; i++) { const [ax, ay] = list[i - 1], [bx, by] = list[i], vx = bx - ax, vy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy || 1))); best = Math.min(best, Math.hypot(ax + vx * t - x, ay + vy * t - y)); } return best; };
+// 평면의 A-B선을 걸으며 만나는 구간. 단면은 이 구간을 그대로 그린다.
+function coreWalk(stage) {
+  const g = coreGeometry(), rest = [...g.before, ...g.cut, ...g.after], out = [], half = CORE.valley / 2;
+  for (let f = 0; f <= 1.0001; f += 0.002) {
+    const x = g.A[0] + (g.B[0] - g.A[0]) * f, y = g.A[1] + (g.B[1] - g.A[1]) * f;
+    const dLoop = distTo(g.loop, x, y), dNow = stage === 0 ? distTo(g.pts, x, y) : distTo(rest, x, y);
+    const insideRing = Math.hypot(x - CORE.cx, y - CORE.cy) < CORE.R;
+    let zone = insideRing ? 'core' : 'plain';
+    if (stage === 2) { if (dNow < half) zone = 'river'; else if (dLoop < half) zone = 'oldChannel'; }
+    else if (dLoop < half || dNow < half) zone = 'valley';
+    const last = out[out.length - 1];
+    if (last && last.zone === zone) last.to = f; else out.push({ zone, from: f, to: f });
+  }
+  return out;
+}
+export const coreCross = stage => coreWalk(stage).map(z => z.zone);
+
+function corePlan(stage) {
+  const g = coreGeometry(), line = list => `M${list.map(p => `${f1(p[0])} ${f1(p[1])}`).join('L')}`;
+  const full = line(g.pts), rest = line([...g.before, ...g.cut, ...g.after]), loop = line(g.loop), cut = line(g.cut);
+  const band = (d, w, color) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round"/>`;
+  const { valley, floor } = CORE;
+  let body = '';
+  if (stage === 0) body += band(full, valley, '#6f665a') + band(full, floor, FLOOR) + band(full, 7, WATER);
+  if (stage === 1) body += band(full, valley, '#6f665a') + band(cut, valley, '#6f665a') + band(full, floor, FLOOR) + band(cut, floor, FLOOR) + band(loop, 4, WATER) + band(rest, 7, WATER);
+  if (stage === 2) body += band(loop, valley, '#6f665a') + band(loop, floor, TREAD) + band(rest, valley, '#544c43') + band(rest, floor, FLOOR) + band(rest, 7, WATER);
+  const say = (zone, text, x, y, color = '#f3f1ea') => `<text class="zone" data-zone="${zone}" x="${f1(x)}" y="${f1(y)}" text-anchor="middle" font-size="19" font-weight="700" fill="${color}" paint-order="stroke" stroke="#1c211e" stroke-width="3.5" style="cursor:pointer">${text}</text>`;
+  let names = '';
+  const [nx, ny] = g.neck;
+  if (stage === 0) {
+    names += say('neck', '목', nx, ny - 26, '#ffd36b');
+    const push = (x, dir) => `<path d="M${f1(x)} ${f1(ny)}h${dir * 7}" stroke="#14507c" stroke-width="3" fill="none"/><path d="M${f1(x + dir * 15)} ${f1(ny)}l${-dir * 9}-5v10z" fill="#14507c"/>`;
+    names += push(nx - 22, 1) + push(nx + 22, -1);
+    names += `<text x="${f1(nx + 72)}" y="${f1(ny + 6)}" font-size="16" font-weight="700" fill="${WATER}" paint-order="stroke" stroke="#1c211e" stroke-width="3.5">측방 침식</text>`;
+    names += say('core', '고리 안쪽 언덕', CORE.cx, CORE.cy);
+  }
+  if (stage === 1) {
+    names += say('shortcut', '목 절단', nx, ny + 44, '#ffd36b');
+    names += say('core', '고리 안쪽 언덕', CORE.cx, CORE.cy);
+  }
+  if (stage === 2) {
+    names += say('core', '미앤더 핵', CORE.cx, CORE.cy, '#ffd36b');
+    names += say('oldChannel', '구하도', CORE.cx, CORE.cy - CORE.R + 6);
+    names += say('shortcut', '신하도', nx, ny + 44, '#8fd6ff');
+  }
+  names += `<text class="zone" data-zone="old" x="16" y="28" font-size="19" font-weight="700" fill="#f3f1ea" paint-order="stroke" stroke="#1c211e" stroke-width="3.5" style="cursor:pointer">옛 범람원</text>`;
+  return `<svg viewBox="0 0 720 300" role="img" aria-label="위에서 본 고리 모양 강. 고리의 목이 잘리면 강은 지름길로 흐르고 옛 고리는 물 없는 구하도가 되어 언덕을 둘러싼다.">
+    <rect width="720" height="300" fill="${PLAIN}"/>
+    ${body}
+    <line x1="${f1(g.A[0])}" y1="${f1(g.A[1])}" x2="${f1(g.B[0])}" y2="${f1(g.B[1])}" stroke="${ACCENT}" stroke-width="2" stroke-dasharray="4 5"/>
+    <text x="${f1(g.A[0])}" y="${f1(g.A[1] - 6)}" text-anchor="middle" font-size="19" font-weight="800" fill="${ACCENT}" paint-order="stroke" stroke="#1c211e" stroke-width="3">A</text>
+    <text x="${f1(g.B[0] + 14)}" y="${f1(g.B[1] + 6)}" text-anchor="middle" font-size="19" font-weight="800" fill="${ACCENT}" paint-order="stroke" stroke="#1c211e" stroke-width="3">B</text>
+    ${names}
+  </svg>`;
+}
+
+function coreSection(stage) {
+  const W = 720, H = 340, TOP = 96, FLOORY = 188, RIVERY = 278, WALLX = 20, walk = coreWalk(stage);
+  const yOf = zone => (zone === 'plain' || zone === 'core' ? TOP : zone === 'river' ? RIVERY : FLOORY);
+  const xOf = f => f * W;
+  // 구간마다 윤곽 점을 만든다. 낮은 구간의 양 끝을 안쪽으로 줄여 벽이 비스듬해지게 한다.
+  const outline = [];
+  walk.forEach(z => {
+    const a = xOf(z.from), b = xOf(z.to), y = yOf(z.zone), low = z.zone !== 'plain' && z.zone !== 'core';
+    const inset = low ? Math.min(WALLX, (b - a) / 3) : 0;
+    outline.push([a + inset, y], [b - inset, y]);
+  });
+  const ground = `0,${H} ${outline.map(p => `${f1(p[0])},${f1(p[1])}`).join(' ')} ${W},${H}`;
+  let layers = '', names = '';
+  const strip = (a, b, y) => `<rect x="${f1(a)}" y="${f1(y)}" width="${f1(b - a)}" height="${GRAVEL_T}" fill="${GRAVEL}"/>`;
+  const label = (zone, text, x, y, color = '#f3f1ea') => `<text class="zone" data-zone="${zone}" x="${f1(x)}" y="${f1(y)}" text-anchor="middle" font-size="20" font-weight="700" fill="${color}" style="cursor:pointer">${text}</text>`;
+  walk.forEach(z => {
+    const a = xOf(z.from), b = xOf(z.to), mid = (a + b) / 2, y = yOf(z.zone), low = z.zone !== 'plain' && z.zone !== 'core';
+    const inset = low ? Math.min(WALLX, (b - a) / 3) : 0, ax = a + inset, bx = b - inset;
+    layers += strip(ax, bx, y);
+    if (z.zone === 'valley' || z.zone === 'river') layers += `<rect x="${f1(ax + 6)}" y="${f1(y - 10)}" width="${f1(Math.max(0, bx - ax - 12))}" height="10" fill="${WATER}"/>`;
+    if (z.zone === 'core') names += label('core', stage === 2 ? '미앤더 핵' : '언덕', mid, y - 14, stage === 2 ? '#ffd36b' : '#f3f1ea');
+    if (z.zone === 'oldChannel') names += label('oldChannel', '구하도', mid, y - 14);
+    if (z.zone === 'river') names += label('meander', '지금 강', mid, y - 18, '#8fd6ff');
+    if (z.zone === 'valley') names += label('meander', '강', mid, y - 18, '#8fd6ff');
+    if (z.zone === 'plain' && b - a > 60) names += label('old', '옛 범람원', mid, y - 14);
+  });
+  return `<svg class="sec" viewBox="0 0 ${W} ${H}" role="img" aria-label="고리를 A에서 B로 자른 단면. 언덕 양옆으로 강이나 구하도가 있고, 그 너머에 지금 강이 있다.">
+    <defs><pattern id="coreRock" width="18" height="12" patternUnits="userSpaceOnUse"><rect width="18" height="12" fill="${ROCK}"/><path d="M0 6h18M9 0v6" stroke="${ROCK_LINE}" stroke-width="1"/></pattern></defs>
+    <polygon points="${ground}" fill="url(#coreRock)"/>
+    <style>svg.sec text{paint-order:stroke;stroke:#1c211e;stroke-width:3.5px;stroke-linejoin:round}</style>
+    ${layers}${names}
+    <text x="24" y="${H - 8}" font-size="16" font-weight="700" fill="#efe9d8">기반암</text>
+    <text x="10" y="24" font-size="21" font-weight="800" fill="${ACCENT}">A</text>
+    <text x="${W - 10}" y="24" text-anchor="end" font-size="21" font-weight="800" fill="${ACCENT}">B</text>
+  </svg>`;
+}
+
 // options.steps: 단계 버튼을 그릴지. options.stage: 처음 단계. options.onZone: 구역을 눌렀을 때.
 export function createSchematic(root, options = {}) {
   let stage = options.stage ?? 3, kind = 'uplift', zone = null;
@@ -249,20 +388,24 @@ export function createSchematic(root, options = {}) {
   const onZone = options.onZone ?? (() => {});
   const paint = () => {
     const st = shown();
-    const buttons = options.steps ? `<div class="row" aria-label="모식도 단계">${STAGE_NAMES[kind].map((t, n) => `<button data-schem-stage="${n}" class="${n === st ? 'on' : ''}">${t}</button>`).join('')}</div>` : '';
+    const core = kind === 'core';
+    const buttons = options.steps ? `<div class="row" aria-label="모식도 단계">${STAGE_NAMES[core ? 'uplift' : kind].map((t, n) => `<button data-schem-stage="${n}" class="${!core && n === st ? 'on' : ''}">${t}</button>`).join('')}</div>
+      <div class="row" aria-label="미앤더 핵 과정">${CORE_STAGE_NAMES.map((t, n) => `<button data-schem-core="${n}" class="${core && n === st ? 'on' : ''}">${t}</button>`).join('')}</div>` : '';
     root.innerHTML = `
       <h2>위에서 본 모습 (모식도)</h2>
       ${buttons}
-      <figure>${plan(st)}</figure>
+      <figure>${core ? corePlan(st) : plan(st)}</figure>
       <h2>A에서 B로 자른 단면 (모식도)</h2>
-      <figure>${section(st, kind)}</figure>
-      <p class="schem-note">${zone ? `<b>${ZONE_TEXT[zone].name}</b> ${ZONE_TEXT[zone].text}` : noteFor(st, kind)}</p>
+      <figure>${core ? coreSection(st) : section(st, kind)}</figure>
+      <p class="schem-note">${zone ? `<b>${ZONE_TEXT[zone].name}</b> ${ZONE_TEXT[zone].text}` : core ? CORE_NOTES[st] : noteFor(st, kind)}</p>
       <p class="schem-cap">이름을 누르면 설명이 나옵니다. 이 그림은 높이를 크게 과장했습니다.</p>`;
     root.querySelectorAll(`[data-zone="${zone}"].zone-band, .zone[data-zone="${zone}"] .zone-band`).forEach(b => b.setAttribute('fill-opacity', '0.28'));
   };
   root.addEventListener('click', e => {
     const s = e.target.closest('[data-schem-stage]');
-    if (s) { stage = +s.dataset.schemStage; paint(); return; }
+    if (s) { stage = +s.dataset.schemStage; if (kind === 'core') { kind = 'uplift'; zone = null; } paint(); return; }
+    const c = e.target.closest('[data-schem-core]');
+    if (c) { stage = +c.dataset.schemCore; if (kind !== 'core') zone = null; kind = 'core'; paint(); return; }
     const g = e.target.closest('[data-zone]');
     if (!g) return;
     zone = zone === g.dataset.zone ? null : g.dataset.zone;
@@ -270,5 +413,5 @@ export function createSchematic(root, options = {}) {
     onZone(zone);
   });
   paint();
-  return { setStage(n, k = kind) { if (n !== stage || k !== kind) { stage = n; kind = k; paint(); } }, get stage() { return stage; } };
+  return { setStage(n, k = kind) { if (n !== stage || k !== kind) { if ((k === 'core') !== (kind === 'core')) zone = null; stage = n; kind = k; paint(); } }, get stage() { return stage; } };
 }
