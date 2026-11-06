@@ -51,8 +51,8 @@ const VIEWS = GURYE ? {
 } : {
   oblique: { p: [100, 330, 2820], t: [-225, 40, -520] },
   above: { p: [-700, 2500, 2300], t: [-220, 0, 200] },
-  close: { p: [-120, 150, 480], t: [-280, 60, -480] },
-  apex: { p: [430, 240, 240], t: [-280, 70, -620] },
+  close: { p: [-420, 130, 180], t: [-210, 110, -760] },
+  apex: { p: [-340, 230, 560], t: [-200, 120, -860] },
 };
 function setView(name) {
   const v = VIEWS[name];
@@ -173,6 +173,7 @@ async function start() {
 
   let labelsOn = true;
   const labelLayer = createLabelLayer(document.getElementById('labels'));
+  labelLayer.add('mouth', '곡구');
   labelLayer.add('apex', '선정', '곡구 바로 앞. 굵은 자갈이 많습니다.');
   labelLayer.add('mid', '선앙', '가운데 부분. 물이 땅속으로 스며듭니다.');
   labelLayer.add('toe', '선단', '끝부분. 스며든 물이 다시 솟아납니다.');
@@ -183,6 +184,7 @@ async function start() {
     return { x: a.x + (p.x - a.x) * f, z: a.z + (p.z - a.z) * f };
   };
   const LABEL_SPOTS = [
+    { key: 'mouth', get: () => sim.places.mouth, lift: 30 },
     { key: 'apex', get: () => sim.places.apex, lift: 25 },
     { key: 'mid', get: () => shrunk(sim.places.mid), lift: 20 },
     { key: 'toe', get: () => shrunk(sim.places.toe), lift: 18 },
@@ -195,7 +197,7 @@ async function start() {
       const p = l.get(), v = worldPos(p.x, p.z, s.h);
       v.y += l.lift;
       v.project(camera);
-      if (v.z <= 1) list.push({ key: l.key, x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight, priority: l.key === 'apex' ? 3 : l.key === 'mid' ? 2 : 1, keep: true });
+      if (v.z <= 1) list.push({ key: l.key, x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight, priority: l.key === 'mouth' || l.key === 'apex' ? 3 : l.key === 'mid' ? 2 : 1, keep: true });
     }
     labelLayer.place(list);
   }

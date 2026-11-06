@@ -62,6 +62,11 @@ function plainAt(x, z, nz) {
 }
 
 const APEX_X = 0.46;
+const FRONT_RISE = 0.09, SHOULDER_HEIGHT = 210, SHOULDER_WIDTH = 650;
+// 곡구 좌우로 산줄기가 평지 쪽으로 튀어나와 부채꼴 꼭짓점을 양옆에서 감싼다.
+const shoulderAt = (x, d) => { const side = (x - APEX_X) * SIZE / SHOULDER_WIDTH; return smooth(-0.012, 0.03, d) * Math.exp(-side * side); };
+// 곡구에서 위로 d만큼 들어간 곳의 골짜기 중심. 조금씩 굽이친다.
+const valleyX = d => APEX_X + 0.035 * Math.sin(d * 11) * smooth(0, 0.12, d) + 0.012 * Math.sin(d * 31) * smooth(0, 0.06, d);
 
 function buildBase(nz) {
   const h = new Float32Array(N * N);
@@ -75,29 +80,51 @@ function buildBase(nz) {
       const d = frontAt(x, nz) - z;
       const wx = 0.35 * nz.fbm(x * 3 + 5.2, z * 3 + 1.3, 3), wz = 0.35 * nz.fbm(x * 3 - 2.8, z * 3 + 8.1, 3);
       const r = 0.62 * nz.ridged((x + wx) * 4.6, (z + wz) * 4.6, 5) + 0.38 * (0.5 + nz.fbm((x + wx) * 6, (z + wz) * 6, 5));
-      const m = smooth(-0.012, 0.2, d);
+      const m = smooth(-0.012, FRONT_RISE, d);
       const reach = smooth(0, 0.34, d);
       const spur = nz.ridged(x * 15 + wx * 2, z * 3.6 + wz, 4);
       let v = plainAt(x, z, nz) + m * (40 + 190 * reach + 560 * Math.pow(r, 1.05) * (0.3 + 0.7 * reach) + 300 * smooth(0.0, 0.14, d) * (spur - 0.45));
-      // 산지를 지나 곡구로 내려오는 큰 골짜기
-      if (d > -0.01) {
-        const dd = Math.max(0, d);
-        const cx = APEX_X + 0.05 * Math.sin(dd * 13) * smooth(0, 0.1, dd) + 0.02 * Math.sin(dd * 37);
-        const w = 0.008 + 0.075 * dd;
-        const q = (x - cx) / w;
-        const floor = apexH + dd * SIZE * 0.07 + 95 * smooth(0, 0.07, dd);
-        const carve = Math.exp(-q * q) * 0.92 * smooth(0.37, 0.2, dd);
-        if (v > floor) v = lerp(v, floor, carve);
-      }
+      // 곡구 양옆의 어깨: 산줄기가 곡구까지 내려온다.
+      const shoulder = shoulderAt(x, d);
+      v += SHOULDER_HEIGHT * shoulder;
       // 앞쪽의 본류
       const rz = riverAt(x);
       const t = Math.abs(z - rz) / 0.011;
       v = lerp(WATER_LEVEL - 2.5, v, smooth(0.55, 1.5, t));
       h[idx(i, j)] = v;
-      mountain[idx(i, j)] = smooth(-0.004, 0.03, d);
+      mountain[idx(i, j)] = Math.max(smooth(-0.004, 0.016, d), smooth(0.08, 0.3, shoulder));
     }
   }
   return { h, mountain };
+}
+
+// 산지에 곡구로 내려오는 골짜기를 판다. 침식이 끝난 뒤에 파서 바닥에 턱이 남지 않는다.
+function carveValley(h, nz) {
+  const FLOOR_SLOPE = 0.14, CORE = 25, WALL_TAN = 0.7, FUNNEL = 260, SOFT = 18;
+  const front = frontAt(APEX_X, nz), apexH = plainAt(APEX_X, front, nz);
+  const mask = new Float32Array(N * N), channel = new Float32Array(N * N), center = new Float32Array(N);
+  for (let j = 0; j < N; j++) center[j] = valleyX(Math.max(0, front - j / (N - 1))) * (N - 1);
+  for (let j = 0; j < N; j++) {
+    const z = j / (N - 1);
+    for (let i = 0; i < N; i++) {
+      const x = i / (N - 1), d = frontAt(x, nz) - z;
+      if (d < -0.03 || d > 0.42) continue;
+      const dd = Math.max(0, d), q = Math.abs(x - valleyX(dd)) * SIZE, k = idx(i, j);
+      const fade = smooth(-0.03, -0.018, d) * smooth(0.42, 0.3, dd);
+      const floor = apexH + dd * SIZE * FLOOR_SLOPE;
+      // 벽은 일정한 경사의 V자로, 약간 울퉁불퉁하게. 곡구 앞에서는 입구가 나팔처럼 벌어진다.
+      const open = Math.max(0, q - CORE - FUNNEL * smooth(0.012, -0.024, d));
+      const wall = floor + open * WALL_TAN * (1 + 0.5 * nz.fbm(x * 40 + 3, z * 40 + 7, 3));
+      if (h[k] > wall - SOFT) {
+        const t = clamp((h[k] - wall + SOFT) / (2 * SOFT));
+        h[k] = lerp(h[k], lerp(h[k], wall, t * t * (3 - 2 * t)), fade);
+      }
+      const inside = smooth(-0.022, -0.006, d) * fade; // 자갈 바닥은 곡구를 지나 부채꼴 꼭짓점까지 이어진다.
+      mask[k] = smooth(CORE * 2.4, CORE, q) * inside;
+      channel[k] = smooth(CELL * 1.6, CELL * 0.6, q) * inside;
+    }
+  }
+  return { mask, channel, center };
 }
 
 function dropletErosion(h, mountain, rand, count) {
@@ -239,7 +266,7 @@ function growFan(world, events, onSnap) {
   }
 }
 
-// 곡구 안쪽 메우기: 퇴적면이 곡구에서 위로 이어져 산지 사면과 만나게 해 선정이 산지에 바로 붙는다.
+// 구례의 곡구 안쪽 메우기: 퇴적면이 곡구에서 위로 이어져 산지 사면과 만나게 해 선정이 산지에 바로 붙는다.
 // 선정 줄의 가로 단면을 그대로 위로 옮겨 쓰므로 부채꼴 옆면과 이어지고 옆에 벽이 생기지 않는다.
 // 쌓는 계산 안에서 메우면 메운 흙이 다시 흘러내려 부채꼴이 끝없이 높아지므로, 단계 사진에만 더한다.
 function fillBehindApex(world, snap) {
@@ -272,6 +299,31 @@ function fillBehindApex(world, snap) {
   }
 }
 
+// 계산 지형의 곡구 안쪽 메우기: 퇴적면이 골짜기 벽 사이로만 올라가 바닥과 만나면 끝난다.
+function fillValley(world, snap) {
+  const { apex, base, valley } = world;
+  const { h, total, coarse, last, e } = snap;
+  const SLOPE = 0.04, SMOOTH = 4, REACH = 20;
+  let crest = 0;
+  for (let p = -2; p <= 2; p++) crest += h[idx(apex.i + p, apex.j)] / 5;
+  // 곡구 바로 뒤에서는 부채꼴의 가로 단면을 따라 가장자리가 낮아지고, 벽 사이로 들어가면 평평해진다.
+  const drop = new Float32Array(REACH + 1);
+  const across = i => { let m = 0; for (let p = -SMOOTH; p <= SMOOTH; p++) m += h[idx(i + p, apex.j)] / (2 * SMOOTH + 1); return m; };
+  for (let n = 0; n <= REACH; n++) drop[n] = Math.max(0, across(apex.i) - (across(apex.i - n) + across(apex.i + n)) / 2);
+  for (let dj = 1; dj < 90 && apex.j - dj >= 3; dj++) {
+    const j = apex.j - dj, cx = Math.round(valley.center[j]), top = crest + dj * CELL * SLOPE;
+    let ground = 0;
+    for (let p = -2; p <= 2; p++) ground += base[idx(cx + p, j)] / 5;
+    if (ground >= top) break;
+    for (const dir of [-1, 1]) for (let n = dir < 0 ? 1 : 0; n <= REACH; n++) {
+      const k = idx(cx + dir * n, j);
+      const add = (top - drop[n] * smooth(10, 3, dj) - h[k]) * smooth(REACH, REACH - 6, n);
+      if (add <= 0) break;
+      h[k] += add; total[k] += add; coarse[k] += add * 0.9; last[k] = e;
+    }
+  }
+}
+
 function takeSnap(world, e) {
   const { apex } = world;
   const water = new Float32Array(N * N);
@@ -281,7 +333,10 @@ function takeSnap(world, e) {
     water[k] = smooth(1.3, 2.6, world.recent[k] * (0.18 + dd / 42)) * smooth(2, 10, dd);
   }
   const snap = { e, h: world.h.slice(), coarse: world.coarse.slice(), total: world.total.slice(), last: world.last.slice(), recent: world.recent.slice(), water };
-  fillBehindApex(world, snap);
+  if (world.valley) {
+    fillValley(world, snap);
+    for (let k = 0; k < water.length; k++) water[k] = Math.max(water[k], world.valley.channel[k]);
+  } else fillBehindApex(world, snap);
   return snap;
 }
 
@@ -355,6 +410,11 @@ function makeSplats(world, snap, stageIndex) {
     farm *= 1 - smooth(0.0, 0.4, w);
     forest *= 1 - smooth(0.0, 0.4, w);
 
+    // 곡구로 내려오는 골짜기 바닥은 자갈뿐이고 나무가 없다.
+    const channelFloor = world.valley ? world.valley.mask[k] : 0;
+    gravel = Math.max(gravel, channelFloor);
+    forest *= 1 - channelFloor; grass *= 1 - channelFloor; soil *= 1 - channelFloor; farm *= 1 - channelFloor;
+
     a[k * 4] = 255 * clamp(gravel);
     a[k * 4 + 1] = 255 * clamp(soil);
     a[k * 4 + 2] = 255 * clamp(grass);
@@ -383,12 +443,13 @@ export function simulate(onProgress = () => {}) {
   // 뾰족한 봉우리의 끝을 눌러 우리나라 산지처럼 둥글게 만든다.
   for (let k = 0; k < h.length; k++) if (h[k] > 520) h[k] = 520 + (h[k] - 520) * 0.42;
   slump(h, mountain, 0.8, 4);
+  const valley = carveValley(h, nz);
   const base = h.slice();
 
   const frontApex = frontAt(APEX_X, nz);
   const apex = { i: Math.round(APEX_X * (N - 1)), j: Math.round(frontApex * (N - 1)) + 2 };
   const world = {
-    nz, rand, h, base, mountain, apex, R: 150,
+    nz, rand, h, base, mountain, apex, valley, R: 150,
     coarse: new Float32Array(N * N), total: new Float32Array(N * N), last: new Float32Array(N * N), recent: new Float32Array(N * N),
   };
 
@@ -407,7 +468,10 @@ export function simulate(onProgress = () => {}) {
     if (h[idx(i, j)] - base[idx(i, j)] > 2) maxR = Math.max(maxR, Math.hypot(i - apex.i, j - apex.j));
   }
   world.R = maxR;
-  const stream = traceStream(snaps[2].h, apex, maxR, rand);
+  // 물길은 곡구 위쪽 골짜기에서 시작한다.
+  const upstream = [];
+  for (let dj = Math.round(500 / CELL); dj >= 1; dj--) upstream.push({ x: valley.center[apex.j - dj], y: apex.j - dj, t: 0 });
+  const stream = [...upstream, ...traceStream(snaps[2].h, apex, maxR, rand)];
   return finish(world, snaps, stream, onProgress);
 }
 
@@ -525,7 +589,7 @@ function finish(world, snaps, stream, onProgress) {
   paintStream(today, stream);
 
   onProgress('표면 재질 정하는 중');
-  const stages = snaps.map((s, n) => { const m = makeSplats(world, s, n); return { h: s.h, splatA: m.a, splatB: m.b, forest: m.forestWeight, water: s.water }; });
+  const stages = snaps.map((s, n) => { const m = makeSplats(world, s, n); return { h: s.h, splatA: m.a, splatB: m.b, forest: m.forestWeight, water: s.water, total: s.total }; });
   const fanRelief = today.h[idx(apex.i, apex.j + 6)] - base[idx(apex.i, apex.j + 6)];
 
   // 땅 표면의 작은 기복. 평지의 낮은 물결과 전체의 잔 울퉁불퉁함을 더한다.
@@ -535,11 +599,12 @@ function finish(world, snaps, stream, onProgress) {
     const x = i / (N - 1), z = j / (N - 1), k = idx(i, j);
     bump[k] = 2.2 * nz.fbm(x * 85, z * 85, 3) + 6 * (1 - mountain[k]) * nz.fbm(x * 16 + 11, z * 16 + 4, 3) + 7 * mountain[k] * nz.fbm(x * 42 + 2, z * 42, 3);
   }
+  if (world.valley) for (let k = 0; k < bump.length; k++) bump[k] *= 1 - world.valley.mask[k];
   for (const s of snaps) for (let k = 0; k < bump.length; k++) s.h[k] += bump[k] * smooth(WATER_LEVEL + 1, WATER_LEVEL + 5, s.h[k]);
 
   const at = t => { let best = stream[0]; for (const p of stream) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; return best; };
   const toWorld = p => ({ x: (p.x / (N - 1) - 0.5) * SIZE, z: (p.y / (N - 1) - 0.5) * SIZE });
-  const apexG = { x: apex.i, y: apex.j };
+  const apexG = { x: apex.i, y: apex.j }, MOUTH_ROWS = 5;
   // 계산 지형은 물길이 한쪽으로 치우치므로 부채꼴의 대표 방향을 쓰고, 구례는 곡구에서 선단으로 가는 물길을 쓴다.
   const toeG = axis ? { x: apex.i + axis.x * R * 0.9, y: apex.j + axis.y * R * 0.9 } : at(0.9);
   const midG = axis ? { x: apex.i + axis.x * R * 0.5, y: apex.j + axis.y * R * 0.5 } : at(0.5);
@@ -552,6 +617,8 @@ function finish(world, snaps, stream, onProgress) {
     apex: toWorld(apexG), mid: toWorld(midG), toe: toWorld(toeG), R: R * CELL,
     streamToe: stream.filter(p => p.t > 0.8 && p.t < 1.05).map(toWorld),
     profile: { from: toWorld(profile.from), to: toWorld(profile.to) },
+    mouth: toWorld(world.valley ? { x: world.valley.center[apex.j - MOUTH_ROWS], y: apex.j - MOUTH_ROWS } : apexG),
+    streamHead: toWorld(stream[0]),
   };
   return { site: SITE, stages, places, base, mountain, stats: { fanRadiusM: Math.round(R * CELL), fanReliefM: Math.round(fanRelief), streamEndT: +stream[stream.length - 1].t.toFixed(2) } };
 }

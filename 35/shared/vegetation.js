@@ -86,7 +86,7 @@ export function buildTown(ctx, stage, places) {
   mesh.castShadow = true;
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), m = new THREE.Matrix4(), c = new THREE.Color();
   const centers = [
-    { ...places.apex, r: 130, w: 0.18, dz: 70 },
+    { ...places.apex, r: 130, w: 0.18, dz: dense ? 70 : 170 }, // 계산 지형은 곡구 입구를 막지 않게 아래로 내린다.
     ...places.streamToe.filter((_, i) => i % 18 === 0).map(p => ({ ...p, r: 120, w: 0.5, dz: 0 })),
     { x: places.toe.x + 620, z: places.toe.z + 60, r: 150, w: 0.3, dz: 0 },
     { x: places.toe.x - 700, z: places.toe.z + 90, r: 170, w: 0.3, dz: 0 },
