@@ -10,7 +10,7 @@ const fitCanvas = canvas => {
 
 // 실제 높이로 그린 등고선 지형도. north가 true면 위쪽이 북쪽임을 표시한다.
 // sizeM이 null이면 실제 지역이 아니므로 축척 막대를 그리지 않고 높이 단위도 붙이지 않는다.
-export function drawContourMap(canvas, { h, N, sizeM, water, north }) {
+export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay }) {
   const { ctx, W, H } = fitCanvas(canvas);
   ctx.fillStyle = '#f4efe2'; ctx.fillRect(0, 0, W, H);
   const side = Math.min(W, H) - 40, ox = (W - side) / 2, oy = (H - side) / 2, sc = side / (N - 1);
@@ -33,6 +33,7 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north }) {
       ctx.fillText(`${level}`, ox + seg[m] * sc + 2, oy + seg[m + 1] * sc - 2);
     }
   }
+  if (overlay) overlay(ctx, { ox, oy, sc, side });
   ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(ox, oy, side, side);
   ctx.fillStyle = '#222'; ctx.font = '12px "Malgun Gothic",sans-serif';
   if (sizeM) {
@@ -47,7 +48,7 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north }) {
 }
 
 // 두 점을 잇는 실제 땅의 단면. ve는 세로 과장 배율이다.
-export function drawProfile(canvas, { h, N, from, to, lengthM, ve }) {
+export function drawProfile(canvas, { h, N, from, to, lengthM, ve, note }) {
   const { ctx, W, H } = fitCanvas(canvas);
   ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
   const samples = 360, p = profileAlong(h, N, from, to, samples);
@@ -66,4 +67,5 @@ export function drawProfile(canvas, { h, N, from, to, lengthM, ve }) {
   ctx.fillText(`B  ${Math.round(p[samples - 1])}m`, x(samples - 1), 30);
   ctx.textAlign = 'left'; ctx.font = '13px "Malgun Gothic",sans-serif';
   ctx.fillText(`A에서 B까지 ${(lengthM / 1000).toFixed(1)}km. 세로를 약 ${(yScale / xScale).toFixed(1)}배 과장해 그렸습니다.`, pad, H - 16);
+  if (note) ctx.fillText(note, pad, H - 36);
 }
