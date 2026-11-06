@@ -242,6 +242,6 @@ async function start() {
 }
 
 document.getElementById('note').textContent = '창녕 우포늪 일대입니다. 낙동강 바로 옆 땅은 약 16m로 높고, 그 뒤 토평천 옆 들판은 8~14m로 낮으며, 우포늪 앞 들판은 약 8m, 늪은 약 5m입니다. 낮은 땅 지도와 단면에서 또렷합니다.';
-document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '낙동강 물길, 물, 논밭, 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL)', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '낙동강 물길, 물, 논밭, 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

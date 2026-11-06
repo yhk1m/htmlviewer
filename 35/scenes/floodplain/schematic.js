@@ -25,6 +25,14 @@ const RIVER = 24;
 const LEVEE = [130, 150], SWAMP = [262, 276];
 const RIVER_X = 330, SEC_W = 720, SEC_H = 340, GROUND = 214;
 const LEVEE_H = [12, 32, 42], SWAMP_H = [3, 8, 11], BED = 46, ROWS = [1, 2, 3];
+const BED_SHARE = 0.18, SURFACE_ABOVE_BED = 20; // 제방이 오른 만큼의 이 비율로 하도 바닥과 평소 수면이 오른다. 형성 모형의 비율과 비슷하되 그림에서 보이게 조금 크게 잡았다.
+// 하도 바닥이 처음보다 오른 높이(그림 칸)
+const bedRise = stage => BED_SHARE * sectionTops(stage).levee;
+// 단계별 높이(그림의 y, 작을수록 높다). 수면은 언제나 습지 땅보다 낮다.
+export function channelLevels(stage) {
+  const rise = bedRise(stage), bed = GROUND + BED - rise, tops = sectionTops(stage);
+  return { rise, bed, surface: bed - SURFACE_ABOVE_BED, swamp: GROUND - tops.swamp, levee: GROUND - tops.levee };
+}
 
 const zoneAt = o => {
   const d = Math.abs(o), side = o < 0 ? 0 : 1;
@@ -51,8 +59,8 @@ function topAt(o, stage) {
   const d = Math.abs(o), side = o < 0 ? 0 : 1;
   if (d < RIVER) {
     // 하도: 평평한 바닥에서 양쪽 둑까지 비스듬히 오른다.
-    const wall = Math.max(0, (d - RIVER * 0.55) / (RIVER * 0.45)), bank = GROUND - thickAt((o < 0 ? -1 : 1) * (RIVER + 1), stage);
-    return GROUND + BED - (GROUND + BED - bank) * wall;
+    const wall = Math.max(0, (d - RIVER * 0.55) / (RIVER * 0.45)), bank = GROUND - thickAt((o < 0 ? -1 : 1) * (RIVER + 1), stage), bed = GROUND + BED - bedRise(stage);
+    return bed - (bed - bank) * wall;
   }
   if (d >= SWAMP[side]) return GROUND - (d - SWAMP[side]) * 0.72;
   return GROUND - thickAt(o, stage);
@@ -87,18 +95,19 @@ function section(stage) {
     for (const [a, b] of [[-250, -140], [160, 262]]) for (let o = a; o < b; o += 11) grains += `<circle cx="${RIVER_X + o}" cy="${f1(GROUND - thickAt(o, stage) * 0.55)}" r="0.9" fill="#231a12"/>`;
   }
   // 물: 첫 홍수와 여러 번은 흙탕물이 양쪽으로 퍼진 모습, 오늘날은 하도의 물과 배후 습지에 고인 물
-  const level = GROUND - LEVEE_H[stage] - SWAMP_H[stage] - 18;
+  const level = GROUND - LEVEE_H[stage] - SWAMP_H[stage] - 18, normal = channelLevels(stage), inChannel = xs.filter(x => Math.abs(x - RIVER_X) < RIVER && topAt(x - RIVER_X, stage) > normal.surface);
   let water = '';
   if (stage < 2) {
     const under = xs.filter(x => topAt(x - RIVER_X, stage) > level);
     water += `<polygon points="${under.map(x => `${x},${f1(level)}`).join(' ')} ${pts(o => topAt(o, stage), [...under].reverse())}" fill="${FLOOD}" fill-opacity="0.72"/>`;
+    // 홍수 물에 잠겨 있어도 평소 수면 자리를 점선으로 남겨 단계마다 오르는 것을 보여 준다.
+    water += `<line data-surface="${f1(normal.surface)}" x1="${inChannel[0]}" x2="${inChannel[inChannel.length - 1]}" y1="${f1(normal.surface)}" y2="${f1(normal.surface)}" stroke="#d8efff" stroke-width="2" stroke-dasharray="5 4"/>`;
   } else {
-    const surface = GROUND + BED - 20, inCh = xs.filter(x => Math.abs(x - RIVER_X) < RIVER && topAt(x - RIVER_X, stage) > surface);
-    water += `<polygon points="${inCh.map(x => `${x},${surface}`).join(' ')} ${pts(o => topAt(o, stage), [...inCh].reverse())}" fill="${WATER}"/>`;
+    water += `<polygon data-surface="${f1(normal.surface)}" points="${inChannel.map(x => `${x},${f1(normal.surface)}`).join(' ')} ${pts(o => topAt(o, stage), [...inChannel].reverse())}" fill="${WATER}"/>`;
     for (const [a, b] of POND_SECTION) water += `<rect x="${RIVER_X + a}" y="${f1(GROUND - SWAMP_H[2] - 3)}" width="${b - a}" height="3" fill="${WATER}"/>`;
   }
   const say = (zone, text, o, y, color = '#f3f1ea') => `<text class="zone" data-zone="${zone}" x="${f1(RIVER_X + o)}" y="${f1(y)}" text-anchor="middle" font-size="20" font-weight="700" fill="${color}" style="cursor:pointer">${text}</text>`;
-  let names = say('channel', '하도', 0, GROUND + BED + 24, '#8fd6ff');
+  let names = say('channel', '하도', 0, normal.bed + 24, '#8fd6ff');
   const crest = GROUND - LEVEE_H[stage] - SWAMP_H[stage];
   if (stage === 0) {
     names += say('levee', '모래가 먼저 멈춤', -92, level - 12, '#ffd36b') + say('swamp', '진흙은 멀리 감', 196, level - 12) + say('flood', '넘친 물', -210, level + 20, '#ffdca6');
@@ -210,7 +219,7 @@ export function createSchematic(root, options = {}) {
       <h2>A에서 B로 자른 단면 (모식도)</h2>
       <figure>${section(stage)}</figure>
       <p class="schem-note">${zone ? `<b>${ZONE_TEXT[zone].name}</b> ${ZONE_TEXT[zone].text}` : NOTES[stage]}</p>
-      <p class="schem-cap">이름을 누르면 설명이 나옵니다. 이 그림은 높이를 크게 과장했습니다. 구역의 폭과 토지 이용은 설명을 위한 예시입니다.</p>`;
+      <p class="schem-cap">이름을 누르면 설명이 나옵니다. 이 그림은 높이를 크게 과장했습니다. 구역의 폭과 토지 이용은 설명을 위한 예시입니다.${stage < 2 ? " 하도의 점선은 평소 수면 자리입니다." : ""} 하도 바닥과 평소 수면도 단계마다 조금씩 오릅니다.</p>`;
   };
   root.addEventListener('click', e => {
     const s = e.target.closest('[data-schem-stage]');

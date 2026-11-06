@@ -31,7 +31,7 @@ const DRAIN_SECONDS = 1.8, POND_SECONDS = 6, POND_DEPTH = 0.5; // 물이 빠지�
 const HOLD_R = 10, HOLD_FROM = 0.05, HOLD_MAX = 0.5, HOLD_GAIN = 4, SOAK_SECONDS = 150;
 const SEEP = 0.17; // 평지 물이 땅으로 스며드는 양(초당 수심). 얕은 물막이 오래 남지 않게 한다.
 const EDGE_SECONDS = 0.5; // 블록 오른쪽 끝(하류)에서 평지 물이 빠져나가는 빠르기. 끝이 벽이 되지 않게 한다.
-const BED_RISE = 0.45; // 둑이 오른 만큼의 이 비율로 하도 바닥과 평소 수위도 오른다.
+export const BED_RISE = 0.13; // 둑이 오른 만큼의 이 비율로 하도 바닥과 평소 수위도 오른다. 더 크면 평소 강물이 습지 땅보다 높아져 천정천처럼 보인다(모든 조건에서 재서 정한 값).
 const CLEAR_FLOWING = 4, CLEAR_QUIET = 1; // 평지 물의 흙탕이 옅어지는 시간. 강에서 물이 넘어오는 동안은 천천히, 그친 뒤에는 빨리 옅어진다.
 export const FLOWING = 40; // 하도에서 넘어오는 물의 양이 이보다 크면 넘치는 중이다.
 const LEVEE_NAMED = 1.5; // 제방이 이만큼 높아져야 자연 제방, 배후 습지라고 부른다.
@@ -552,10 +552,18 @@ function doneText(m) {
   const o = m.options, parts = ['범람원이 완성되었습니다.'];
   if (o.dam === 'yes') parts.push('댐이 있으면 홍수와 토사가 줄어 제방이 덜 자랍니다. 이미 있던 제방이 낮아지는 것은 아닙니다.');
   else parts.push('하도 양옆에는 모래가 많은 자연 제방이 높고, 그 뒤쪽에는 진흙이 얇게 쌓인 낮은 배후 습지가 있습니다.');
-  if (o.size === 'low') parts.push('작은 홍수만 지나가 제방이 낮습니다.');
-  if (o.size === 'high') parts.push('큰 홍수가 지나가 제방이 더 높고 진흙이 더 멀리까지 갔습니다.');
-  if (o.freq === 'low') parts.push('홍수가 드물어 쌓인 양이 적습니다.');
-  if (o.freq === 'high') parts.push('홍수가 잦아 쌓인 양이 많습니다.');
+  // 댐이 있을 때는 같은 댐 조건끼리 견준 말임을 밝힌다. 댐이 없는 강보다 제방이 높다는 뜻으로 읽히지 않게 한다.
+  if (o.dam === 'yes') {
+    if (o.size === 'low') parts.push('같은 댐 조건에서 홍수가 작으면 제방이 더 낮습니다.');
+    if (o.size === 'high') parts.push('같은 댐 조건에서 홍수가 크면 제방이 조금 더 높습니다.');
+    if (o.freq === 'low') parts.push('같은 댐 조건에서 홍수가 드물면 쌓인 양이 적습니다.');
+    if (o.freq === 'high') parts.push('같은 댐 조건에서 홍수가 잦으면 쌓인 양이 많습니다.');
+  } else {
+    if (o.size === 'low') parts.push('작은 홍수만 지나가 제방이 낮습니다.');
+    if (o.size === 'high') parts.push('큰 홍수가 지나가 제방이 더 높고 진흙이 더 멀리까지 갔습니다.');
+    if (o.freq === 'low') parts.push('홍수가 드물어 쌓인 양이 적습니다.');
+    if (o.freq === 'high') parts.push('홍수가 잦아 쌓인 양이 많습니다.');
+  }
   let ponds = 0;
   for (let k = 0; k < N * N; k++) if (m.hill[k] === 0 && !m.isCh[k] && m.w[k] > 0.1) ponds++;
   if (ponds > POND_NAMED) parts.push('낮은 곳에는 물이 고여 있습니다.');
