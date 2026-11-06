@@ -9,7 +9,7 @@ import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap } from '../../shared/map-views.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
-import { createModel, sectionProfile, sectionMarks, noteText, compareBrief, balance, N, T_END } from './model.js';
+import { createModel, sectionProfile, sectionMarks, noteText, compareBrief, balance, rateVerdict, N, T_END } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
 
@@ -195,11 +195,16 @@ function drawSection(canvas, m) {
 const noteEl = document.getElementById('now'), statsEl = document.getElementById('stats');
 function syncInfo() {
   statsEl.innerHTML = `새 땅 <b>블록의 ${((model.newLand() / (N * N)) * 100).toFixed(1)}%</b>, 물길 <b>${model.liveTips()}갈래</b>, 쌓인 흙 중 바다가 옮겨 간 비율 <b>${Math.round(balance(model) * 100)}%</b>`;
+  // 퇴적 속도와 침식 속도 막대. 두 막대의 축척은 같다.
+  const top = Math.max(model.depositRate, model.erosionRate, 1);
+  document.getElementById('depBar').style.width = `${(model.depositRate / top) * 100}%`;
+  document.getElementById('eroBar').style.width = `${(model.erosionRate / top) * 100}%`;
+  document.getElementById('rateNote').textContent = rateVerdict(model);
   const tideBadge = document.getElementById('tideBadge');
   tideBadge.textContent = model.options.tide === 'low' || model.finished ? '' : (model.tideRising() ? '지금은 밀물' : '지금은 썰물');
   if (compare) {
     const br = compareBrief(model, modelB);
-    noteEl.textContent = `왼쪽 블록은 ${br.a}. 오른쪽 블록은 ${br.b}.${modelB.damUp ? ' 하굿둑이 흙을 막으면 삼각주가 더 자라지 못하고 물에 닿은 가장자리부터 깎입니다.' : ' 하굿둑을 세우기 전까지는 두 블록이 똑같이 자랍니다.'}`;
+    noteEl.textContent = `왼쪽 블록은 ${br.a}. 오른쪽 블록은 ${br.b}.${modelB.damUp ? ' 하굿둑이 흙을 막으면 퇴적 속도가 침식 속도보다 느려져 삼각주가 더 자라지 못하고 물에 닿은 가장자리부터 깎입니다.' : ' 하굿둑을 세우기 전까지는 두 블록이 똑같이 자랍니다.'}`;
     statsEl.innerHTML = '';
     document.getElementById('steps').textContent = '두 조건 비교';
     return;

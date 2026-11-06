@@ -69,7 +69,7 @@ export function createModel(seed = 11) {
     options: { ...PRESETS.textbook }, clock: 0, finished: false, damUp: false, damBuiltAt: 0, seaNow: 0, tips: [], channels: [], splits: 0, plugged: 0, lastSplit: null,
     TRAILS, TRAIL_PTS, trailX, trailY, trailLen, trailKind, trailAge, areaHistory: [], peakArea: 0, damRow: COAST - 2, suppliedTotal: 0, removedTotal: 0, splitLog: [],
   };
-  let rng, acc = 0, roundNo = 0, trailNext = 0, islandAt = -1, islandSpot = null;
+  let lastSupplied = 0, lastRemoved = 0, rng, acc = 0, roundNo = 0, trailNext = 0, islandAt = -1, islandSpot = null;
   const touch = k => { if (!dirtyFlag[k]) { dirtyFlag[k] = 1; dirtyList[m.dirtyCount++] = k; } };
   m.consumeDirty = () => { for (let i = 0; i < m.dirtyCount; i++) dirtyFlag[dirtyList[i]] = 0; const c = m.dirtyCount; m.dirtyCount = 0; return c; };
 
@@ -355,6 +355,12 @@ export function createModel(seed = 11) {
     if (roundNo % 8 === 0) raiseLand();
     if (!m.damUp) { emitTrail(); if (roundNo % 2) emitTrail(); }
     for (let t = 0; t < TRAILS; t++) trailAge[t] += ROUND;
+    // 최근 몇 초의 퇴적 속도와 침식 속도(초당 쌓이거나 옮겨 간 양)
+    const dep = (m.suppliedTotal - lastSupplied) / ROUND, ero = (m.removedTotal - lastRemoved) / ROUND;
+    lastSupplied = m.suppliedTotal; lastRemoved = m.removedTotal;
+    const keep = roundNo < 10 ? 0.5 : 0.96;
+    m.depositRate = m.depositRate * keep + dep * (1 - keep);
+    m.erosionRate = m.erosionRate * keep + ero * (1 - keep);
     if (roundNo % 10 === 0) { const a = m.newLand(); m.areaHistory.push({ t: m.clock, a }); m.peakArea = Math.max(m.peakArea, a); }
     if (m.clock >= T_END - 1e-9) { m.finished = true; trailLen.fill(0); }
   }
@@ -451,6 +457,7 @@ export function createModel(seed = 11) {
   m.reset = () => {
     rng = makeRng(seed + 1); rng2 = makeRng(seed + 77);
     for (let s = 0; s < 8; s++) rng();
+    lastSupplied = 0; lastRemoved = 0; m.depositRate = 0; m.erosionRate = 0;
     acc = 0; roundNo = 0; trailNext = 0; islandAt = -1; islandSpot = null; m.clock = 0; m.finished = false; m.damUp = false; m.damBuiltAt = 0; m.seaNow = 0; m.areaHistory = []; m.peakArea = 0; m.suppliedTotal = 0; m.removedTotal = 0; m.splits = 0; m.plugged = 0; m.lastSplit = null; m.splitLog = []; m.splitPoints = [];
     turb.fill(0); sand.fill(0); mud.fill(0); over.fill(0); landAt.fill(0); hill.fill(0); chan.fill(0); river.fill(0); trailLen.fill(0); trailAge.fill(0);
     buildBase();
@@ -502,6 +509,15 @@ export function sectionMarks(p) {
   return out;
 }
 
+// 퇴적 속도와 침식 속도를 비교한 말. 비슷하면 비슷하다고 적는다.
+export function rateVerdict(m) {
+  const d = m.depositRate, e = m.erosionRate;
+  if (d < 0.5 && e < 0.5) return '아직 흙이 거의 쌓이지 않았습니다.';
+  if (d > e * 1.3) return '퇴적 속도가 침식 속도보다 빨라 흙이 남습니다. 그래서 삼각주가 자랍니다.';
+  if (e > d * 1.3) return '침식 속도가 퇴적 속도보다 빨라 땅이 줄어듭니다.';
+  return '퇴적 속도와 침식 속도가 비슷해 쌓인 만큼 옮겨 갑니다. 그래서 삼각주가 자라지 못합니다.';
+}
+
 export function balance(m) {
   return m.suppliedTotal > 1 ? m.removedTotal / m.suppliedTotal : 0;
 }
@@ -512,22 +528,22 @@ export function noteText(m) {
     if (peak < 400) return m.finished
       ? '이 조건에서는 하굿둑을 세우기 전부터 땅이 거의 없었습니다. 공급이 적거나 조류가 강한 까닭입니다. 하굿둑은 바닷물이 강으로 거슬러 오르는 것을 막아 농업 용수와 공업 용수를 얻게 합니다.'
       : '하굿둑을 세웠습니다. 다만 이 조건에서는 이미 땅이 거의 없습니다. 공급이 적거나 조류가 강한 까닭입니다.';
-    if (m.finished) return `하굿둑이 강의 흙을 대부분 막아 삼각주가 더 자라지 못했습니다. 이 모형에서는 물에 닿은 가장자리가 깎여 새 땅이 가장 넓을 때보다 ${Math.round((1 - area / peak) * 100)}% 줄었습니다. 대신 바닷물이 강으로 거슬러 오르는 것을 막아 농업 용수와 공업 용수를 얻습니다.`;
-    return '하굿둑을 세웠습니다. 강이 실어 오던 흙이 둑에 막혀 하구로 거의 오지 않습니다. 파랑과 조류는 그대로이므로 물에 닿은 가장자리부터 조금씩 깎입니다.';
+    if (m.finished) return `하굿둑이 강의 흙을 대부분 막아 퇴적 속도가 침식 속도보다 느려졌습니다. 이 모형에서는 물에 닿은 가장자리가 깎여 새 땅이 가장 넓을 때보다 ${Math.round((1 - area / peak) * 100)}% 줄었습니다. 대신 바닷물이 강으로 거슬러 오르는 것을 막아 농업 용수와 공업 용수를 얻습니다.`;
+    return '하굿둑을 세웠습니다. 강이 실어 오던 흙이 둑에 막혀 하구로 거의 오지 않습니다. 파랑과 조류는 그대로여서 침식 속도가 퇴적 속도보다 빨라지고, 물에 닿은 가장자리부터 조금씩 깎입니다.';
   }
   if (m.finished) {
     if (area < 400) return tide === 'high'
       ? `쌓인 흙의 ${Math.round(taken * 100)}%를 조류가 옮겨 가 땅이 거의 생기지 않았습니다. 옮겨진 고운 흙은 일부가 옆 바닷가의 갯벌이 됩니다. 조차가 큰 황해로 흐르는 한강, 금강, 영산강의 하구에 큰 삼각주 대신 넓게 열린 하구가 나타나는 까닭입니다.`
-      : `쌓인 흙의 ${Math.round(taken * 100)}%를 바다가 옮겨 가 땅이 거의 생기지 않았습니다. 공급이 제거보다 많아야 삼각주가 자랍니다.`;
-    if (taken > 0.5) return `쌓인 흙의 ${Math.round(taken * 100)}%를 조류와 파랑이 옮겨 갔습니다. 공급이 제거보다 많지 않으면 삼각주는 크게 자라지 못합니다.`;
-    return `공급이 제거보다 훨씬 많아 삼각주가 바다 쪽으로 자랐습니다. 쌓인 흙 가운데 바다가 옮겨 간 것은 ${Math.round(taken * 100)}%입니다.${m.options.supply === 'low' ? '' : ' 조차가 작은 남해로 흐르는 낙동강 하구에 삼각주가 발달한 까닭입니다.'}`;
+      : `쌓인 흙의 ${Math.round(taken * 100)}%를 바다가 옮겨 가 땅이 거의 생기지 않았습니다. 퇴적 속도가 침식 속도보다 빨라야 삼각주가 자랍니다.`;
+    if (taken > 0.5) return `쌓인 흙의 ${Math.round(taken * 100)}%를 조류와 파랑이 옮겨 갔습니다. 퇴적 속도가 침식 속도보다 충분히 빠르지 않으면 삼각주는 크게 자라지 못합니다.`;
+    return `퇴적 속도가 침식 속도보다 훨씬 빨라 삼각주가 바다 쪽으로 자랐습니다. 쌓인 흙 가운데 파랑과 조류가 옮겨 간 것은 ${Math.round(taken * 100)}%입니다.${m.options.supply === 'low' ? '' : ' 조차가 작은 남해로 흐르는 낙동강 하구에 삼각주가 발달한 까닭입니다.'}`;
   }
   if (m.lastSplit && m.clock - m.lastSplit.clock < 4) return '하구 앞 모래톱이 수면에 닿아 물길을 막았습니다. 물은 모래톱 양쪽으로 갈라져 흐릅니다(분류). 물 위로 드러난 모래톱은 하중도가 됩니다.';
-  if (m.clock < 7) return '강물이 바다에 닿으면 갑자기 느려져 실어 온 흙을 더 옮기지 못합니다. 무거운 모래는 하구 바로 앞에, 고운 진흙은 멀리까지 퍼져 내려앉습니다.';
+  if (m.clock < 7) return '강물이 바다에 닿으면 갑자기 느려져 실어 온 흙을 더 옮기지 못합니다. 무거운 모래는 하구 바로 앞에, 고운 진흙은 멀리까지 퍼져 내려앉습니다. 이렇게 쌓이는 빠르기가 파랑과 조류가 깎는 빠르기보다 빠르면 삼각주가 됩니다.';
   if (m.splits === 0) return tide === 'high' ? '모래톱이 쌓이지만 강한 조류가 드나들며 흙을 옮겨 가 수면까지 올라오지 못합니다. 그래서 물길이 갈라지지 않습니다.' : '하구 앞 모래톱이 점점 높아집니다. 물길은 얕아진 곳까지만 바다 쪽으로 나아갑니다.';
   if (taken > 0.6) return '조류가 밀물과 썰물 때마다 낮은 바닥의 흙을 옮겨 갑니다. 일부는 옆 바닷가에 갯벌로 쌓이고 나머지는 앞바다로 갑니다. 그래서 하구의 땅이 잘 늘지 않습니다.';
   if (m.lastSplit && m.clock - m.lastSplit.clock < 12) return '갈라진 물길 앞에 다시 모래톱이 쌓여 또 갈라집니다. 갈라질수록 물길 하나의 물이 줄어듭니다.';
-  return '물길마다 바다 쪽으로 나아가며 앞에 흙을 내려놓습니다. 물이 둑을 넘칠 때 고운 흙이 물길 사이를 채워 낮고 평평한 삼각주 평원이 넓어집니다. 물길 옆은 조금 높고 가운데는 낮습니다.';
+  return '물길마다 바다 쪽으로 나아가며 앞에 흙을 내려놓습니다. 물이 둑을 넘칠 때 고운 흙이 물길 사이를 채워 낮고 평평한 삼각주 평원이 넓어집니다. 퇴적 속도가 침식 속도보다 빠른 동안 평원은 계속 바다 쪽으로 자랍니다.';
 }
 
 export function compareBrief(a, b) {

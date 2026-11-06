@@ -17,6 +17,16 @@
   #now { font-size:17px; line-height:1.55; min-height:108px; margin:0 0 8px; }
   #stats { font-size:15px; margin:0 0 12px; color:#efe9d8; }
   #stats b { color:var(--accent); }
+  #rates { margin:0 0 12px; padding:8px 10px; border:1px solid var(--line); border-radius:4px; }
+  .rate { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .rate span { width:190px; flex:none; font-size:15px; font-weight:700; }
+  .rate small { display:block; font-size:12px; font-weight:400; color:#b9b8ae; }
+  .rate i { flex:1; height:12px; background:#2b322e; border-radius:2px; overflow:hidden; display:block; }
+  .rate b { display:block; height:100%; width:0; }
+  #depBar { background:#e6cf90; }
+  #eroBar { background:#59b7f0; }
+  #rateNote { margin:4px 0 0; font-size:15px; font-weight:700; color:var(--accent); }
+  body.comparing #rates { display:none; }
   #section { width:100%; height:auto; border-radius:3px; }
   #schem h2 { margin-top:14px; }
   #schem figure { margin:0 0 10px; }
@@ -60,6 +70,9 @@
     #side h2 { font-size:15px; }
     #now { font-size:14px; min-height:0; }
     #stats { font-size:13px; margin-bottom:8px; }
+    .rate span { width:136px; font-size:13px; }
+    .rate small { font-size:10px; }
+    #rateNote { font-size:13px; }
     .label.water b, .label.hot b, .label.sand b, .label.key b, .label.mark b { font-size:13px; }
     .cmprow { display:none; }
     #compareEnd { left:12px; bottom:calc(38vh + 12px); }
@@ -101,6 +114,11 @@
   <h2>지금 일어나는 일 <span id="steps"></span></h2>
   <p id="now"></p>
   <p id="stats"></p>
+  <div id="rates" aria-label="퇴적 속도와 침식 속도 비교">
+    <div class="rate"><span>퇴적 속도<small>강이 흙을 쌓는 빠르기</small></span><i><b id="depBar"></b></i></div>
+    <div class="rate"><span>침식 속도<small>파랑과 조류가 옮겨 가는 빠르기</small></span><i><b id="eroBar"></b></i></div>
+    <p id="rateNote"></p>
+  </div>
   <h2 id="sectionTitle">강(A)에서 먼바다(B)로 자른 단면 (계산 결과)</h2>
   <canvas id="section" width="1120" height="400" role="img" aria-label="강에서 먼바다로 자른 단면. 계산으로 쌓인 모래와 진흙이 그대로 나타난다."></canvas>
   <p id="compareCap" class="cap" hidden>위 단면은 왼쪽 블록(하굿둑 없음), 아래 단면은 오른쪽 블록(하굿둑 있음)입니다. 세로 축척은 같습니다.</p>
