@@ -102,9 +102,9 @@ labels.add('platform', '파식대', '절벽이 물러난 자리', 'key');
 labels.add('beach', '모래 해안', '만에 쌓인 모래', 'sand');
 labels.add('stack', '시 스택', '단단한 바위', 'key');
 labels.add('sea', '파랑이 오는 쪽', '', 'water');
-labels.add('cape', '좁은 곶', '밝은 띠가 약한 곳', 'key');
+labels.add('cape', '좁은 곶', '검은 줄이 약한 절리', 'key');
 labels.add('stackArch', '시 스택', '천장이 무너져 남은 바위', 'key');
-labels.add('cave', '해식 동굴', '옆면이 파이는 중', 'hot');
+labels.add('cave', '해식 동굴', '해식애 안쪽으로 파인 굴', 'hot');
 labels.add('arch', '시 아치', '곶이 뚫려 생긴 구름다리', 'key');
 labels.add('shallow', '곶 앞 바다', '얕음', 'water');
 labels.add('deep', '만 앞 바다', '깊음', 'water');
@@ -143,7 +143,9 @@ function syncLabels() {
   put('stackArch', p.stackArch, 0.6, 11);
   put('sea', p.sea, 0.3, 3);
   // 천장이 있는 자리는 바닥이 아니라 바위 윗면에 이름표를 붙인다.
-  for (const key of ['cape', 'cave', 'arch']) if (p[key]) { const s = toScreen(p[key].x, ARCH.top + 0.6, p[key].y); if (s) list.push({ key, ...s, priority: 11, keep: true }); }
+  for (const key of ['cape', 'arch']) if (p[key]) { const s = toScreen(p[key].x, ARCH.top + 0.6, p[key].y); if (s) list.push({ key, ...s, priority: 11, keep: true }); }
+  // 해식 동굴은 해식애 면의 입구를 가리킨다.
+  if (p.cave) { const s = toScreen(p.cave.x, SEA + 1.2, p.cave.y); if (s) list.push({ key: 'cave', ...s, priority: 11, keep: true }); }
   const row = model.depthRow();
   put('shallow', { x: HEAD_X[0], y: row }, 0.3, 7);
   put('deep', { x: BAY_X, y: row }, 0.3, 7);

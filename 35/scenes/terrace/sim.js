@@ -139,7 +139,7 @@ export function placesOf() {
     valley: { name: '골짜기', sub: '물길이 단구를 끊은 자리', grid: VALLEY },
     back: { name: '뒤쪽 비탈', sub: '단구애로 보이는 곳', grid: BACK },
     cliff: { name: '바닷가 절벽', sub: '아랫부분까지 파랑이 닿는 곳', grid: CLIFF },
-    ship: { name: '썬크루즈 리조트', sub: '약 60~70m 땅의 절벽 가까이 선 배 모양 건물', grid: SHIP.grid },
+    ship: { name: '썬크루즈 리조트', sub: '약 60~70m 단구면의 절벽 가까이 선 배 모양 건물', grid: SHIP.grid },
     station: { name: '정동진역', grid: STATION },
     simgok: { name: '심곡리', grid: SIMGOK },
     geumjin: { name: '금진항', grid: GEUMJIN },

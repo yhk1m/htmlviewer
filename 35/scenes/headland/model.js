@@ -32,12 +32,12 @@ export const PRESETS = {
   calm: { wave: 'low', rock: 'mid' },
 };
 export { HEAD_X, BAY_X };
-// 오른쪽 곶 어깨에서 바다로 뻗은 좁은 곶. 옆면을 파고드는 약한 띠(j0~j1)에 해식 동굴이 생겨 시 아치가 되고, 천장이 무너지면 바깥쪽이 시 스택이 된다.
+// 오른쪽 곶 어깨에서 바다로 뻗은 좁은 곶. 절리(가운데 줄)를 따라 왼쪽 해식애 안쪽으로 해식 동굴이 파이고, 반대쪽 해식애까지 뚫리면 시 아치, 천장이 무너지면 바깥쪽이 시 스택이 된다.
 // 곶 가운데에서 벗어난 자리라 곶의 후퇴와 파식대 계산에 끼어들지 않는다.
-export const ARCH = { cx: 206, x0: 200, x1: 212, j0: 152, j1: 166, tip: 178, base: 150, top: 6.2, crown: 4 };
+export const ARCH = { cx: 206, x0: 200, x1: 212, j0: 154, j1: 164, tip: 178, base: 150, top: 6.2, crown: 4 };
 const fromArch = s => s.x > ARCH.x0 && s.x < ARCH.x1 && s.y > ARCH.j1; // 시 아치가 무너져 생긴 시 스택인가
 export { fromArch };
-const CAVE_RATE = 0.19; // 한쪽 옆면이 1초에 파고드는 칸 수(보통 파랑, 보통 암석)
+const CAVE_RATE = 0.38; // 해식 동굴이 1초에 파고드는 칸 수(보통 파랑, 보통 암석)
 const ROOF_LIFE = 22; // 뚫린 뒤 천장이 버티는 시간(보통 파랑, 보통 암석)
 
 const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
@@ -291,7 +291,7 @@ export function createModel(seed = 11, tuning = {}) {
     trailLen[slot] = TRAIL_PTS; trailAge[slot] = 0;
   }
 
-  // 약한 띠의 양쪽 옆면을 파랑이 파고든다. 굴 위에는 천장이 남으므로 높이 격자 대신 caved 표시로 기억한다.
+  // 절리를 따라 왼쪽 해식애에서 안쪽으로 파고든다. 굴 위에는 천장이 남으므로 높이 격자 대신 caved 표시로 기억한다.
   function carve(i) {
     for (let j = ARCH.j0; j <= ARCH.j1; j++) { const k = j * N + i; h[k] = PLATFORM - 0.03; cutAt[k] = Math.max(0.001, m.clock); caved[k] = 1; touch(k); }
     sandPool += 0.6;
@@ -304,11 +304,13 @@ export function createModel(seed = 11, tuning = {}) {
       // 옆면에 닿는 파랑 에너지에 따라 빠르기가 조금 달라진다.
       const row = ((ARCH.j0 + ARCH.j1) / 2) | 0, side = i => clamp(energy[row * N + i] / 0.04, 0.7, 1.3);
       a.dL += step * CAVE_RATE * side(ARCH.x0 - 2);
-      a.dR += step * CAVE_RATE * side(ARCH.x1 + 2);
-      while (a.dL >= 1 && a.caveL + a.caveR < width) { a.dL -= 1; carve(ARCH.x0 + a.caveL); a.caveL++; }
-      while (a.dR >= 1 && a.caveL + a.caveR < width) { a.dR -= 1; carve(ARCH.x1 - a.caveR); a.caveR++; }
-      if (!a.event && (a.caveL || a.caveR)) a.event = { name: 'cave', at: m.clock };
-      if (a.caveL + a.caveR >= width) { a.through = true; a.event = { name: 'arch', at: m.clock }; }
+      while (a.dL >= 1 && a.caveL < width) { a.dL -= 1; carve(ARCH.x0 + a.caveL); a.caveL++; }
+      if (!a.event && a.caveL) a.event = { name: 'cave', at: m.clock };
+      if (a.caveL >= width) {
+        a.through = true; a.event = { name: 'arch', at: m.clock };
+        // 뚫리면 굴 바닥에 빛이 들어 색이 바뀐다.
+        for (let k = 0; k < size; k++) if (caved[k]) touch(k);
+      }
       return;
     }
     a.wear += step / ROOF_LIFE;
@@ -319,7 +321,7 @@ export function createModel(seed = 11, tuning = {}) {
       sandPool += 8;
     }
   }
-  m.archStage = () => { const a = m.arch; return a.collapsed ? 'stack' : a.through ? 'arch' : a.caveL || a.caveR ? 'cave' : 'cape'; };
+  m.archStage = () => { const a = m.arch; return a.collapsed ? 'stack' : a.through ? 'arch' : a.caveL ? 'cave' : 'cape'; };
 
   // 시 스택: 육지와 떨어진 바위. 해안선에 이어지지 않은 땅 덩이를 찾는다. 시 아치의 천장은 아직 육지와 이어 준다.
   function findStacks() {
@@ -400,7 +402,7 @@ export function createModel(seed = 11, tuning = {}) {
     }
     const midJ = (ARCH.j0 + ARCH.j1) / 2, stage = m.archStage();
     if (stage === 'cape') out.cape = { x: ARCH.cx, y: midJ };
-    if (stage === 'cave') out.cave = { x: ARCH.cx, y: midJ };
+    if (stage === 'cave') out.cave = { x: ARCH.x0 - 0.5, y: midJ }; // 굴 입구가 있는 해식애 면
     if (stage === 'arch') out.arch = { x: ARCH.cx, y: midJ };
     return out;
   };
@@ -411,7 +413,7 @@ export function createModel(seed = 11, tuning = {}) {
     rng = makeRng(seed + 1);
     acc = 0; roundNo = 0; sandPool = 0; trailNext = 0; m.clock = 0; m.finished = false; m.eroded = 0; m.deposited = 0; m.stacks = []; m.stackPeak = 0; m.wavePhase = 0;
     damage.fill(0); sand.fill(0); cutAt.fill(0); energy.fill(0); isStackRock.fill(0); stackMark.fill(0); trailLen.fill(0); fin.fill(0); caved.fill(0);
-    m.arch = { caveL: 0, caveR: 0, dL: 0, dR: 0, wear: 0, through: false, collapsed: false, justFell: false, event: null };
+    m.arch = { caveL: 0, dL: 0, wear: 0, through: false, collapsed: false, justFell: false, event: null };
     buildBase(); buildBath(); traceRays(); updateFront();
     m.firstFront.set(front);
     m.firstHead = m.headEnergy(); m.firstBay = m.bayEnergy(); m.firstRelief = m.coastRelief();
@@ -443,8 +445,8 @@ export function ratioNote(m) {
   return r > 1.3 ? `곶에 닿는 파랑 에너지가 만의 ${r.toFixed(1)}배입니다. 그래서 곶은 깎이고 만에는 쌓입니다.` : '곶과 만의 파랑 에너지가 비슷해졌습니다. 해안이 단순해질수록 차이가 줄어듭니다.';
 }
 export function archNote(name) {
-  if (name === 'cave') return '굴절해 돌아 들어온 파랑이 좁은 곶의 옆면을 때립니다. 바위에서 절리나 단층처럼 약한 띠를 따라 파고들어 생긴 이 굴이 해식 동굴입니다.';
-  if (name === 'arch') return '해식 동굴이 커져 좁은 곶의 반대쪽까지 뚫렸습니다. 곶이 구름다리 모양이 된 이 지형이 시 아치입니다. 시 아치 보기를 누르면 뚫린 구멍이 잘 보입니다.';
+  if (name === 'cave') return '굴절해 돌아 들어온 파랑이 좁은 곶 옆의 해식애를 때립니다. 절리나 단층처럼 약한 줄(검은 줄)을 따라 침식이 집중되어, 해식애 안쪽으로 깊게 파인 이 굴이 해식 동굴입니다.';
+  if (name === 'arch') return '해식 동굴이 계속 커져 반대쪽 해식애까지 뚫렸습니다. 곶이 구름다리 모양이 된 이 지형이 시 아치입니다. 시 아치 보기를 누르면 뚫린 구멍이 잘 보입니다.';
   return '파랑을 계속 받아 시 아치 천장의 틈이 커졌고, 결국 천장이 무너졌습니다. 육지와 떨어져 바다에 남은 바깥쪽 바위가 시 스택입니다.';
 }
 export function noteText(m) {

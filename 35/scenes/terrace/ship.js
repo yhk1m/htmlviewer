@@ -1,5 +1,5 @@
 // © 2026 김용현
-// 정동진 평평한 땅 위의 배 모양 건물. 자리와 길이, 방향은 OpenStreetMap 건물 윤곽에서 옮겼고 생김새는 단순화한 그림이다.
+// 정동진 해안 단구면 위의 배 모양 건물. 자리와 길이, 방향은 OpenStreetMap 건물 윤곽에서 옮겼고 생김새는 단순화한 그림이다.
 import * as THREE from 'three';
 
 const BASE = 0x6f665a, WHITE = 0xf2f0ea, NAVY = 0x27415f, GLASS = 0x33495a, RED = 0xb8392e, DECK = 0xc9b48c;
@@ -30,8 +30,8 @@ function layer(length, width, y0, y1, color, x = 0) {
 // 길이, 폭, 높이는 m 단위다. 높이는 지형과 달리 과장하지 않는다.
 export function createShip({ length, width, height }) {
   const group = new THREE.Group(), H = height;
-  // 땅이 울퉁불퉁해도 떠 보이지 않게 아래를 받친다.
-  group.add(layer(length * 0.98, width * 0.98, -70, 0, BASE));
+  // 평평한 땅 위에 놓인 앞쪽까지만 받친다. 뱃머리 아래는 비워 단구면 윤곽과 붙지 않게 한다.
+  group.add(layer(length * 0.76, width * 0.9, -14, 0, BASE, -length * 0.12));
   group.add(layer(length, width, 0, H * 0.3, WHITE));
   group.add(layer(length * 0.995, width * 0.995, H * 0.3, H * 0.33, NAVY));
   const decks = [[0.84, 0.92, 0.33, 0.47], [0.7, 0.84, 0.47, 0.61], [0.55, 0.76, 0.61, 0.75], [0.36, 0.66, 0.75, 0.87]];
