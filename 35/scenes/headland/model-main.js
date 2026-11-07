@@ -9,7 +9,7 @@ import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap } from '../../shared/map-views.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
-import { createModel, sectionProfile, noteText, archNote, compareBrief, ratioNote, N, T_END, SEA, ARCH, HEAD_X, BAY_X } from './model.js';
+import { createModel, sectionProfile, noteText, archNote, caveViewNote, compareBrief, ratioNote, N, T_END, SEA, ARCH, HEAD_X, BAY_X } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
 
@@ -46,9 +46,11 @@ const VIEWS = {
   arch: { p: [ARCH.cx - CENTER - 92, 13, (ARCH.j0 + ARCH.j1) / 2 - CENTER + 44], t: [ARCH.cx - CENTER, 4, (ARCH.j0 + ARCH.j1) / 2 - CENTER] },
 };
 let currentView = 'oblique';
+// 곶의 해식 동굴을 바다에서 낮게 본다. 해식애가 물러나므로 누를 때 자리를 정한다.
+const caveView = () => { const c = model.cliffCaves[0], t = [c.x - CENTER, 3, model.front[c.x] - CENTER]; return { p: [t[0] - 26, 20, t[2] + 72], t }; };
 function setView(name) {
   currentView = name;
-  const z = portraitZoom(), { p, t } = VIEWS[name];
+  const z = portraitZoom(), { p, t } = name === 'cave' ? caveView() : VIEWS[name];
   camera.position.set(t[0] + (p[0] - t[0]) * z, t[1] + (p[1] - t[1]) * z, t[2] + (p[2] - t[2]) * z);
   controls.target.set(...t);
   controls.update();
@@ -104,7 +106,8 @@ labels.add('stack', '시 스택', '단단한 바위', 'key');
 labels.add('sea', '파랑이 오는 쪽', '', 'water');
 labels.add('cape', '좁은 곶', '검은 줄이 약한 절리', 'key');
 labels.add('stackArch', '시 스택', '천장이 무너져 남은 바위', 'key');
-labels.add('cave', '해식 동굴', '해식애 안쪽으로 파인 굴', 'hot');
+labels.add('cliffCave', '해식 동굴', '해식애 안쪽으로 파인 굴', 'hot');
+labels.add('cave', '해식 동굴', '반대쪽으로 파고드는 중', 'hot');
 labels.add('arch', '시 아치', '곶이 뚫려 생긴 구름다리', 'key');
 labels.add('shallow', '곶 앞 바다', '얕음', 'water');
 labels.add('deep', '만 앞 바다', '깊음', 'water');
@@ -145,6 +148,7 @@ function syncLabels() {
   // 천장이 있는 자리는 바닥이 아니라 바위 윗면에 이름표를 붙인다.
   for (const key of ['cape', 'arch']) if (p[key]) { const s = toScreen(p[key].x, ARCH.top + 0.6, p[key].y); if (s) list.push({ key, ...s, priority: 11, keep: true }); }
   // 해식 동굴은 해식애 면의 입구를 가리킨다.
+  if (p.cliffCave) { const s = toScreen(p.cliffCave.x, SEA + p.cliffCave.height * 0.6, p.cliffCave.y); if (s) list.push({ key: 'cliffCave', ...s, priority: 12, keep: true }); }
   if (p.cave) { const s = toScreen(p.cave.x, SEA + 1.2, p.cave.y); if (s) list.push({ key: 'cave', ...s, priority: 11, keep: true }); }
   const row = model.depthRow();
   put('shallow', { x: HEAD_X[0], y: row }, 0.3, 7);
@@ -194,6 +198,13 @@ function drawSection(canvas, m) {
   for (let t = 0; t < samples; t++) if (p.kinds[t] === 'platform') { if (pStart < 0) pStart = t; pEnd = t; }
   if (pEnd - pStart > 4) say('파식대', (x(pStart) + x(pEnd)) / 2 + 20, seaY - 22, '#efe9d8');
   say('파랑', W - 130, seaY - 22, '#ffffff', 26);
+  // 해식 동굴: 해식애 안쪽으로 파인 굴을 잘라 본 모습. 안쪽으로 갈수록 천장이 낮아진다.
+  if (p.cave) {
+    const back = firstSea - p.cave.depth / p.cave.cellsPerSample;
+    ctx.fillStyle = '#0e1112';
+    ctx.beginPath(); ctx.moveTo(x(firstSea), seaY); ctx.lineTo(x(firstSea), yOf(p.cave.height)); ctx.quadraticCurveTo(x((firstSea + back) / 2), yOf(p.cave.height * 0.95), x(back), seaY); ctx.closePath(); ctx.fill();
+    say('해식 동굴', x(back) - 90, yOf(p.cave.height) - 6, '#ffd36b');
+  }
   ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b'; ctx.textAlign = 'center';
   ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
   ctx.textAlign = 'left'; ctx.font = '700 24px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
@@ -225,14 +236,14 @@ function syncInfo() {
   }
   // 시 아치 보기에서는 눈앞의 단계를 설명한다.
   const closeStage = currentView === 'arch' && !model.finished && (stage === 'cave' || stage === 'arch' || stage === 'stack');
-  noteEl.textContent = closeStage ? archNote(stage) : noteText(model);
+  noteEl.textContent = currentView === 'cave' && !model.finished ? caveViewNote(model) : closeStage ? archNote(stage) : noteText(model);
   document.getElementById('steps').textContent = model.finished ? '완성' : `진행 ${Math.floor((model.clock / T_END) * 100)}%`;
   // 곧아진 해안 단계는 오랜 시간 뒤의 그림이라 자동으로 넘어가지 않는다.
   schematic.setStage(model.platformWidth() >= 8 ? 2 : model.clock > 6 ? 1 : 0);
 }
 
 // 모식도 구역을 누르면 3D 이름표가 강조된다.
-const ZONE_LABELS = { head: ['head'], bay: ['bay'], cliff: ['cliff'], platform: ['platform'], beach: ['beach'], stack: ['stack', 'stackArch'], wave: ['sea'], arch: ['cave', 'arch'] };
+const ZONE_LABELS = { head: ['head'], bay: ['bay'], cliff: ['cliff'], platform: ['platform'], beach: ['beach'], stack: ['stack', 'stackArch'], wave: ['sea'], arch: ['cliffCave', 'cave', 'arch'] };
 const highlight = zone => {
   for (const [z, keys] of Object.entries(ZONE_LABELS)) for (const k of keys) labels.element(k).classList.toggle('hi', z === zone);
   dirty = true;

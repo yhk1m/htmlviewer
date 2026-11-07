@@ -37,6 +37,9 @@ export { HEAD_X, BAY_X };
 export const ARCH = { cx: 206, x0: 200, x1: 212, j0: 154, j1: 164, tip: 178, base: 150, top: 6.2, crown: 4 };
 const fromArch = s => s.x > ARCH.x0 && s.x < ARCH.x1 && s.y > ARCH.j1; // 시 아치가 무너져 생긴 시 스택인가
 export { fromArch };
+// 곶의 큰 해식애에 난 절리. 해식애가 충분히 높아지면 절리를 따라 안쪽으로 굴이 파이고, 해식애가 물러나면 굴도 절리를 따라 함께 물러난다.
+// 굴은 h를 바꾸지 않고 깊이만 기억한다. 그래서 해안선과 파랑 계산에는 끼어들지 않는다.
+export const CLIFF_CAVE = { xs: [72, 178], half: 5, rate: 0.75, maxDepth: 10, minFace: 2.2, crown: 3.2, jointRows: 34 };
 const CAVE_RATE = 0.38; // 해식 동굴이 1초에 파고드는 칸 수(보통 파랑, 보통 암석)
 const ROOF_LIFE = 22; // 뚫린 뒤 천장이 버티는 시간(보통 파랑, 보통 암석)
 
@@ -115,7 +118,12 @@ export function createModel(seed = 11, tuning = {}) {
     // 곶 끝의 단단한 암석 덩이. 주변이 물러나도 남아 시 스택이 된다.
     const r2 = makeRng(seed * 13 + 5);
     for (const hx of HEAD_X) for (let q = 0; q < 3; q++) {
-      const cx = hx + (r2() - 0.5) * 10 + (q - 1) * 13, cy = coastRow(Math.round(cx)) - 5 - r2() * 8, R = 2.8 + r2() * 1.2;
+      let cx = hx + (r2() - 0.5) * 10 + (q - 1) * 13;
+      // 해식 동굴의 입구를 가리지 않도록 절리에서 떼어 놓는다.
+      // 옮긴 덩이는 해식애가 더디게 물러나는 자리라, 바다 쪽에 두어야 나중에 시 스택으로 떨어져 나온다.
+      let seaward = 0;
+      for (const x of CLIFF_CAVE.xs) if (Math.abs(cx - x) < CLIFF_CAVE.half + 3) { cx = x + (cx < x ? -1 : 1) * (CLIFF_CAVE.half + 3); seaward = 1; }
+      const shift = r2() * 8, cy = coastRow(Math.round(cx)) - (seaward ? 2 + shift * 0.4 : 5 + shift), R = 2.8 + r2() * 1.2;
       if (Math.abs(cx - ARCH.cx) < 16) continue; // 좁은 곶과 겹치지 않게 한다.
       for (let j = Math.floor(cy - R); j <= cy + R; j++) for (let i = Math.floor(cx - R); i <= cx + R; i++) {
         const dx = i - cx, dy = j - cy;
@@ -321,6 +329,23 @@ export function createModel(seed = 11, tuning = {}) {
       sandPool += 8;
     }
   }
+  // 곶의 해식애에 파이는 해식 동굴
+  function growCliffCaves() {
+    const step = (ROUND * power) / rockK;
+    for (const c of m.cliffCaves) {
+      let row = N, sum = 0, cnt = 0;
+      for (let i = c.x - CLIFF_CAVE.half; i <= c.x + CLIFF_CAVE.half; i++) { if (front[i] < row) row = front[i]; sum += h[(front[i] - 1) * N + i]; cnt++; }
+      c.face = sum / cnt;
+      if (c.row > row && c.depth > 0) c.depth = Math.max(0, c.depth - (c.row - row)); // 해식애가 물러난 만큼 굴의 앞쪽이 사라진다.
+      c.row = row;
+      if (c.face < CLIFF_CAVE.minFace) continue;
+      const e = clamp(energy[(row - 1) * N + c.x] / 0.04, 0.7, 1.3);
+      c.depth = Math.min(CLIFF_CAVE.maxDepth, c.depth + step * CLIFF_CAVE.rate * e);
+      if (m.cliffCaveAt < 0 && c.depth >= 1) m.cliffCaveAt = m.clock;
+    }
+  }
+  // 입구의 크기: 굴이 깊어질수록 커지되 해식애보다 높아지지 않는다.
+  m.caveMouth = c => { const grow = 0.4 + 0.6 * Math.min(1, c.depth / CLIFF_CAVE.maxDepth); return { half: CLIFF_CAVE.half * grow, height: Math.min(c.face * 0.7, CLIFF_CAVE.crown * grow) }; };
   m.archStage = () => { const a = m.arch; return a.collapsed ? 'stack' : a.through ? 'arch' : a.caveL ? 'cave' : 'cape'; };
 
   // 시 스택: 육지와 떨어진 바위. 해안선에 이어지지 않은 땅 덩이를 찾는다. 시 아치의 천장은 아직 육지와 이어 준다.
@@ -351,6 +376,7 @@ export function createModel(seed = 11, tuning = {}) {
     if (roundNo % 8 === 1) { buildBath(); traceRays(); updateFront(); }
     erode();
     growCave();
+    growCliffCaves();
     if (roundNo % 2 === 0) { updateFront(); feedBeach(); }
     if (roundNo % 10 === 0 || m.arch.justFell) { m.arch.justFell = false; findStacks(); const others = m.stacks.filter(s => !fromArch(s)).length; if (others > m.stackPeak) m.stackPeak = others; }
     for (let t = 0; t < TRAILS; t++) trailAge[t] += ROUND;
@@ -400,6 +426,8 @@ export function createModel(seed = 11, tuning = {}) {
       const own = m.stacks.find(fromArch), s = own ?? m.stacks[0];
       out[own ? 'stackArch' : 'stack'] = { x: s.x, y: s.y };
     }
+    const own = m.cliffCaves.find(c => c.depth >= 1);
+    if (own) out.cliffCave = { x: own.x, y: front[own.x] - 0.5, height: m.caveMouth(own).height };
     const midJ = (ARCH.j0 + ARCH.j1) / 2, stage = m.archStage();
     if (stage === 'cape') out.cape = { x: ARCH.cx, y: midJ };
     if (stage === 'cave') out.cave = { x: ARCH.x0 - 0.5, y: midJ }; // 굴 입구가 있는 해식애 면
@@ -411,11 +439,12 @@ export function createModel(seed = 11, tuning = {}) {
   m.reset = () => {
     power = WAVE[m.options.wave].power; rockK = ROCK[m.options.rock].strength;
     rng = makeRng(seed + 1);
-    acc = 0; roundNo = 0; sandPool = 0; trailNext = 0; m.clock = 0; m.finished = false; m.eroded = 0; m.deposited = 0; m.stacks = []; m.stackPeak = 0; m.wavePhase = 0;
+    acc = 0; roundNo = 0; sandPool = 0; trailNext = 0; m.clock = 0; m.finished = false; m.eroded = 0; m.deposited = 0; m.stacks = []; m.stackPeak = 0; m.wavePhase = 0; m.cliffCaveAt = -1;
     damage.fill(0); sand.fill(0); cutAt.fill(0); energy.fill(0); isStackRock.fill(0); stackMark.fill(0); trailLen.fill(0); fin.fill(0); caved.fill(0);
     m.arch = { caveL: 0, dL: 0, wear: 0, through: false, collapsed: false, justFell: false, event: null };
     buildBase(); buildBath(); traceRays(); updateFront();
     m.firstFront.set(front);
+    m.cliffCaves = CLIFF_CAVE.xs.map(x => ({ x, depth: 0, face: 0, row: front[x] }));
     m.firstHead = m.headEnergy(); m.firstBay = m.bayEnergy(); m.firstRelief = m.coastRelief();
     dirtyFlag.fill(0); m.dirtyCount = 0; m.allDirty = true;
   };
@@ -428,7 +457,7 @@ export function createModel(seed = 11, tuning = {}) {
   return m;
 }
 
-// 단면: 앞 곶의 가운데를 육지에서 바다로 자른다. 위치는 고정이다.
+// 단면: 앞 곶의 가운데를 육지에서 바다로 자른다. 곶의 해식 동굴도 이 줄에 걸린다. 위치는 고정이다.
 export const sectionLine = () => ({ ax: HEAD_X[0], ay: 30, bx: HEAD_X[0], by: 215 });
 export function sectionProfile(m, samples = 240) {
   const S = sectionLine(), out = { start: new Float32Array(samples), top: new Float32Array(samples), kinds: new Array(samples), S };
@@ -436,6 +465,9 @@ export function sectionProfile(m, samples = 240) {
     const f = t / (samples - 1), j = Math.round(S.ay + (S.by - S.ay) * f), k = j * N + S.ax;
     out.start[t] = m.start[k]; out.top[t] = m.h[k]; out.kinds[t] = m.cellKind(k);
   }
+  // 단면이 지나는 해식 동굴. 굴 윗부분은 입구에서 안쪽으로 갈수록 낮아진다.
+  const c = m.cliffCaves.find(q => q.depth >= 1 && Math.abs(q.x - S.ax) <= CLIFF_CAVE.half);
+  if (c) { const q = m.caveMouth(c), u = (S.ax - c.x) / q.half, w = 1 - u * u; if (w > 0) out.cave = { depth: c.depth, height: q.height * Math.sqrt(w), cellsPerSample: (S.by - S.ay) / (samples - 1) }; }
   return out;
 }
 
@@ -444,8 +476,13 @@ export function ratioNote(m) {
   const r = m.headEnergy() / Math.max(0.01, m.bayEnergy());
   return r > 1.3 ? `곶에 닿는 파랑 에너지가 만의 ${r.toFixed(1)}배입니다. 그래서 곶은 깎이고 만에는 쌓입니다.` : '곶과 만의 파랑 에너지가 비슷해졌습니다. 해안이 단순해질수록 차이가 줄어듭니다.';
 }
+export const CLIFF_CAVE_NOTE = '파랑이 모인 곶의 해식애에서는 절리나 단층처럼 약한 줄(검은 줄)을 따라 침식이 집중됩니다. 해식애 안쪽으로 크고 깊게 파인 이 굴이 해식 동굴입니다.';
+export function caveViewNote(m) {
+  if (m.cliffCaves.some(c => c.depth >= 1)) return CLIFF_CAVE_NOTE;
+  return '아직 해식애가 낮아 굴이 파이지 않았습니다. 곶이 깎여 해식애가 높아지면 검은 줄을 따라 해식 동굴이 파입니다.';
+}
 export function archNote(name) {
-  if (name === 'cave') return '굴절해 돌아 들어온 파랑이 좁은 곶 옆의 해식애를 때립니다. 절리나 단층처럼 약한 줄(검은 줄)을 따라 침식이 집중되어, 해식애 안쪽으로 깊게 파인 이 굴이 해식 동굴입니다.';
+  if (name === 'cave') return '좁게 튀어나온 곶의 해식애에도 절리를 따라 해식 동굴이 파입니다. 양쪽이 바다라 굴이 계속 커지면 반대쪽 해식애까지 뚫릴 수 있습니다.';
   if (name === 'arch') return '해식 동굴이 계속 커져 반대쪽 해식애까지 뚫렸습니다. 곶이 구름다리 모양이 된 이 지형이 시 아치입니다. 시 아치 보기를 누르면 뚫린 구멍이 잘 보입니다.';
   return '파랑을 계속 받아 시 아치 천장의 틈이 커졌고, 결국 천장이 무너졌습니다. 육지와 떨어져 바다에 남은 바깥쪽 바위가 시 스택입니다.';
 }
@@ -457,6 +494,7 @@ export function noteText(m) {
     if (opt.wave === 'high') text += ' 파랑이 강해 더 빨리 물러납니다.';
     if (opt.rock === 'hard') text += ' 단단한 암석은 잘 깎이지 않아 곶이 더 오래 남습니다.';
     if (opt.rock === 'soft') text += ' 무른 암석은 빨리 깎여 해안선이 더 빨리 단순해집니다.';
+    if (m.cliffCaves.some(c => c.depth >= 1)) text += ' 곶의 해식애에는 절리를 따라 해식 동굴이 파였습니다.';
     const stage = m.archStage(), others = m.stacks.filter(s => !fromArch(s)).length;
     if (others) text += ` 잘 깎이지 않는 바위 ${others}개가 시 스택으로 남았습니다.`;
     else if (m.stackPeak) text += ' 한때 남았던 시 스택도 파랑에 깎여 사라졌습니다.';
@@ -467,6 +505,7 @@ export function noteText(m) {
     return text;
   }
   if (m.clock < 6) return '파랑은 얕은 곳에서 느려집니다. 곶 앞이 먼저 얕아지므로 파봉선이 휘어 해안선을 닮고, 진행 방향선은 곶으로 모이고 만에서는 퍼집니다. 이것이 파랑의 굴절입니다.';
+  if (m.cliffCaveAt >= 0 && m.clock - m.cliffCaveAt < 9) return CLIFF_CAVE_NOTE;
   const ev = m.arch.event;
   if (ev && m.clock - ev.at < 9) return archNote(ev.name);
   if (m.stacks.length) return '잘 깎이지 않는 바위는 주변 암석이 먼저 깎이면 육지와 떨어져 남습니다. 이것이 시 스택입니다. 절벽은 그 뒤로 계속 물러나고, 시 스택도 오랜 시간이 지나면 깎여 사라집니다.';

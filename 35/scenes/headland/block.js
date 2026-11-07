@@ -1,7 +1,7 @@
 // © 2026 김용현
 // 곶과 만 형성 모형 하나를 그리는 3D 블록. group을 옮겨 나란히 놓을 수 있다. 계산은 하지 않고 model의 값을 그대로 그린다.
 import * as THREE from 'three';
-import { N, SEA, RAYS, RAY_STEPS, HEAD_X, BAY_X, ARCH, currentDir, sectionLine as sectionXY } from './model.js';
+import { N, SEA, RAYS, RAY_STEPS, HEAD_X, BAY_X, ARCH, CLIFF_CAVE, currentDir, sectionLine as sectionXY } from './model.js';
 import { gridIndex } from '../../shared/grid.js';
 
 const CENTER = N / 2;
@@ -122,11 +122,11 @@ export function createBlock(model) {
   roof.castShadow = roof.receiveShadow = true;
   roof.frustumCulled = false;
   group.add(roof);
-  const caveArrows = new THREE.InstancedMesh(arrowGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }), 2);
+  const caveArrows = new THREE.InstancedMesh(arrowGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }), 1 + CLIFF_CAVE.xs.length);
   caveArrows.frustumCulled = false; caveArrows.renderOrder = 4;
   group.add(caveArrows);
-  const hideCaveArrows = () => { m4.makeScale(0, 0, 0); caveArrows.setMatrixAt(0, m4); caveArrows.setMatrixAt(1, m4); caveArrows.instanceMatrix.needsUpdate = true; };
-  hideCaveArrows();
+  const hideCaveArrow = slot => { m4.makeScale(0, 0, 0); caveArrows.setMatrixAt(slot, m4); caveArrows.instanceMatrix.needsUpdate = true; };
+  for (let s = 0; s <= CLIFF_CAVE.xs.length; s++) hideCaveArrow(s);
   let roofKey = '';
   function syncRoof() {
     const a = model.arch, key = `${a.caveL},${a.collapsed}`;
@@ -168,13 +168,73 @@ export function createBlock(model) {
     roofGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(cols), 3));
     roof.visible = tris.length > 0;
     // 굴을 파는 동안 옆면으로 들어가는 파랑을 화살표로 보여 준다.
-    if (a.through || a.collapsed) hideCaveArrows();
+    if (a.through || a.collapsed) hideCaveArrow(0);
     else {
       const z = mid - CENTER;
       scl.makeScale(5, 1, 3.2);
       m4.copy(scl); m4.setPosition(ARCH.x0 - 8 - CENTER, SEA + 0.2, z); caveArrows.setMatrixAt(0, m4);
       caveArrows.instanceMatrix.needsUpdate = true;
     }
+  }
+
+  // 곶의 해식애에 난 해식 동굴. 높이 격자는 그대로 두고, 절벽 면을 따라 어두운 입구를 그린다. 안쪽은 빛이 닿지 않아 어둡다.
+  const cliffCaveGeo = new THREE.BufferGeometry();
+  const cliffCaveMesh = new THREE.Mesh(cliffCaveGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+  cliffCaveMesh.frustumCulled = false;
+  group.add(cliffCaveMesh);
+  const RIM = linear('#3a3631');
+  let cliffCaveKey = '';
+  function syncCliffCaves() {
+    const { h, front, cliffCaves } = model;
+    let key = '';
+    for (const c of cliffCaves) { key += `${c.depth.toFixed(1)},${c.face.toFixed(1)};`; for (let i = c.x - CLIFF_CAVE.half - 2; i <= c.x + CLIFF_CAVE.half + 2; i++) key += `${front[i]},`; }
+    if (key === cliffCaveKey) return;
+    cliffCaveKey = key;
+    // 칸 사이는 이어서, 절벽 면의 그 높이에 있는 줄 위치를 구한다.
+    const oneRow = (i, y) => {
+      const F = front[i], H = h[(F - 1) * N + i], B = h[F * N + i];
+      return y >= H ? F - 1 : F - 1 + (H - y) / (H - B);
+    };
+    // 절벽 면은 칸마다 조금씩 들쭉날쭉하다. 튀어나온 칸이 입구를 뚫고 나오지 않도록 양옆 칸 중 바다 쪽을 따르되, 멀리 튀어나온 칸은 따라가지 않는다.
+    const colRow = (i, y) => { const own = oneRow(i, y); return Math.min(own + 1.5, Math.max(oneRow(i - 2, y), oneRow(i - 1, y), own, oneRow(i + 1, y), oneRow(i + 2, y))); };
+    const faceRow = (x, y) => { const a = Math.floor(x), f = x - a; return colRow(a, y) * (1 - f) + colRow(a + 1, y) * f; };
+    const P = [], C = [];
+    const tri = (color, ...v) => { for (const p of v) { P.push(...p); C.push(...color); } };
+    const arch = (c, half, height, off, color) => {
+      const STEPS = Math.max(6, Math.round(half * 4)), LOW = SEA - 0.25;
+      const roofAt = u => LOW + (height - LOW) * Math.sqrt(Math.max(0, 1 - u * u));
+      const pt = (x, y) => [x - CENTER, y, faceRow(x, y) + off - CENTER];
+      for (let n = 0; n < STEPS; n++) {
+        const u0 = -1 + (2 * n) / STEPS, u1 = -1 + (2 * (n + 1)) / STEPS, x0 = c.x + u0 * half, x1 = c.x + u1 * half;
+        // 면을 세로로 나눠 절벽의 기울기를 따라가게 한다.
+        for (let q = 0; q < 4; q++) {
+          const s0 = q / 4, s1 = (q + 1) / 4, y = (u, s) => LOW + (roofAt(u) - LOW) * s;
+          const a = pt(x0, y(u0, s0)), b = pt(x1, y(u1, s0)), d = pt(x0, y(u0, s1)), e = pt(x1, y(u1, s1));
+          tri(color, a, b, e, a, e, d);
+        }
+      }
+    };
+    cliffCaves.forEach((c, n) => {
+      if (c.depth < 0.05) { hideCaveArrow(n + 1); return; }
+      const q = model.caveMouth(c);
+      // 굴 위로 올라가는 절리
+      const top = h[(front[c.x] - 1) * N + c.x], jw = 0.35, jl = c.x - jw, jr = c.x + jw, ja = q.height, N2 = 4;
+      for (let s = 0; s < N2; s++) {
+        const y0 = ja + ((top - ja) * s) / N2, y1 = ja + ((top - ja) * (s + 1)) / N2, r = (x, y) => [x - CENTER, y, faceRow(x, y) + 0.3 - CENTER];
+        if (top > ja) tri(JOINT, r(jl, y0), r(jr, y0), r(jr, y1), r(jl, y0), r(jr, y1), r(jl, y1));
+      }
+      arch(c, q.half + 0.7, q.height + 0.35, 0.25, RIM);
+      arch(c, q.half, q.height, 0.4, DARK);
+      // 굴로 들어가는 파랑
+      scl.makeScale(4, 1, 2.6);
+      m4.makeRotationY(Math.PI / 2).multiply(scl);
+      m4.setPosition(c.x - CENTER, SEA + 0.2, front[c.x] + 7 - CENTER);
+      caveArrows.setMatrixAt(n + 1, m4);
+      caveArrows.instanceMatrix.needsUpdate = true;
+    });
+    cliffCaveGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(P), 3));
+    cliffCaveGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(C), 3));
+    cliffCaveMesh.visible = P.length > 0;
   }
 
   // 단면 위치
@@ -203,6 +263,8 @@ export function createBlock(model) {
         if (sand[k] > 0.02) v = SAND[q];
         // 절리: 둘레 바위에 난 검은 줄. 해식 동굴이 이 줄을 따라 파인다.
         if (model.fin[k] && !model.arch.collapsed && j === ((ARCH.j0 + ARCH.j1) >> 1)) v = JOINT[q];
+        // 곶의 절리. 땅에 고정된 줄이라 해식애가 물러나도 자리가 그대로이다.
+        if (CLIFF_CAVE.xs.includes(i) && j > model.firstFront[i] - CLIFF_CAVE.jointRows) v = JOINT[q];
       } else if (sand[k] > 0.02) v = SAND[q] * 0.85 + BED[q] * 0.15;
       else if (model.caved[k] && !model.arch.through) v = DARK[q];
       // 좁은 곶의 발치: 옆면이 물속 바닥색으로 번지지 않아 시 아치와 둘레 절벽의 색이 같아진다.
@@ -266,6 +328,7 @@ export function createBlock(model) {
     syncSheet();
     syncSectionLine();
     syncRoof();
+    syncCliffCaves();
     const dl = depthLineGeo.attributes.position, row = model.depthRow() - CENTER;
     dl.setXYZ(0, HEAD_X[0] - CENTER, SEA + 0.1, row); dl.setXYZ(1, BAY_X - CENTER, SEA + 0.1, row); dl.needsUpdate = true;
     depthLine.computeLineDistances();
