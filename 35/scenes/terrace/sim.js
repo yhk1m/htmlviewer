@@ -15,6 +15,8 @@ export const VALLEY = [368, 277]; // 두 단구면을 끊는 골짜기
 export const BACK = [316, 225]; // 단구면 뒤쪽 비탈
 export const CLIFF = [396, 300]; // 단구면 앞 바닷가 절벽
 export const SEA_SPOT = [470, 250];
+// 썬크루즈리조트. OpenStreetMap 건물 윤곽(way 479603968)의 가운데 37.6834N 129.0439E, 길이 약 153m, 폭 약 27m, 뱃머리는 북동쪽 바다를 본다. 높이 약 45m는 소개 자료의 값이다.
+export const SHIP = { grid: [334, 146], length: 153, width: 27, height: 45, heading: 0.641 };
 export const PROFILE = { j: 300, from: 322, to: 440 }; // 단면을 재는 동서 직선
 export const FLAT_LO = 55, FLAT_HI = 95; // 단구면으로 칠할 높이 범위(m)
 const SEA_HEIGHT = 0.8;
@@ -90,6 +92,8 @@ export function buildJeongdongjin(dem) {
     forest[k] = fo; water[k] = wet;
     mountain[k] = clamp(1 - farm - wet);
   }
+  // 건물 자리에는 나무를 심지 않는다.
+  for (let j = SHIP.grid[1] - 9; j <= SHIP.grid[1] + 9; j++) for (let i = SHIP.grid[0] - 9; i <= SHIP.grid[0] + 9; i++) { mountain[idx(i, j)] = 0; forest[idx(i, j)] = 0; }
   return { h, sh, sea, flatLand, mountain, stage: { h, splatA, splatB, forest, water, total }, stats: { blobs, flatCells } };
 }
 
@@ -135,6 +139,7 @@ export function placesOf() {
     valley: { name: '골짜기', sub: '물길이 단구를 끊은 자리', grid: VALLEY },
     back: { name: '뒤쪽 비탈', sub: '단구애로 보이는 곳', grid: BACK },
     cliff: { name: '바닷가 절벽', sub: '아랫부분까지 파랑이 닿는 곳', grid: CLIFF },
+    ship: { name: '썬크루즈 리조트', sub: '약 60~70m 땅의 절벽 가까이 선 배 모양 건물', grid: SHIP.grid },
     station: { name: '정동진역', grid: STATION },
     simgok: { name: '심곡리', grid: SIMGOK },
     geumjin: { name: '금진항', grid: GEUMJIN },

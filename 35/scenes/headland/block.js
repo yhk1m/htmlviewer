@@ -1,7 +1,7 @@
 // © 2026 김용현
 // 곶과 만 형성 모형 하나를 그리는 3D 블록. group을 옮겨 나란히 놓을 수 있다. 계산은 하지 않고 model의 값을 그대로 그린다.
 import * as THREE from 'three';
-import { N, SEA, RAYS, RAY_STEPS, currentDir, sectionLine as sectionXY } from './model.js';
+import { N, SEA, RAYS, RAY_STEPS, HEAD_X, BAY_X, ARCH, currentDir, sectionLine as sectionXY } from './model.js';
 import { gridIndex } from '../../shared/grid.js';
 
 const CENTER = N / 2;
@@ -15,7 +15,7 @@ export function createBlock(model) {
   const group = new THREE.Group();
   group.scale.y = VE;
   const linear = hex => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
-  const FOREST = linear('#46603a'), FOREST2 = linear('#5a7346'), GRASS = linear('#8ea765'), SAND = linear('#e6cf90'), ROCK = linear('#6f665a'), CLIFF = linear('#8a7f70'), PLATFORM = linear('#7d7566'), BED = linear('#8c8069'), DEEP = linear('#3a4f5c'), HARD = linear('#4f4a44');
+  const FOREST = linear('#46603a'), FOREST2 = linear('#5a7346'), GRASS = linear('#8ea765'), SAND = linear('#e6cf90'), ROCK = linear('#6f665a'), CLIFF = linear('#8a7f70'), PLATFORM = linear('#7d7566'), BED = linear('#c4b48e'), DEEP = linear('#1f3442'), HARD = linear('#4f4a44'), WEAK = linear('#b59a6c');
 
   const pos = new Float32Array(N * N * 3), nor = new Float32Array(N * N * 3), col = new Float32Array(N * N * 3), speckle = new Float32Array(N * N), patch = new Float32Array(N * N);
   {
@@ -54,6 +54,14 @@ export function createBlock(model) {
   const skirt = new THREE.Mesh(skirtGeo, new THREE.MeshBasicMaterial({ color: 0x4d463d, side: THREE.DoubleSide }));
   skirt.frustumCulled = false;
   group.add(skirt);
+  // 옆면의 물: 바닥에서 수면까지. 블록 옆에서도 곶 앞과 만 앞의 수심 차이가 보인다.
+  const waterSidePos = new Float32Array(skirtPts.length * 6), waterSideGeo = new THREE.BufferGeometry();
+  waterSideGeo.setAttribute('position', new THREE.BufferAttribute(waterSidePos, 3));
+  waterSideGeo.setIndex(skirtGeo.index);
+  const waterSide = new THREE.Mesh(waterSideGeo, new THREE.MeshBasicMaterial({ color: 0x2f86c9, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+  waterSide.frustumCulled = false;
+  waterSide.renderOrder = 1;
+  group.add(waterSide);
 
   // 바다: 땅이 수면보다 높으면 땅에 가려 물가가 저절로 생긴다. 얕은 곳은 밝게 칠한다.
   const SN = SHEET, step = (N - 1) / (SN - 1);
@@ -102,6 +110,72 @@ export function createBlock(model) {
   grains.frustumCulled = false;
   group.add(grains);
 
+  // 수심을 비교하는 줄: 먼바다에서 같은 거리에 있는 곶 앞과 만 앞을 잇는다.
+  const depthLineGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+  const depthLine = new THREE.Line(depthLineGeo, new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 3, gapSize: 2.4 }));
+  depthLine.frustumCulled = false; depthLine.renderOrder = 3;
+  group.add(depthLine);
+
+  // 굴 위의 천장. 높이 격자는 천장을 그릴 수 없으므로 따로 만든다. 윗면은 바위 높이, 아랫면은 활 모양이다.
+  const roofGeo = new THREE.BufferGeometry();
+  const roof = new THREE.Mesh(roofGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide }));
+  roof.castShadow = roof.receiveShadow = true;
+  roof.frustumCulled = false;
+  group.add(roof);
+  const caveArrows = new THREE.InstancedMesh(arrowGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }), 2);
+  caveArrows.frustumCulled = false; caveArrows.renderOrder = 4;
+  group.add(caveArrows);
+  const hideCaveArrows = () => { m4.makeScale(0, 0, 0); caveArrows.setMatrixAt(0, m4); caveArrows.setMatrixAt(1, m4); caveArrows.instanceMatrix.needsUpdate = true; };
+  hideCaveArrows();
+  let roofKey = '';
+  function syncRoof() {
+    const a = model.arch, key = `${a.caveL},${a.caveR},${a.collapsed}`;
+    if (key === roofKey) return;
+    roofKey = key;
+    const tris = [], norm = [], cols = [];
+    const jA = ARCH.j0 - 1, jB = ARCH.j1 + 1, mid = (jA + jB) / 2, span = (jB - jA) / 2, STEPS = 18;
+    const grow = 0.55 + 0.45 * Math.min(1, (a.caveL + a.caveR) / (ARCH.x1 - ARCH.x0 + 1)); // 굴이 깊어질수록 입구도 높아진다.
+    const under = j => { const t = (j - mid) / span, q = 1 - t * t; return SEA - 0.3 + (ARCH.crown * grow + 0.3) * Math.sqrt(q < 0 ? 0 : q); };
+    const top = j => model.sample(ARCH.cx, jA) + (model.sample(ARCH.cx, jB) - model.sample(ARCH.cx, jA)) * ((j - jA) / (jB - jA));
+    const quad = (color, p, q, r, s) => {
+      tris.push(...p, ...q, ...r, ...p, ...r, ...s);
+      for (let n = 0; n < 6; n++) cols.push(...color);
+      const ux = q[0] - p[0], uy = q[1] - p[1], uz = q[2] - p[2], vx = r[0] - p[0], vy = r[1] - p[1], vz = r[2] - p[2];
+      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+      for (let n = 0; n < 6; n++) norm.push(nx, ny, nz);
+    };
+    const P = (x, y, j) => [x - CENTER, y, j - CENTER];
+    const pad = 0.15, spans = [];
+    if (!a.collapsed) {
+      if (a.through) spans.push([ARCH.x0 - pad, ARCH.x1 + pad, true, true]);
+      else {
+        if (a.caveL) spans.push([ARCH.x0 - pad, ARCH.x0 + a.caveL, true, false]);
+        if (a.caveR) spans.push([ARCH.x1 - a.caveR, ARCH.x1 + pad, false, true]);
+      }
+    }
+    for (const [xa, xb, openA, openB] of spans) for (let n = 0; n < STEPS; n++) {
+      const j0 = jA + ((jB - jA) * n) / STEPS, j1 = jA + ((jB - jA) * (n + 1)) / STEPS;
+      quad(WEAK, P(xa, top(j0), j0), P(xa, top(j1), j1), P(xb, top(j1), j1), P(xb, top(j0), j0));
+      quad(HARD, P(xa, under(j0), j0), P(xb, under(j0), j0), P(xb, under(j1), j1), P(xa, under(j1), j1));
+      // 옆면에서 보이는 입구의 윗부분
+      if (openA) quad(WEAK, P(xa, under(j0), j0), P(xa, under(j1), j1), P(xa, top(j1), j1), P(xa, top(j0), j0));
+      if (openB) quad(WEAK, P(xb, under(j0), j0), P(xb, top(j0), j0), P(xb, top(j1), j1), P(xb, under(j1), j1));
+    }
+    roofGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(tris), 3));
+    roofGeo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(norm), 3));
+    roofGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(cols), 3));
+    roof.visible = tris.length > 0;
+    // 굴을 파는 동안 옆면으로 들어가는 파랑을 화살표로 보여 준다.
+    if (a.through || a.collapsed) hideCaveArrows();
+    else {
+      const z = mid - CENTER;
+      scl.makeScale(5, 1, 3.2);
+      m4.copy(scl); m4.setPosition(ARCH.x0 - 8 - CENTER, SEA + 0.2, z); caveArrows.setMatrixAt(0, m4);
+      m4.makeRotationY(Math.PI).multiply(scl); m4.setPosition(ARCH.x1 + 8 - CENTER, SEA + 0.2, z); caveArrows.setMatrixAt(1, m4);
+      caveArrows.instanceMatrix.needsUpdate = true;
+    }
+  }
+
   // 단면 위치
   const lineGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(120 * 3), 3));
   const sectionLine = new THREE.Line(lineGeo, new THREE.LineDashedMaterial({ color: 0xffd36b, dashSize: 3, gapSize: 2.4 }));
@@ -126,6 +200,8 @@ export function createBlock(model) {
         v += (CLIFF[q] - v) * smooth(0.5, 1.4, slope);
         if (isStackRock[k] || stackMark[k]) v = HARD[q];
         if (sand[k] > 0.02) v = SAND[q];
+        // 약한 띠: 바위 색과 달리 밝게 칠해 어디가 먼저 파이는지 보이게 한다.
+        if (model.fin[k] && !model.arch.collapsed && j >= ARCH.j0 && j <= ARCH.j1) v = WEAK[q];
       } else if (sand[k] > 0.02) v = SAND[q] * 0.85 + BED[q] * 0.15;
       else if (cutAt[k] > 0) v = PLATFORM[q];
       else v = BED[q] + (DEEP[q] - BED[q]) * smooth(0.3, 4, -h[k]);
@@ -139,7 +215,8 @@ export function createBlock(model) {
       const k = j * SN + i, c = Math.min(N - 1, Math.round(j * step)) * N + Math.min(N - 1, Math.round(i * step)), d = SEA - h[c];
       const a = smooth(0, 1.4, d), b = smooth(1.2, 5, d);
       for (let q = 0; q < 3; q++) { let v = SHALLOW[q] + (CLEAN[q] - SHALLOW[q]) * a; v += (DEEPW[q] - v) * b; sCol[k * 4 + q] = v; }
-      sCol[k * 4 + 3] = 0.55 + 0.35 * a + 0.08 * b;
+      // 물이 투명해 바닥이 비친다. 깊을수록 물이 두꺼워 바닥이 어두워진다.
+      sCol[k * 4 + 3] = 0.12 + 0.2 * a + 0.34 * b;
     }
     sGeo.attributes.color.needsUpdate = true;
     const lp = rayGeo.attributes.position; let n = 0;
@@ -158,8 +235,13 @@ export function createBlock(model) {
   function syncTerrain(full) {
     if (full || model.allDirty || !fullDone) {
       for (let k = 0; k < N * N; k++) paint(k);
-      skirtPts.forEach(([i, j], s) => { const x = i - CENTER, z = j - CENTER; skirtPos.set([x, Math.max(model.h[j * N + i], SEA), z, x, BOTTOM, z], s * 6); });
+      skirtPts.forEach(([i, j], s) => {
+        const x = i - CENTER, z = j - CENTER, top = model.h[j * N + i];
+        skirtPos.set([x, top, z, x, BOTTOM, z], s * 6);
+        waterSidePos.set([x, SEA, z, x, Math.min(top, SEA), z], s * 6);
+      });
       skirtGeo.attributes.position.needsUpdate = true;
+      waterSideGeo.attributes.position.needsUpdate = true;
       model.allDirty = false; fullDone = true;
       model.consumeDirty();
     } else {
@@ -179,6 +261,10 @@ export function createBlock(model) {
     geo.attributes.color.needsUpdate = true;
     syncSheet();
     syncSectionLine();
+    syncRoof();
+    const dl = depthLineGeo.attributes.position, row = model.depthRow() - CENTER;
+    dl.setXYZ(0, HEAD_X[0] - CENTER, SEA + 0.1, row); dl.setXYZ(1, BAY_X - CENTER, SEA + 0.1, row); dl.needsUpdate = true;
+    depthLine.computeLineDistances();
   }
 
   function syncSectionLine() {

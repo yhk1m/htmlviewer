@@ -32,6 +32,13 @@ export const PRESETS = {
   calm: { wave: 'low', rock: 'mid' },
 };
 export { HEAD_X, BAY_X };
+// 오른쪽 곶 어깨에서 바다로 뻗은 좁은 곶. 옆면을 파고드는 약한 띠(j0~j1)에 해식 동굴이 생겨 시 아치가 되고, 천장이 무너지면 바깥쪽이 시 스택이 된다.
+// 곶 가운데에서 벗어난 자리라 곶의 후퇴와 파식대 계산에 끼어들지 않는다.
+export const ARCH = { cx: 206, x0: 200, x1: 212, j0: 152, j1: 166, tip: 178, base: 150, top: 6.2, crown: 4 };
+const fromArch = s => s.x > ARCH.x0 && s.x < ARCH.x1 && s.y > ARCH.j1; // 시 아치가 무너져 생긴 시 스택인가
+export { fromArch };
+const CAVE_RATE = 0.19; // 한쪽 옆면이 1초에 파고드는 칸 수(보통 파랑, 보통 암석)
+const ROOF_LIFE = 22; // 뚫린 뒤 천장이 버티는 시간(보통 파랑, 보통 암석)
 
 const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -72,7 +79,7 @@ export function createModel(seed = 11, tuning = {}) {
   const FRICTION = tuning.friction ?? 0.06;
   const size = N * N;
   const h = new Float32Array(size), start = new Float32Array(size), strength = new Float32Array(size), damage = new Float32Array(size), sand = new Float32Array(size), cutAt = new Float32Array(size), energy = new Float32Array(size), bath = new Float32Array(size), tmp = new Float32Array(size);
-  const isStackRock = new Uint8Array(size), stackMark = new Uint8Array(size), dirtyFlag = new Uint8Array(size), dirtyList = new Int32Array(size);
+  const isStackRock = new Uint8Array(size), stackMark = new Uint8Array(size), fin = new Uint8Array(size), caved = new Uint8Array(size), dirtyFlag = new Uint8Array(size), dirtyList = new Int32Array(size);
   const rayX = new Float32Array(RAYS * RAY_STEPS), rayY = new Float32Array(RAYS * RAY_STEPS), rayLen = new Uint16Array(RAYS);
   const shoreE = new Float32Array(N); // 줄별(가로 위치별) 파랑 에너지
   const front = new Int32Array(N); // 가로 위치별 처음 만나는 물 칸의 줄(해안선)
@@ -81,7 +88,7 @@ export function createModel(seed = 11, tuning = {}) {
   const trailX = new Float32Array(TRAILS * TRAIL_PTS), trailY = new Float32Array(TRAILS * TRAIL_PTS), trailAge = new Float32Array(TRAILS), trailLen = new Uint8Array(TRAILS);
 
   const m = {
-    h, start, strength, damage, sand, cutAt, energy, bath, isStackRock, stackMark, shoreE, front, rayX, rayY, rayLen, RAYS, RAY_STEPS, seed, dirtyList, dirtyCount: 0, allDirty: true,
+    h, start, strength, damage, sand, cutAt, energy, bath, isStackRock, stackMark, fin, caved, shoreE, front, rayX, rayY, rayLen, RAYS, RAY_STEPS, seed, dirtyList, dirtyCount: 0, allDirty: true,
     TRAILS, TRAIL_PTS, trailX, trailY, trailAge, trailLen, options: { ...PRESETS.textbook }, clock: 0, finished: false, wavePhase: 0, eroded: 0, deposited: 0, stacks: [], firstFront: new Int32Array(N),
   };
   let acc = 0, roundNo = 0, rng, sandPool = 0, power = 1, rockK = 1, trailNext = 0;
@@ -109,9 +116,25 @@ export function createModel(seed = 11, tuning = {}) {
     const r2 = makeRng(seed * 13 + 5);
     for (const hx of HEAD_X) for (let q = 0; q < 3; q++) {
       const cx = hx + (r2() - 0.5) * 10 + (q - 1) * 13, cy = coastRow(Math.round(cx)) - 5 - r2() * 8, R = 2.8 + r2() * 1.2;
+      if (Math.abs(cx - ARCH.cx) < 16) continue; // 좁은 곶과 겹치지 않게 한다.
       for (let j = Math.floor(cy - R); j <= cy + R; j++) for (let i = Math.floor(cx - R); i <= cx + R; i++) {
         const dx = i - cx, dy = j - cy;
         if (dx * dx + dy * dy <= R * R) { const k = j * N + i; isStackRock[k] = 1; }
+      }
+    }
+    // 좁은 곶: 뿌리는 육지 속으로 이어지고, 바다 쪽은 폭이 일정한 바위 띠다.
+    const half = (ARCH.x1 - ARCH.x0) / 2, wob = makeNoise(seed + 33, 9);
+    for (let j = ARCH.base - 50; j <= ARCH.tip; j++) {
+      const widen = j < ARCH.base ? Math.min(9, (ARCH.base - j) * 0.35) : 0;
+      const inBand = j >= ARCH.j0 - 1 && j <= ARCH.j1 + 1;
+      for (let i = ARCH.x0 - 12; i <= ARCH.x1 + 12; i++) {
+        const k = j * N + i, tipCut = j > ARCH.tip - 4 ? (j - (ARCH.tip - 4)) * 0.9 : 0;
+        const w = half + widen - tipCut + (inBand ? 0 : (wob(i, j) - 0.5) * 2);
+        if (Math.abs(i - ARCH.cx) > w) continue;
+        fin[k] = 1;
+        if (j > ARCH.base - 8) isStackRock[k] = 1;
+        const v = ARCH.top - 0.04 * (j - ARCH.j0) + (fine(i, j) - 0.5) * 0.15;
+        if (h[k] < v) { h[k] = v; start[k] = v; }
       }
     }
   }
@@ -187,6 +210,7 @@ export function createModel(seed = 11, tuning = {}) {
       if (sand[k] > 0.02) { // 모래 해안은 파랑이 조금 흔들 뿐이다.
         continue;
       }
+      if (fin[k] && !m.arch.collapsed) continue; // 좁은 곶은 약한 띠부터 파인다(growCave).
       const rock = strength[k] * rockK * (isStackRock[k] ? 14 : 1);
       // 곶이 만의 해안선 가까이 물러나면 더는 튀어나오지 않아 깎임이 크게 줄어든다. 해안은 곧아질 뿐 곶과 만이 뒤바뀌지 않는다.
       const reach = clamp((j - (m.firstFront[BAY_X] + 8)) / 22, 0.04, 1);
@@ -218,6 +242,7 @@ export function createModel(seed = 11, tuning = {}) {
     let total = 0;
     const list = [];
     for (let i = 16; i < N - 16; i += 1) {
+      if (i > ARCH.x0 - 6 && i < ARCH.x1 + 6) continue; // 좁은 곶 옆은 파랑이 세서 모래가 쌓이지 않는다.
       const e = localE(i);
       if (e >= mean * 0.8) continue;
       const w = (mean * 0.8 - e) / (mean * 0.8 + 1e-6);
@@ -256,7 +281,7 @@ export function createModel(seed = 11, tuning = {}) {
 
   function emitTrail() {
     // 깎이는 곶에서 쌓이는 만으로 가는 모래 알갱이. 그리기 전용이다.
-    const a = HEAD_X[rng() < 0.5 ? 0 : 1], dir = rng() < 0.5 ? -1 : 1, fromX = a + dir * (6 + rng() * 8), toX = a + dir * (30 + rng() * 22);
+    const a = HEAD_X[rng() < 0.5 ? 0 : 1], dir = rng() < 0.5 || a === HEAD_X[1] ? -1 : 1, fromX = a + dir * (6 + rng() * 8), toX = a + dir * (30 + rng() * 22);
     const slot = trailNext; trailNext = (trailNext + 1) % TRAILS;
     const at = slot * TRAIL_PTS;
     for (let q = 0; q < TRAIL_PTS; q++) {
@@ -266,14 +291,44 @@ export function createModel(seed = 11, tuning = {}) {
     trailLen[slot] = TRAIL_PTS; trailAge[slot] = 0;
   }
 
-  // 시 스택: 육지와 떨어진 바위. 해안선에 이어지지 않은 땅 덩이를 찾는다.
+  // 약한 띠의 양쪽 옆면을 파랑이 파고든다. 굴 위에는 천장이 남으므로 높이 격자 대신 caved 표시로 기억한다.
+  function carve(i) {
+    for (let j = ARCH.j0; j <= ARCH.j1; j++) { const k = j * N + i; h[k] = PLATFORM - 0.03; cutAt[k] = Math.max(0.001, m.clock); caved[k] = 1; touch(k); }
+    sandPool += 0.6;
+  }
+  function growCave() {
+    const a = m.arch;
+    if (a.collapsed) return;
+    const width = ARCH.x1 - ARCH.x0 + 1, step = (ROUND * power) / rockK;
+    if (!a.through) {
+      // 옆면에 닿는 파랑 에너지에 따라 빠르기가 조금 달라진다.
+      const row = ((ARCH.j0 + ARCH.j1) / 2) | 0, side = i => clamp(energy[row * N + i] / 0.04, 0.7, 1.3);
+      a.dL += step * CAVE_RATE * side(ARCH.x0 - 2);
+      a.dR += step * CAVE_RATE * side(ARCH.x1 + 2);
+      while (a.dL >= 1 && a.caveL + a.caveR < width) { a.dL -= 1; carve(ARCH.x0 + a.caveL); a.caveL++; }
+      while (a.dR >= 1 && a.caveL + a.caveR < width) { a.dR -= 1; carve(ARCH.x1 - a.caveR); a.caveR++; }
+      if (!a.event && (a.caveL || a.caveR)) a.event = { name: 'cave', at: m.clock };
+      if (a.caveL + a.caveR >= width) { a.through = true; a.event = { name: 'arch', at: m.clock }; }
+      return;
+    }
+    a.wear += step / ROOF_LIFE;
+    if (a.wear >= 1) {
+      // 천장이 무너진다. 바깥쪽 바위는 육지와 떨어져 시 스택이 된다.
+      a.collapsed = true; a.justFell = true; a.event = { name: 'stack', at: m.clock };
+      caved.fill(0);
+      sandPool += 8;
+    }
+  }
+  m.archStage = () => { const a = m.arch; return a.collapsed ? 'stack' : a.through ? 'arch' : a.caveL || a.caveR ? 'cave' : 'cape'; };
+
+  // 시 스택: 육지와 떨어진 바위. 해안선에 이어지지 않은 땅 덩이를 찾는다. 시 아치의 천장은 아직 육지와 이어 준다.
   function findStacks() {
     stackMark.fill(0);
-    const seen = new Uint8Array(size), list = [];
+    const seen = new Uint8Array(size), list = [], solid = o => h[o] >= SEA || caved[o];
     for (let i = 0; i < N; i++) { const k = i; if (h[k] >= SEA) { seen[k] = 1; list.push(k); } }
     for (let t = 0; t < list.length; t++) {
       const c = list[t];
-      for (const o of [c - 1, c + 1, c - N, c + N]) if (o >= 0 && o < size && !seen[o] && h[o] >= SEA) { seen[o] = 1; list.push(o); }
+      for (const o of [c - 1, c + 1, c - N, c + N]) if (o >= 0 && o < size && !seen[o] && solid(o)) { seen[o] = 1; list.push(o); }
     }
     m.stacks = [];
     for (let k = 0; k < size; k++) {
@@ -293,21 +348,30 @@ export function createModel(seed = 11, tuning = {}) {
     m.clock += ROUND; roundNo++;
     if (roundNo % 8 === 1) { buildBath(); traceRays(); updateFront(); }
     erode();
+    growCave();
     if (roundNo % 2 === 0) { updateFront(); feedBeach(); }
-    if (roundNo % 10 === 0) { findStacks(); if (m.stacks.length > m.stackPeak) m.stackPeak = m.stacks.length; }
+    if (roundNo % 10 === 0 || m.arch.justFell) { m.arch.justFell = false; findStacks(); const others = m.stacks.filter(s => !fromArch(s)).length; if (others > m.stackPeak) m.stackPeak = others; }
     for (let t = 0; t < TRAILS; t++) trailAge[t] += ROUND;
     if (m.clock >= T_END - 1e-9) { m.finished = true; trailLen.fill(0); buildBath(); traceRays(); updateFront(); findStacks(); }
   }
 
   // 곶과 만의 파랑 에너지 비교(같은 폭으로 잰다)
   m.energyAt = xs => { let s = 0, c = 0; for (const cx of xs) for (let i = cx - 14; i <= cx + 14; i++) { s += shoreE[clamp(i, 0, N - 1)]; c++; } return s / c; };
-  m.headEnergy = () => m.energyAt(HEAD_X);
+  // 좁은 곶도 곶의 일부다. 곶으로 모인 선 중 좁은 곶에 먼저 닿은 몫을 곶의 에너지에 더한다.
+  m.headEnergy = () => { let extra = 0; for (let i = HEAD_X[1] + 15; i <= ARCH.x1 + 4; i++) extra += shoreE[i]; return m.energyAt(HEAD_X) + extra / (29 * HEAD_X.length); };
   m.bayEnergy = () => m.energyAt([BAY_X]);
   // 해안선의 들쭉날쭉한 정도: 곶과 만 앞 해안선 줄의 차이
   m.coastRelief = () => { const row = xs => { let s = 0, c = 0; for (const cx of xs) for (let i = cx - 6; i <= cx + 6; i++) { s += front[i]; c++; } return s / c; }; return row(HEAD_X) - row([BAY_X]); };
   m.retreat = () => { let s = 0, c = 0; for (const cx of HEAD_X) for (let i = cx - 6; i <= cx + 6; i++) { s += m.firstFront[i] - front[i]; c++; } return s / c; };
   m.platformWidth = () => { let top = 0; for (const cx of HEAD_X) for (let i = cx - 10; i <= cx + 10; i++) { let w = 0; for (let j = 0; j < N; j++) { const k = j * N + i; if (cutAt[k] > 0 && h[k] < SEA && sand[k] < 0.02 && h[k] > -1) w++; } if (w > top) top = w; } return top; };
+  // 같은 줄(처음 곶 끝에서 바다로 22칸)의 곶 앞과 만 앞 수심. 곶 앞이 얕은 것이 굴절의 원인이다.
+  m.depthRow = () => m.firstFront[HEAD_X[0]] + 22;
+  m.depths = () => {
+    const row = m.depthRow(), at = cx => { let s = 0, c = 0; for (let i = cx - 4; i <= cx + 4; i++) { s += Math.max(0, SEA - h[row * N + i]); c++; } return s / c; };
+    return { head: at(HEAD_X[0]), bay: at(BAY_X) };
+  };
   m.cellKind = k => {
+    if (caved[k]) return 'arch';
     if (stackMark[k]) return 'stack';
     if (h[k] >= SEA) return sand[k] > 0.02 ? 'beach' : 'land';
     if (sand[k] > 0.02) return 'shoal';
@@ -329,7 +393,15 @@ export function createModel(seed = 11, tuning = {}) {
     if (m.firstFront[hx] - fr >= 3) for (let d = 1; d <= 4; d++) { const k = (fr - d) * N + hx; if (m.cellKind(k) === 'land' && h[k] > 1) { out.cliff = { x: hx, y: fr - d }; break; } }
     if (m.platformWidth() >= 5) for (let i = HEAD_X[1] - 10; i <= HEAD_X[1] + 10 && !out.platform; i += 2) for (let j = front[i]; j < front[i] + 26; j++) if (kindAt(i, j) === 'platform') { out.platform = { x: i, y: j }; break; }
     for (let w = 0; w <= 34 && !out.beach; w++) for (const i of [BAY_X + w, BAY_X - w]) { const j = front[i] - 1; if (j > 0 && kindAt(i, j) === 'beach') { out.beach = { x: i, y: j }; break; } }
-    if (m.stacks.length) out.stack = { x: m.stacks[0].x, y: m.stacks[0].y };
+    if (m.stacks.length) {
+      // 시 아치가 무너져 생긴 시 스택이 있으면 그것을 가리킨다.
+      const own = m.stacks.find(fromArch), s = own ?? m.stacks[0];
+      out[own ? 'stackArch' : 'stack'] = { x: s.x, y: s.y };
+    }
+    const midJ = (ARCH.j0 + ARCH.j1) / 2, stage = m.archStage();
+    if (stage === 'cape') out.cape = { x: ARCH.cx, y: midJ };
+    if (stage === 'cave') out.cave = { x: ARCH.cx, y: midJ };
+    if (stage === 'arch') out.arch = { x: ARCH.cx, y: midJ };
     return out;
   };
   m.setOption = (name, val) => { m.options[name] = val; };
@@ -338,7 +410,8 @@ export function createModel(seed = 11, tuning = {}) {
     power = WAVE[m.options.wave].power; rockK = ROCK[m.options.rock].strength;
     rng = makeRng(seed + 1);
     acc = 0; roundNo = 0; sandPool = 0; trailNext = 0; m.clock = 0; m.finished = false; m.eroded = 0; m.deposited = 0; m.stacks = []; m.stackPeak = 0; m.wavePhase = 0;
-    damage.fill(0); sand.fill(0); cutAt.fill(0); energy.fill(0); isStackRock.fill(0); stackMark.fill(0); trailLen.fill(0);
+    damage.fill(0); sand.fill(0); cutAt.fill(0); energy.fill(0); isStackRock.fill(0); stackMark.fill(0); trailLen.fill(0); fin.fill(0); caved.fill(0);
+    m.arch = { caveL: 0, caveR: 0, dL: 0, dR: 0, wear: 0, through: false, collapsed: false, justFell: false, event: null };
     buildBase(); buildBath(); traceRays(); updateFront();
     m.firstFront.set(front);
     m.firstHead = m.headEnergy(); m.firstBay = m.bayEnergy(); m.firstRelief = m.coastRelief();
@@ -369,6 +442,11 @@ export function ratioNote(m) {
   const r = m.headEnergy() / Math.max(0.01, m.bayEnergy());
   return r > 1.3 ? `곶에 닿는 파랑 에너지가 만의 ${r.toFixed(1)}배입니다. 그래서 곶은 깎이고 만에는 쌓입니다.` : '곶과 만의 파랑 에너지가 비슷해졌습니다. 해안이 단순해질수록 차이가 줄어듭니다.';
 }
+export function archNote(name) {
+  if (name === 'cave') return '굴절해 돌아 들어온 파랑이 좁은 곶의 옆면을 때립니다. 바위에서 절리나 단층처럼 약한 띠를 따라 파고들어 생긴 이 굴이 해식 동굴입니다.';
+  if (name === 'arch') return '해식 동굴이 커져 좁은 곶의 반대쪽까지 뚫렸습니다. 곶이 구름다리 모양이 된 이 지형이 시 아치입니다. 시 아치 보기를 누르면 뚫린 구멍이 잘 보입니다.';
+  return '파랑을 계속 받아 시 아치 천장의 틈이 커졌고, 결국 천장이 무너졌습니다. 육지와 떨어져 바다에 남은 바깥쪽 바위가 시 스택입니다.';
+}
 export function noteText(m) {
   const opt = m.options;
   if (m.finished) {
@@ -377,12 +455,18 @@ export function noteText(m) {
     if (opt.wave === 'high') text += ' 파랑이 강해 더 빨리 물러납니다.';
     if (opt.rock === 'hard') text += ' 단단한 암석은 잘 깎이지 않아 곶이 더 오래 남습니다.';
     if (opt.rock === 'soft') text += ' 무른 암석은 빨리 깎여 해안선이 더 빨리 단순해집니다.';
-    if (m.stacks.length) text += ` 잘 깎이지 않는 바위 ${m.stacks.length}개가 시 스택으로 남았습니다.`;
+    const stage = m.archStage(), others = m.stacks.filter(s => !fromArch(s)).length;
+    if (others) text += ` 잘 깎이지 않는 바위 ${others}개가 시 스택으로 남았습니다.`;
     else if (m.stackPeak) text += ' 한때 남았던 시 스택도 파랑에 깎여 사라졌습니다.';
-    else text += ' 아직 바위가 육지에서 떨어져 나올 만큼 깎이지는 않았습니다.';
+    else if (stage !== 'stack') text += ' 아직 바위가 육지에서 떨어져 나올 만큼 깎이지는 않았습니다.';
+    if (stage === 'stack') text += ' 좁은 곶에서는 시 아치의 천장이 무너져 바깥쪽 바위 1개가 시 스택으로 남았습니다.';
+    if (stage === 'arch') text += ' 좁은 곶에는 시 아치가 아직 서 있습니다.';
+    if (stage === 'cave') text += ' 좁은 곶의 해식 동굴은 아직 반대쪽까지 뚫리지 않았습니다.';
     return text;
   }
   if (m.clock < 6) return '파랑은 얕은 곳에서 느려집니다. 곶 앞이 먼저 얕아지므로 파봉선이 휘어 해안선을 닮고, 진행 방향선은 곶으로 모이고 만에서는 퍼집니다. 이것이 파랑의 굴절입니다.';
+  const ev = m.arch.event;
+  if (ev && m.clock - ev.at < 9) return archNote(ev.name);
   if (m.stacks.length) return '잘 깎이지 않는 바위는 주변 암석이 먼저 깎이면 육지와 떨어져 남습니다. 이것이 시 스택입니다. 절벽은 그 뒤로 계속 물러나고, 시 스택도 오랜 시간이 지나면 깎여 사라집니다.';
   if (m.platformWidth() >= 8 && m.clock > 25) return '해식애가 물러난 자리에 평평한 파식대가 넓어집니다. 파랑이 얕은 파식대를 건너며 바닥에 힘을 빼앗기므로 해식애가 물러나는 빠르기는 점점 느려집니다.';
   if (m.deposited > 30 && m.clock > 14) return '곶 앞은 파랑이 모여 수면이 조금 높고 만 앞은 낮아, 물이 곶에서 만 쪽으로 흐릅니다. 이 연안류가 곶에서 깎인 모래를 만으로 옮겨 모래 해안을 만듭니다.';

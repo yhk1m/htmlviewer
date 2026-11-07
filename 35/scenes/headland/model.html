@@ -25,8 +25,14 @@
   .rate b { display:block; height:100%; width:0; }
   #depBar { background:#ffb38a; }
   #eroBar { background:#59b7f0; }
-  #rateNote { margin:4px 0 0; font-size:15px; font-weight:700; color:var(--accent); }
-  body.comparing #rates { display:none; }
+  #rateNote, #depthNote { margin:4px 0 0; font-size:15px; font-weight:700; color:var(--accent); }
+  #shallowBar { background:#9fe0ee; }
+  #deepBar { background:#2f86c9; }
+  #archSteps { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:0 0 12px; font-size:14px; }
+  #archSteps span { padding:3px 8px; border:1px solid var(--line); border-radius:4px; color:#b9b8ae; }
+  #archSteps span.on { color:#1c211e; background:var(--accent); border-color:var(--accent); font-weight:700; }
+  #archSteps svg { flex:none; color:#b9b8ae; }
+  body.comparing #rates, body.comparing #depths, body.comparing #archSteps { display:none; }
   #section { width:100%; height:auto; border-radius:3px; }
   #schem h2 { margin-top:14px; }
   #schem figure { margin:0 0 10px; }
@@ -73,7 +79,8 @@
     #stats { font-size:13px; margin-bottom:8px; }
     .rate span { width:136px; font-size:13px; }
     .rate small { font-size:10px; }
-    #rateNote { font-size:13px; }
+    #rateNote, #depthNote { font-size:13px; }
+    #archSteps { font-size:12px; }
     .label.water b, .label.hot b, .label.sand b, .label.key b, .label.mark b { font-size:13px; }
     .cmprow { display:none; }
     #compareEnd { left:12px; bottom:calc(38vh + 12px); }
@@ -102,9 +109,9 @@
   <div class="row cmprow"><button id="compareBtn">비교: 무른 암석과 단단한 암석</button></div>
   <hr>
   <div class="row"><button data-show="3d" class="on">3D</button><button data-show="map" class="nocmp">등고선 지형도</button></div>
-  <div class="row"><button data-view="oblique" class="on">비스듬히</button><button data-view="above" class="nocmp">위에서</button><button data-view="low" class="nocmp">낮게</button><button id="labelsBtn" class="on">이름표</button><button id="qualityBtn"></button></div>
-  <p class="cap">두 번 누르면 그 자리를 중심으로 돕니다. 조건을 바꾸면 처음부터 다시 만듭니다. 흰 선은 파봉선, 주황 선은 파랑의 진행 방향선입니다. 파봉선은 파도의 마루를 이은 선이고, 어두운 바위는 잘 깎이지 않는 암석입니다. 노란 알갱이와 화살표는 연안류가 옮기는 모래입니다.</p>
-  <p class="cap">실제 지역이 아닌 설명용 모형입니다. 크기와 시간은 압축했고 높이는 과장했으며 알갱이는 크게 그렸습니다. 파랑의 힘과 암석이 깎이는 빠르기는 교육용으로 정한 값이며 실측값이 아닙니다. 파랑은 한 방향에서만 들어옵니다. 실제 모래 해안의 모래는 강에서 오는 것이 많지만, 여기서는 곶에서 깎인 모래만 계산합니다. 노치, 해식 동굴, 시 아치는 천장이 있는 지형이라 3D에서 만들지 못하고 모식도로 보여 줍니다.</p>
+  <div class="row"><button data-view="oblique" class="on">비스듬히</button><button data-view="above" class="nocmp">위에서</button><button data-view="low" class="nocmp">낮게</button><button data-view="arch" class="nocmp">시 아치 보기</button><button id="labelsBtn" class="on">이름표</button><button id="qualityBtn"></button></div>
+  <p class="cap">두 번 누르면 그 자리를 중심으로 돕니다. 조건을 바꾸면 처음부터 다시 만듭니다. 흰 선은 파봉선, 주황 선은 파랑의 진행 방향선입니다. 파봉선은 파도의 마루를 이은 선이고, 어두운 바위는 잘 깎이지 않는 암석입니다. 노란 알갱이와 화살표는 연안류가 옮기는 모래이고, 흰 화살표는 굴절해 돌아 들어와 좁은 곶의 옆면을 파고드는 파랑이고, 좁은 곶의 밝은 띠는 절리처럼 약한 곳입니다. 바다는 투명해서 얕은 곳은 바닥이 밝게, 깊은 곳은 어둡게 비칩니다. 흰 점선은 수심을 비교하는 줄입니다.</p>
+  <p class="cap">실제 지역이 아닌 설명용 모형입니다. 크기와 시간은 압축했고 높이는 과장했으며 알갱이는 크게 그렸습니다. 파랑의 힘과 암석이 깎이는 빠르기는 교육용으로 정한 값이며 실측값이 아닙니다. 파랑은 한 방향에서만 들어옵니다. 실제 모래 해안의 모래는 강에서 오는 것이 많지만, 여기서는 곶에서 깎인 모래만 계산합니다. 노치는 천장이 있는 지형이라 3D에서 만들지 못하고 모식도로 보여 줍니다. 해식 동굴과 시 아치는 천장을 따로 얹어 그렸습니다. 좁은 곶과 그곳의 약한 띠는 순서를 보여 주려고 일부러 넣은 것이고, 띠 밖의 바위는 천장이 무너질 때까지 깎지 않습니다. 실제로는 절리나 단층의 자리에 따라 달라지며, 시 스택은 천장이 무너져 생기기도 하고 단단한 바위만 남아 생기기도 합니다. 먼바다 바닥의 수심은 이 모형에서 변하지 않아 수심 막대는 끝까지 거의 같습니다.</p>
 </section>
 <button id="compareEnd">비교 끝내기</button>
 
@@ -118,6 +125,19 @@
     <div class="rate"><span>곶<small>진행 방향선이 모임</small></span><i><b id="depBar"></b></i></div>
     <div class="rate"><span>만<small>진행 방향선이 퍼짐</small></span><i><b id="eroBar"></b></i></div>
     <p id="rateNote"></p>
+  </div>
+  <div id="rates2" aria-label="곶 앞과 만 앞의 수심 비교">
+    <div id="depths" style="margin:0 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:4px">
+      <div class="rate"><span>곶 앞 수심<small>얕아서 파랑이 먼저 느려짐</small></span><i><b id="shallowBar"></b></i></div>
+      <div class="rate"><span>만 앞 수심<small>깊어서 파랑이 늦게 느려짐</small></span><i><b id="deepBar"></b></i></div>
+      <p id="depthNote"></p>
+    </div>
+  </div>
+  <div id="archSteps" aria-label="좁은 곶이 변하는 순서">
+    <span data-arch="cape">좁은 곶</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h9M8 4l3 3-3 3"/></svg>
+    <span data-arch="cave">해식 동굴</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h9M8 4l3 3-3 3"/></svg>
+    <span data-arch="arch">시 아치</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h9M8 4l3 3-3 3"/></svg>
+    <span data-arch="stack">시 스택</span>
   </div>
   <h2 id="sectionTitle">곶을 육지(A)에서 바다(B)로 자른 단면 (계산 결과)</h2>
   <canvas id="section" width="1120" height="400" role="img" aria-label="곶을 육지에서 바다로 자른 단면. 처음 해안선과 지금의 해식애, 파식대가 그대로 나타난다."></canvas>

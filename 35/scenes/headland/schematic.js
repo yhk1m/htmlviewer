@@ -12,7 +12,7 @@ export const ZONE_TEXT = {
   cliff: { name: '해식애', text: '파랑의 침식으로 생긴 바닷가 절벽입니다. 아래가 파이고 무너지기를 되풀이하며 육지 쪽으로 물러납니다.' },
   platform: { name: '파식대', text: '해식애가 물러난 자리에 남은 평평한 바위 면입니다. 해식애가 물러날수록 넓어지고, 넓어질수록 파랑의 힘이 줄어듭니다.' },
   stack: { name: '시 스택', text: '잘 깎이지 않는 바위가 주변 암석이 먼저 깎인 뒤 육지와 떨어져 남은 돌기둥입니다. 시 스택은 제자리에 있고 절벽만 물러납니다. 시 스택도 오랜 시간이 지나면 깎여 사라집니다.' },
-  arch: { name: '해식 동굴과 시 아치', text: '약한 곳을 따라 파인 굴이 해식 동굴이고, 곶을 뚫고 나가면 시 아치입니다. 천장이 있는 지형이라 3D 모형에서는 만들지 못하고 아래 그림으로만 보여 줍니다.' },
+  arch: { name: '해식 동굴과 시 아치', text: '절리나 단층처럼 약한 곳을 따라 파인 굴이 해식 동굴(해식동)입니다. 굴이 커져 튀어나온 곶의 반대쪽까지 뚫리면 구름다리 모양의 시 아치가 되고, 천장이 무너지면 바깥쪽 바위가 시 스택으로 남기도 합니다. 3D 모형의 좁은 곶에서 이 순서를 볼 수 있습니다.' },
 };
 
 export const STAGE_NAMES = ['파랑의 굴절', '곶의 침식', '해식애와 파식대', '오랜 시간 뒤'];
@@ -142,16 +142,19 @@ function section(stage) {
   </svg>`;
 }
 
-// 해식 동굴, 시 아치, 시 스택을 바다에서 바라본 그림
+// 해식 동굴, 시 아치, 시 스택을 곶의 옆에서 바라본 그림
 function archFigure() {
   const L = (x, y, t) => `<text class="zone" data-zone="arch" x="${x}" y="${y}" text-anchor="middle" font-size="18" font-weight="700" fill="#f3f1ea" paint-order="stroke" stroke="#1c211e" stroke-width="3.5" style="cursor:pointer">${t}</text>`;
-  return `<svg viewBox="0 0 720 210" role="img" aria-label="바다에서 바라본 절벽. 왼쪽 절벽에는 파인 굴인 해식 동굴이, 가운데에는 뚫린 시 아치가, 오른쪽에는 떨어져 남은 시 스택이 있다.">
+  return `<svg viewBox="0 0 720 210" role="img" aria-label="좁은 곶을 옆에서 바라본 그림. 왼쪽은 안이 막힌 굴인 해식 동굴, 가운데는 반대쪽까지 뚫린 시 아치, 오른쪽은 천장이 무너져 육지 쪽 바위와 떨어져 남은 시 스택이다.">
     <rect width="720" height="210" fill="${AIR}"/>
     <rect y="160" width="720" height="50" fill="${SEA}"/>
     <path d="M0 160V40H250L262 160H176Q168 96 126 96Q84 96 76 160Z" fill="${ROCK}"/>
+    <path d="M176 160Q168 96 126 96Q84 96 76 160Z" fill="#15191a"/>
     <path d="M300 160L304 60H500L506 160H456Q450 104 402 104Q354 104 348 160Z" fill="${ROCK}"/>
-    <path d="M590 160L596 74H640L648 160Z" fill="${ROCK}"/>
-    ${L(126, 138, '해식 동굴')}${L(402, 138, '시 아치')}${L(620, 60, '시 스택')}
+    <path d="M532 160L536 60H566L574 160Z" fill="${ROCK}"/>
+    <path d="M600 160L606 74H650L658 160Z" fill="${ROCK}"/>
+    ${L(126, 138, '해식 동굴')}${L(402, 138, '시 아치')}${L(630, 60, '시 스택')}
+    <path d="M268 186h24M284 179l8 7-8 7M508 186h18M518 179l8 7-8 7" fill="none" stroke="#f3f1ea" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 
@@ -167,10 +170,10 @@ export function createSchematic(root, options = {}) {
       <figure>${plan(stage)}</figure>
       <h2>곶을 A에서 B로 자른 단면 (모식도)</h2>
       <figure>${section(stage)}</figure>
-      <h2>천장이 있는 지형 (그림으로만)</h2>
+      <h2>해식 동굴에서 시 스택까지 (모식도)</h2>
       <figure>${archFigure()}</figure>
       <p class="schem-note">${zone ? `<b>${ZONE_TEXT[zone].name}</b> ${ZONE_TEXT[zone].text}` : NOTES[stage]}</p>
-      <p class="schem-cap">이름을 누르면 설명이 나옵니다. 흰 선은 파봉선, 노란 선은 파랑의 진행 방향선입니다. 해안선과 규모는 설명을 위한 예시입니다. <button class="zone-link" data-zone="arch">해식 동굴과 시 아치</button>는 천장이 있어 3D에서 만들지 못합니다. 평면과 단면의 거리는 비율을 맞춘 예시입니다.</p>`;
+      <p class="schem-cap">이름을 누르면 설명이 나옵니다. 흰 선은 파봉선, 노란 선은 파랑의 진행 방향선입니다. 해안선과 규모는 설명을 위한 예시입니다. <button class="zone-link" data-zone="arch">해식 동굴과 시 아치</button>는 3D 모형의 좁은 곶에서 차례로 생깁니다. 평면과 단면의 거리는 비율을 맞춘 예시입니다.</p>`;
   };
   root.addEventListener('click', e => {
     const s = e.target.closest('[data-schem-stage]');

@@ -13,7 +13,8 @@ import { drawContourMap, drawHeightTint, drawPathProfile } from '../../shared/ma
 import { createHeightScale } from '../../shared/height.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
-import { buildJeongdongjin, sampleH, terraceProfile, profileMarks, placesOf, N, SIZE, CELL, WATER_LEVEL } from './sim.js';
+import { buildJeongdongjin, sampleH, terraceProfile, profileMarks, placesOf, medianHeight, N, SIZE, CELL, WATER_LEVEL, SHIP } from './sim.js';
+import { createShip } from './ship.js';
 import { createSchematic } from './schematic.js';
 
 const PHONE = isPhone();
@@ -42,6 +43,8 @@ const VIEWS = {
   oblique: { p: [8200, 3600, 3300], t: [800, 80, -420] },
   above: { p: [1000, 10800, 1500], t: [1000, 0, 100] },
   close: { p: [5200, 1300, 1000], t: [1250, 110, -250] },
+  // 배 모양 건물을 바다 쪽에서 본다.
+  ship: { p: [1800, 400, -1300], t: [1225, 65, -1715] },
 };
 function setView(name) {
   const v = VIEWS[name];
@@ -87,12 +90,20 @@ async function start() {
   const pivot = setupPivot(THREE, { dom: renderer.domElement, camera, controls, targets: () => [terrain], invalidate, scene });
   window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
+  const ship = createShip(SHIP), shipAt = world(SHIP.grid[0], SHIP.grid[1]);
+  ship.position.set(shipAt.x, 0, shipAt.z);
+  ship.rotation.y = SHIP.heading;
+  scene.add(ship);
+
   const veg = { N, SIZE, CELL, WATER_LEVEL, ex, sampleH, dense: false, treeFactor: Q.trees };
   const treeCache = {}, nearCache = {};
   let treeMesh = null, nearMesh = null;
   const applyHeight = () => {
-    for (let k = 0; k < N * N; k++) pos[k * 3 + 1] = ex(sim.h[k]);
+    // 바다로 치지 않은 땅이 바다 면 아래로 내려가 호수처럼 보이지 않게 한다.
+    for (let k = 0; k < N * N; k++) pos[k * 3 + 1] = ex(sim.sea[k] ? sim.h[k] : Math.max(sim.h[k], 0.8));
     seaPlane.position.y = ex(0.5);
+    // 건물은 땅 위에 그대로 얹는다. 건물 높이는 과장하지 않는다.
+    ship.position.y = ex(medianHeight(sim.h, SHIP.grid[0], SHIP.grid[1], 3)) + 2;
     fillNormals(N, CELL, k => pos[k * 3 + 1], nor);
     geo.attributes.position.needsUpdate = true;
     geo.attributes.normal.needsUpdate = true;
@@ -118,9 +129,9 @@ async function start() {
     ctx.strokeText('A', ox + A.x * sc - 20, oy + A.y * sc + 6); ctx.fillText('A', ox + A.x * sc - 20, oy + A.y * sc + 6);
     ctx.strokeText('B', ox + B.x * sc + 8, oy + B.y * sc + 6); ctx.fillText('B', ox + B.x * sc + 8, oy + B.y * sc + 6);
     ctx.font = '700 14px "Malgun Gothic",sans-serif';
-    for (const key of ['terraceN', 'terraceS', 'valley', 'station', 'simgok', 'geumjin', 'sea']) {
+    for (const key of ['terraceN', 'terraceS', 'valley', 'ship', 'station', 'simgok', 'geumjin', 'sea']) {
       const l = PLACES[key], x = ox + l.grid[0] * sc, y = oy + l.grid[1] * sc, w = ctx.measureText(l.name).width;
-      const dot = key === 'station' || key === 'simgok' || key === 'geumjin';
+      const dot = key === 'ship' || key === 'station' || key === 'simgok' || key === 'geumjin';
       const tx = dot ? x + 7 : x - w / 2;
       if (dot) { ctx.fillStyle = '#20302a'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); }
       ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(l.name, tx, y + 5);
@@ -155,7 +166,7 @@ async function start() {
     const list = [];
     for (const [key, l] of Object.entries(PLACES)) {
       const w = world(l.grid[0], l.grid[1]);
-      v3.set(w.x, ex(sampleH(sim.h, l.grid[0], l.grid[1])) + 20, w.z).project(camera);
+      v3.set(w.x, ex(sampleH(sim.h, l.grid[0], l.grid[1])) + (key === 'ship' ? 60 : 20), w.z).project(camera);
       if (v3.z <= 1) list.push({ key, x: (v3.x * 0.5 + 0.5) * innerWidth, y: (-v3.y * 0.5 + 0.5) * innerHeight, priority: key.startsWith('terrace') ? 3 : 2, keep: true });
     }
     labelLayer.place(list);
@@ -207,6 +218,6 @@ async function start() {
 }
 
 document.getElementById('note').textContent = '강릉 정동진 남쪽 심곡리 일대입니다. 바닷가 절벽 바로 위에 높이 약 60~85m의 평평한 땅이 펼쳐집니다. 오늘날 파랑이 닿지 못하는 높이의 옛 해안 지형, 곧 해안 단구입니다. 정동진 해안 단구는 천연기념물입니다.';
-document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭과 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '지명 위치: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭과 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '지명 위치와 건물 윤곽: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

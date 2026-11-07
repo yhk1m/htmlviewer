@@ -9,7 +9,7 @@ import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap } from '../../shared/map-views.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
-import { createModel, sectionProfile, noteText, compareBrief, ratioNote, N, T_END, SEA } from './model.js';
+import { createModel, sectionProfile, noteText, archNote, compareBrief, ratioNote, N, T_END, SEA, ARCH, HEAD_X, BAY_X } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
 
@@ -42,8 +42,12 @@ const VIEWS = {
   above: { p: [0, 720, 55], t: [0, 0, 0] },
   low: { p: [-70, 230, 610], t: [0, 2, 8] },
   compare: { p: [0, 560, 780], t: [0, 4, 16] },
+  // 좁은 곶을 옆에서 낮게 본다. 뚫린 구멍으로 건너편 바다가 보인다.
+  arch: { p: [ARCH.cx - CENTER - 92, 13, (ARCH.j0 + ARCH.j1) / 2 - CENTER + 44], t: [ARCH.cx - CENTER, 4, (ARCH.j0 + ARCH.j1) / 2 - CENTER] },
 };
+let currentView = 'oblique';
 function setView(name) {
+  currentView = name;
   const z = portraitZoom(), { p, t } = VIEWS[name];
   camera.position.set(t[0] + (p[0] - t[0]) * z, t[1] + (p[1] - t[1]) * z, t[2] + (p[2] - t[2]) * z);
   controls.target.set(...t);
@@ -73,11 +77,13 @@ let compare = false, panelBeforeCompare = false, setPanel = () => {};
 
 const mapView = document.getElementById('mapView');
 let showing = '3d';
-const waterMask = () => { const out = new Float32Array(N * N); for (let k = 0; k < N * N; k++) if (model.h[k] < SEA) out[k] = 1; return out; };
+// 지도는 위에서 본 땅이다. 천장이 덮인 칸은 물이 아니라 바위 윗면으로 그린다.
+const surfaceH = () => { const out = model.h.slice(); for (let k = 0; k < N * N; k++) if (model.caved[k]) out[k] = model.start[k]; return out; };
+const waterMask = () => { const out = new Float32Array(N * N); for (let k = 0; k < N * N; k++) if (model.h[k] < SEA && !model.caved[k]) out[k] = 1; return out; };
 const drawMap = () => {
   mapView.hidden = showing === '3d';
   dirty = true;
-  if (showing === 'map') drawContourMap(mapView, { h: model.h, N, sizeM: null, water: waterMask(), north: false, interval: 2 });
+  if (showing === 'map') drawContourMap(mapView, { h: surfaceH(), N, sizeM: null, water: waterMask(), north: false, interval: 2 });
 };
 const setShowing = name => {
   showing = name;
@@ -96,6 +102,12 @@ labels.add('platform', '파식대', '절벽이 물러난 자리', 'key');
 labels.add('beach', '모래 해안', '만에 쌓인 모래', 'sand');
 labels.add('stack', '시 스택', '단단한 바위', 'key');
 labels.add('sea', '파랑이 오는 쪽', '', 'water');
+labels.add('cape', '좁은 곶', '밝은 띠가 약한 곳', 'key');
+labels.add('stackArch', '시 스택', '천장이 무너져 남은 바위', 'key');
+labels.add('cave', '해식 동굴', '옆면이 파이는 중', 'hot');
+labels.add('arch', '시 아치', '곶이 뚫려 생긴 구름다리', 'key');
+labels.add('shallow', '곶 앞 바다', '얕음', 'water');
+labels.add('deep', '만 앞 바다', '깊음', 'water');
 labels.add('left', '무른 암석', '', 'cmp');
 labels.add('right', '단단한 암석', '', 'cmp');
 const makePin = t => { const el = document.createElement('div'); el.className = 'pin'; el.textContent = t; el.hidden = true; document.getElementById('labels').appendChild(el); return el; };
@@ -128,7 +140,13 @@ function syncLabels() {
   put('platform', p.platform, 0.3, 9);
   put('beach', p.beach, 0.3, 8);
   put('stack', p.stack, 0.6, 11);
+  put('stackArch', p.stackArch, 0.6, 11);
   put('sea', p.sea, 0.3, 3);
+  // 천장이 있는 자리는 바닥이 아니라 바위 윗면에 이름표를 붙인다.
+  for (const key of ['cape', 'cave', 'arch']) if (p[key]) { const s = toScreen(p[key].x, ARCH.top + 0.6, p[key].y); if (s) list.push({ key, ...s, priority: 11, keep: true }); }
+  const row = model.depthRow();
+  put('shallow', { x: HEAD_X[0], y: row }, 0.3, 7);
+  put('deep', { x: BAY_X, y: row }, 0.3, 7);
   labels.place(list);
   const S = sectionProfile(model, 2).S;
   const pin = (el, x, y) => { const s = toScreen(x, Math.max(model.sample(x, y), SEA) + 0.4, y); if (s) { el.hidden = false; el.style.transform = `translate(${s.x - 13}px,${s.y - 13}px)`; } };
@@ -190,6 +208,12 @@ function syncInfo() {
   document.getElementById('depBar').style.width = `${(he / top) * 100}%`;
   document.getElementById('eroBar').style.width = `${(be / top) * 100}%`;
   document.getElementById('rateNote').textContent = ratioNote(model);
+  const dp = model.depths(), dtop = Math.max(dp.head, dp.bay, 0.01);
+  document.getElementById('shallowBar').style.width = `${(dp.head / dtop) * 100}%`;
+  document.getElementById('deepBar').style.width = `${(dp.bay / dtop) * 100}%`;
+  document.getElementById('depthNote').textContent = `먼바다에서 같은 거리(흰 점선)에서 재면 곶 앞 수심은 만 앞의 약 ${Math.round((dp.head / Math.max(dp.bay, 0.01)) * 100)}%입니다. 바닥의 깊이가 해안선을 닮아 곶 앞으로 얕은 바다가 튀어나왔기 때문에, 파랑은 곶 앞에서 먼저 느려져 굴절합니다.`;
+  const stage = model.archStage();
+  document.querySelectorAll('[data-arch]').forEach(el => el.classList.toggle('on', el.dataset.arch === stage));
   if (compare) {
     const br = compareBrief(model, modelB);
     noteEl.textContent = `왼쪽 블록은 ${br.a}. 오른쪽 블록은 ${br.b}. 같은 파랑이라도 암석이 단단할수록 해안이 천천히 변합니다.`;
@@ -197,14 +221,16 @@ function syncInfo() {
     document.getElementById('steps').textContent = '두 조건 비교';
     return;
   }
-  noteEl.textContent = noteText(model);
+  // 시 아치 보기에서는 눈앞의 단계를 설명한다.
+  const closeStage = currentView === 'arch' && !model.finished && (stage === 'cave' || stage === 'arch' || stage === 'stack');
+  noteEl.textContent = closeStage ? archNote(stage) : noteText(model);
   document.getElementById('steps').textContent = model.finished ? '완성' : `진행 ${Math.floor((model.clock / T_END) * 100)}%`;
   // 곧아진 해안 단계는 오랜 시간 뒤의 그림이라 자동으로 넘어가지 않는다.
   schematic.setStage(model.platformWidth() >= 8 ? 2 : model.clock > 6 ? 1 : 0);
 }
 
 // 모식도 구역을 누르면 3D 이름표가 강조된다.
-const ZONE_LABELS = { head: ['head'], bay: ['bay'], cliff: ['cliff'], platform: ['platform'], beach: ['beach'], stack: ['stack'], wave: ['sea'] };
+const ZONE_LABELS = { head: ['head'], bay: ['bay'], cliff: ['cliff'], platform: ['platform'], beach: ['beach'], stack: ['stack', 'stackArch'], wave: ['sea'], arch: ['cave', 'arch'] };
 const highlight = zone => {
   for (const [z, keys] of Object.entries(ZONE_LABELS)) for (const k of keys) labels.element(k).classList.toggle('hi', z === zone);
   dirty = true;
