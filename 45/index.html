@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세계 도시 & 쾨펜 기후 탐험</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" onerror="this.onerror=null;this.href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>window.maplibregl||document.write('<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"><\/script>')</script>
+<style>
+:root{--ink:#1f2a37;--sub:#5b6776;--bg:#eef3f1;--card:#fff;--pri:#0f766e;--ok:#15803d;--bad:#b91c1c;--line:#d8e2de}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;line-height:1.55}
+#app{max-width:960px;margin:0 auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--sub);margin-bottom:8px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+h1{font-size:30px;margin:0 0 8px}h2{font-size:21px;margin:0 0 6px}h3{margin:12px 0 4px;font-size:16px}
+.stage{display:inline-block;background:var(--pri);color:#fff;border-radius:20px;padding:2px 12px;font-size:13px;margin-bottom:8px}
+#map{position:relative;overflow:hidden;background:#cfe6f2;height:340px;border-radius:10px;margin:10px 0;border:1px solid var(--line)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.opts button,.go{font:inherit;font-size:16px;padding:12px;border-radius:10px;border:2px solid var(--line);background:#fff;cursor:pointer;text-align:left}
+.opts button:hover:not(:disabled){border-color:var(--pri)}
+.opts button:focus-visible,.go:focus-visible{outline:3px solid #f59e0b}
+.opts .ok{border-color:var(--ok);background:#dcfce7}.opts .no{border-color:var(--bad);background:#fee2e2}
+.go{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;padding:12px 26px;margin-top:8px}
+.msg{border-left:5px solid var(--pri);background:#f0fdfa;padding:10px 14px;border-radius:6px;margin-top:6px}
+.msg.bad{border-color:var(--bad);background:#fef2f2}
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}
+.two figure{margin:0}.two figcaption{font-size:13px;color:var(--sub);text-align:center}
+.ls{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.ls svg,.ls img{display:block;width:100%}.ls img{position:absolute;inset:0;height:100%;object-fit:cover}
+.stat{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.stat span{background:#f1f5f4;border-radius:8px;padding:4px 10px;font-size:14px}
+ul{margin:4px 0;padding-left:20px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px;text-align:left}
+.maplibregl-map{position:relative;overflow:hidden}.maplibregl-canvas{position:absolute;left:0;top:0}
+.maplibregl-canvas-container{cursor:grab}.maplibregl-ctrl-bottom-left{position:absolute;left:0;bottom:0;z-index:2;pointer-events:none}.maplibregl-ctrl-bottom-right{position:absolute;right:0;bottom:0;z-index:2}
+.maplibregl-ctrl-scale{background:#fffc;border:2px solid #333;border-top:none;padding:0 5px;font-size:11px;margin:6px;white-space:nowrap;box-sizing:border-box}
+.maplibregl-ctrl-attrib{font-size:10px;background:#fffc;padding:0 4px}.maplibregl-ctrl-attrib-button{display:none}
+.maplibregl-popup{position:absolute;top:0;left:0;display:flex;pointer-events:none;z-index:3;will-change:transform}.maplibregl-popup-tip{display:none}
+.maplibregl-popup-content{background:#fff;padding:4px 10px;border-radius:6px;font-weight:700;box-shadow:0 1px 6px #0004}
+.maplibregl-popup-anchor-bottom{flex-direction:column-reverse}
+@media(max-width:720px){.two{grid-template-columns:1fr}.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ===== 데이터 (기온·강수는 근삿값) =====
+   img: 실제 사진 URL을 넣으면 일러스트 위에 사진이 표시됩니다(불러오기 실패 시 일러스트 유지). */
+const CITIES=[
+{n:'싱가포르',co:'싱가포르',ct:'아시아',lat:1.35,lng:103.82,k:'Af',img:'',t:[26.8,27.3,27.9,28.3,28.6,28.5,28.2,28.1,27.9,27.8,27,26.6],p:[243,112,171,177,171,135,146,147,149,172,252,288]},
+{n:'뭄바이',co:'인도',ct:'아시아',lat:19.08,lng:72.88,k:'Aw',img:'',t:[24.9,25.2,27.5,29.2,30.2,28.9,27.6,27.3,27.4,28.3,27.2,25.7],p:[1,0,0,0,11,537,709,434,298,64,13,2]},
+{n:'카이로',co:'이집트',ct:'아프리카',lat:30.04,lng:31.24,k:'BWh',img:'',t:[14.1,15.5,18.3,22.1,25.9,28.3,29,28.9,27.1,24.1,19.5,15.6],p:[5,4,4,1,0,0,0,0,0,1,4,5]},
+{n:'도쿄',co:'일본',ct:'아시아',lat:35.68,lng:139.69,k:'Cfa',img:'',t:[5.4,6.1,9.4,14.3,18.9,22.1,25.9,27.1,23.8,18.2,12.9,7.8],p:[52,56,118,125,138,168,156,168,210,198,93,51]},
+{n:'런던',co:'영국',ct:'유럽',lat:51.51,lng:-0.13,k:'Cfb',img:'',t:[5.2,5.3,7.6,9.9,13.3,16.4,18.7,18.4,15.5,12,8,5.5],p:[55,40,41,43,49,45,45,50,49,68,59,55]},
+{n:'로마',co:'이탈리아',ct:'유럽',lat:41.9,lng:12.5,k:'Csa',img:'',t:[8,8.8,11.1,13.6,17.8,21.8,24.7,24.8,21.1,17,12.4,9],p:[67,67,59,70,43,22,15,22,60,94,111,85]},
+{n:'쿤밍',co:'중국',ct:'아시아',lat:25.04,lng:102.71,k:'Cwb',img:'',t:[8.5,10.5,13.9,17,19.4,19.9,20,19.4,17.8,15,11.4,8.5],p:[10,9,17,21,86,184,215,196,114,80,32,10]},
+{n:'모스크바',co:'러시아',ct:'유럽',lat:55.76,lng:37.62,k:'Dfb',img:'',t:[-6.5,-6.2,-0.9,7.1,13.3,17.2,19.2,17.1,11.5,5.5,-0.2,-4.5],p:[52,43,38,37,53,80,85,82,65,55,52,50]},
+{n:'하얼빈',co:'중국',ct:'아시아',lat:45.8,lng:126.53,k:'Dwa',img:'',t:[-17.3,-12.5,-2.4,8.1,16.2,21.2,23.5,21.8,15.1,6.3,-5.7,-14.1],p:[4,5,13,22,36,77,141,113,50,25,9,5]},
+{n:'배로(우트키아비크)',co:'미국(알래스카)',ct:'북아메리카',lat:71.29,lng:-156.79,k:'ET',img:'',t:[-25.2,-26.5,-25.8,-18.5,-7.5,1.7,4.7,3.8,-0.8,-10.7,-19.4,-23.4],p:[4,4,4,4,4,9,23,27,16,14,6,4]},
+{n:'보스토크 기지',co:'남극',ct:'남극',lat:-78.46,lng:106.84,k:'EF',img:'',t:[-32.1,-44.1,-57,-65.1,-66.9,-67.5,-68.2,-69.3,-65.9,-57.5,-45.1,-32],p:[2,2,2,2,2,2,2,2,2,2,2,2]}];
+const CL={
+Af:['열대우림기후',['연중 고온다습, 기온의 연교차가 매우 작다','거의 매일 오후에 스콜(소나기)이 내린다','울창한 열대우림(셀바), 플랜테이션 농업']],
+Aw:['사바나기후',['뚜렷한 우기와 건기가 번갈아 나타난다','건기에는 초원, 우기에는 푸르게 변한다','열대 초원과 키 작은 나무(사바나)']],
+BWh:['건조기후(사막)',['연강수량이 매우 적고(250mm 미만) 증발량이 많다','낮과 밤의 기온 차(일교차)가 크다','모래·바위 사막, 오아시스 농업과 관개 농업']],
+Cfa:['온난습윤기후',['사계절이 뚜렷하고 여름은 고온다습하다','강수가 연중 고르나 여름에 집중된다','벼농사가 활발하고 활엽수·침엽수 혼합림']],
+Cfb:['서안해양성기후',['편서풍과 난류의 영향으로 여름 서늘, 겨울 온화','연중 강수가 고르고 흐린 날이 많다','밀·목초 재배, 혼합 농업과 낙농업']],
+Csa:['지중해성기후',['여름은 고온건조, 겨울은 온난다습하다','아열대 고압대(여름)와 편서풍(겨울)의 영향','올리브·포도·오렌지 등 수목 농업, 흰 벽의 가옥']],
+Cwb:['온대 겨울건조기후(고산)',['여름에 강수가 집중되고 겨울은 건조하다','고도가 높아 연중 봄 날씨처럼 온화하다','계절풍의 영향, 꽃과 상록수가 자란다']],
+Dfb:['냉대습윤기후',['겨울이 길고 춥고 여름은 짧고 서늘하다','연중 강수가 고르다','침엽수림(타이가), 임업이 발달']],
+Dwa:['냉대 겨울건조기후',['겨울은 시베리아 고기압 영향으로 매우 춥고 건조','여름에는 계절풍으로 강수가 집중된다','기온의 연교차가 매우 크다, 밀·대두 재배']],
+ET:['툰드라기후',['가장 따뜻한 달 평균기온이 0~10℃','짧은 여름에만 지표가 녹는다(영구동토층)','이끼·지의류, 순록 유목']],
+EF:['빙설기후',['연중 평균기온이 0℃ 미만','강수량은 적지만 눈이 쌓여 거대한 빙하·빙상이 된다','식생이 없고, 과학 기지 외에는 거주하기 어렵다']]};
+
+/* ===== 경관 일러스트(SVG) ===== */
+const S=(a,b,x)=>`<svg viewBox="0 0 300 190"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="300" height="190" fill="url(#g)"/>${x}</svg>`;
+const tr=(x,y,s,c)=>`<rect x="${x-2*s}" y="${y-8*s}" width="${4*s}" height="${8*s}" fill="#6b4423"/><circle cx="${x}" cy="${y-14*s}" r="${11*s}" fill="${c}"/>`;
+const pn=(x,y,s,c,sn)=>`<polygon points="${x},${y-30*s} ${x-10*s},${y} ${x+10*s},${y}" fill="${c}"/>${sn?`<polygon points="${x},${y-30*s} ${x-4*s},${y-18*s} ${x+4*s},${y-18*s}" fill="#fff"/>`:''}`;
+const sun=(x,y,c)=>`<circle cx="${x}" cy="${y}" r="16" fill="${c}"/>`;
+const house=(x,y)=>`<rect x="${x}" y="${y}" width="22" height="16" fill="#fff"/><polygon points="${x-2},${y} ${x+11},${y-9} ${x+24},${y}" fill="#d9692f"/>`;
+const SCENE={
+Af:()=>S('#8fd3c7','#d5efe6',`<ellipse cx="80" cy="150" rx="140" ry="40" fill="#2f7d4f"/><ellipse cx="240" cy="155" rx="120" ry="40" fill="#256b43"/><rect y="150" width="300" height="40" fill="#1f5e3a"/>${[30,70,110,150,195,235,275].map((x,i)=>tr(x,160+(i%2)*10,1.5+(i%3)*.3,['#1b7a46','#2a9457','#176b3c'][i%3])).join('')}`),
+Aw:()=>S('#ffcf87','#ffeccb',`${sun(240,45,'#ffb347')}<rect y="140" width="300" height="50" fill="#d9b24c"/><ellipse cx="150" cy="140" rx="200" ry="10" fill="#c9a23d"/>${[70,200].map(x=>`<path d="M${x} 150 L${x} 118 M${x} 125 L${x-14} 112 M${x} 125 L${x+14} 110" stroke="#5a3a1a" stroke-width="4" fill="none"/><ellipse cx="${x}" cy="108" rx="40" ry="9" fill="#4d8a3a"/>`).join('')}`),
+BWh:()=>S('#ffe3a3','#fff4d6',`${sun(60,45,'#ff9f1c')}<polygon points="190,130 225,80 260,130" fill="#d9a441"/><polygon points="150,130 172,100 194,130" fill="#c8932f"/><path d="M0 140 Q80 110 160 140 T300 130 V190 H0Z" fill="#e6b85c"/><path d="M0 165 Q100 140 200 165 T300 160 V190 H0Z" fill="#d9a441"/><path d="M40 160 V135 M40 140 L28 132 M40 140 L52 132" stroke="#3f7d3a" stroke-width="3" fill="none"/>`),
+Cfa:()=>S('#bfe3ff','#eaf6ff',`<path d="M0 120 Q80 80 170 115 T300 100 V190 H0Z" fill="#6aa84f"/><rect y="140" width="300" height="50" fill="#8fce6b"/>${[148,158,168,178].map((y,i)=>`<path d="M0 ${y} Q150 ${y-10-i} 300 ${y}" stroke="#4f9a3e" stroke-width="3" fill="none"/>`).join('')}${house(220,98)}${pn(40,120,1,'#2f6b3a')}${pn(60,125,1.2,'#2a5f34')}`),
+Cfb:()=>S('#b6c4d2','#dbe4ea',`<ellipse cx="80" cy="35" rx="45" ry="14" fill="#e8eef2"/><ellipse cx="230" cy="50" rx="55" ry="15" fill="#eef3f6"/><path d="M0 120 Q100 85 200 118 T300 110 V190 H0Z" fill="#7fbf6a"/><path d="M0 150 Q150 120 300 150 V190 H0Z" fill="#6aad58"/>${[[60,150],[90,162],[210,155],[240,168]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="9" ry="6" fill="#fafafa"/><circle cx="${x+8}" cy="${y-2}" r="3.5" fill="#444"/>`).join('')}${tr(270,125,1.3,'#3f8a3d')}`),
+Csa:()=>S('#6ec1ee','#d7f0ff',`${sun(250,40,'#ffd24d')}<rect y="95" width="300" height="30" fill="#2f8fd0"/><path d="M0 125 Q100 100 300 135 V190 H0Z" fill="#c9b27c"/>${house(40,118)}${house(85,126)}${house(130,116)}${house(175,128)}<path d="M240 170 V150" stroke="#5a4a3a" stroke-width="4"/><circle cx="240" cy="142" r="14" fill="#8a9a5b"/>`),
+Cwb:()=>S('#9fd4f5','#e6f4fb',`<polygon points="0,130 70,60 140,130" fill="#7a9a8a"/><polygon points="100,130 190,50 280,130" fill="#6a8a7a"/><rect y="125" width="300" height="25" fill="#4aa3c8"/><rect y="148" width="300" height="42" fill="#7bc65f"/>${[30,70,110,160,210,260].map((x,i)=>`<circle cx="${x}" cy="${165+(i%3)*8}" r="4" fill="${['#f472b6','#fbbf24','#fff'][i%3]}"/>`).join('')}`),
+Dfb:()=>S('#cfe0ee','#eef4f9',`<rect y="140" width="300" height="50" fill="#f4f8fb"/>${[20,50,80,115,150,185,220,255,285].map((x,i)=>pn(x,150+(i%3)*10,1.3+(i%2)*.4,'#1f5a3a',i%2)).join('')}`),
+Dwa:()=>S('#e3ecf3','#f6f9fb',`${sun(240,60,'#fde9b0')}<rect y="140" width="300" height="50" fill="#fff"/><path d="M0 150 Q150 135 300 150" stroke="#cfd9e2" fill="none"/>${[30,70,110,200,250].map((x,i)=>pn(x,152+(i%2)*8,1.3,'#2a5a45',1)).join('')}<path d="M165 160 V125 M165 140 L150 128 M165 135 L180 124" stroke="#6b5b4d" stroke-width="3" fill="none"/>`),
+ET:()=>S('#1d2b4a','#3f7a78',`<path d="M0 60 Q80 20 160 55 T300 40" stroke="#7dffb2" stroke-width="14" opacity=".35" fill="none"/><path d="M0 110 Q120 90 300 115 V190 H0Z" fill="#8c917c"/><path d="M0 145 Q150 125 300 150 V190 H0Z" fill="#a1a58d"/>${[[40,160],[110,170],[190,158],[250,172]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="22" ry="5" fill="#6f8a4f"/>`).join('')}<ellipse cx="150" cy="130" rx="30" ry="6" fill="#f2f6f8"/>`),
+EF:()=>S('#bfe0ff','#f2f9ff',`${sun(250,40,'#fff')}<polygon points="0,120 60,90 120,115 200,85 300,120 300,190 0,190" fill="#e9f4fb"/><polygon points="40,190 80,140 130,190" fill="#cfe6f4"/><polygon points="150,190 200,130 260,190" fill="#d9ecf8"/><ellipse cx="110" cy="170" rx="6" ry="11" fill="#333"/><ellipse cx="124" cy="172" rx="6" ry="11" fill="#333"/>`)
+};
+const land=c=>`<div class="ls">${SCENE[c.k=='Csa'?'Csa':c.k]()}${c.img?`<img src="${c.img}" alt="${c.n} 경관" onerror="this.remove()">`:''}</div>`;
+
+/* ===== 기후 그래프(막대=강수량, 꺾은선=기온) ===== */
+function chart(c){const W=480,H=300,l=48,r=52,t=30,b=36,pw=W-l-r,ph=H-t-b;
+const lo=Math.floor(Math.min(0,...c.t)/10)*10,hi=Math.ceil(Math.max(10,...c.t)/10)*10,st=hi-lo>60?20:10;
+const yT=v=>t+ph*(1-(v-lo)/(hi-lo)),yP=v=>t+ph*(1-v/800),xc=i=>l+pw/12*(i+.5);let g='';
+for(let v=lo;v<=hi;v+=st)g+=`<line x1="${l}" x2="${W-r}" y1="${yT(v)}" y2="${yT(v)}" stroke="#e5e7eb"/><text x="${l-6}" y="${yT(v)+4}" text-anchor="end" fill="#b91c1c" font-size="11">${v}</text>`;
+for(let p=0;p<=800;p+=200)g+=`<text x="${W-r+6}" y="${yP(p)+4}" fill="#2563eb" font-size="11">${p}</text>`;
+const bars=c.p.map((v,i)=>`<rect x="${xc(i)-pw/12*.35}" y="${yP(v)}" width="${pw/12*.7}" height="${t+ph-yP(v)}" fill="#60a5fa"/>`).join('');
+const pts=c.t.map((v,i)=>`${xc(i)},${yT(v)}`).join(' ');
+const months=c.t.map((_,i)=>`<text x="${xc(i)}" y="${H-14}" text-anchor="middle" font-size="11" fill="#5b6776">${i+1}</text>`).join('');
+return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.n} 기후 그래프"><rect x="${l}" y="${t}" width="${pw}" height="${ph}" fill="#fff" stroke="#cbd5d1"/>${g}${lo<0?`<line x1="${l}" x2="${W-r}" y1="${yT(0)}" y2="${yT(0)}" stroke="#b91c1c" stroke-dasharray="4 3"/>`:''}${bars}<polyline points="${pts}" fill="none" stroke="#dc2626" stroke-width="2.5"/>${c.t.map((v,i)=>`<circle cx="${xc(i)}" cy="${yT(v)}" r="3.2" fill="#dc2626"/>`).join('')}${months}<text x="${l}" y="16" font-size="12" fill="#b91c1c" font-weight="700">기온(℃) 꺾은선</text><text x="${W-r}" y="16" font-size="12" fill="#2563eb" font-weight="700" text-anchor="end">강수량(mm) 막대</text><text x="${l+pw/2}" y="${H-1}" text-anchor="middle" font-size="11" fill="#5b6776">월</text></svg>`}
+
+/* ===== 내장 대륙 윤곽(인터넷 없이도 표시, 위도·경도 근삿값) ===== */
+const WORLD=[
+[[71,-156],[70,-141],[69,-125],[68,-110],[72,-95],[63,-90],[58,-94],[60,-78],[55,-77],[58,-65],[52,-56],[47,-53],[44,-66],[41,-70],[35,-76],[30,-81],[25,-80],[26,-97],[21,-97],[18,-95],[21,-87],[16,-88],[9,-83],[8,-78],[9,-80],[14,-92],[20,-105],[23,-110],[31,-114],[24,-112],[34,-120],[40,-124],[48,-124],[55,-133],[58,-152],[60,-165],[66,-164]],
+[[83,-35],[76,-18],[70,-22],[60,-43],[67,-54],[76,-68],[82,-60]],
+[[12,-72],[10,-62],[5,-52],[0,-50],[-7,-35],[-23,-41],[-35,-57],[-41,-62],[-52,-68],[-55,-68],[-50,-75],[-37,-73],[-18,-70],[-5,-81],[2,-79],[8,-77]],
+[[71,28],[68,41],[68,60],[73,70],[77,105],[72,130],[70,160],[66,180],[62,179],[60,163],[56,162],[51,157],[59,150],[54,140],[47,138],[43,132],[39,127],[35,129],[34,126],[39,122],[38,118],[31,122],[22,114],[21,108],[16,108],[10,107],[9,105],[13,100],[8,100],[2,104],[8,98],[16,94],[22,91],[16,81],[8,77],[21,72],[25,66],[25,57],[30,48],[24,52],[22,59],[13,45],[20,39],[28,34],[31,34],[36,36],[37,27],[41,29],[41,23],[37,22],[40,18],[44,13],[44,8],[43,3],[37,-1],[37,-9],[43,-9],[48,-5],[51,2],[54,9],[57,8],[58,11],[56,13],[60,19],[65,22],[66,25],[70,22]],
+[[37,10],[32,32],[31,34],[22,37],[12,43],[11,51],[2,45],[-5,40],[-15,40],[-26,33],[-34,26],[-34,18],[-22,14],[-12,13],[-5,12],[4,9],[6,2],[5,-8],[12,-17],[21,-17],[28,-13],[35,-6]],
+[[-11,132],[-12,142],[-19,147],[-28,153],[-38,150],[-39,146],[-35,137],[-32,130],[-32,116],[-22,114],[-14,126]],
+[[45,142],[41,141],[35,140],[34,135],[34,131],[31,131],[34,129],[38,138],[41,140]],
+[[58,-5],[57,-2],[53,0],[51,1],[50,-5],[53,-4],[55,-6]],
+[[-70,-180],[-70,180],[-90,180],[-90,-180]]];
+function svgMap(c){const P=p=>`${p[1]+180},${90-p[0]}`,w=200,h=77,x=Math.min(Math.max(c.lng+180-w/2,0),360-w),y=Math.min(Math.max(90-c.lat-h/2,0),180-h);
+return `<svg viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;background:#cfe6f2;display:block">${WORLD.map(q=>`<polygon points="${q.map(P).join(' ')}" fill="#e7efe3" stroke="#94a3b8" stroke-width=".25"/>`).join('')}<circle cx="${c.lng+180}" cy="${90-c.lat}" r="2.2" fill="#ef4444" stroke="#b91c1c" stroke-width=".5"/><text id="lbl" x="${c.lng+180}" y="${90-c.lat-4}" font-size="5" font-weight="700" text-anchor="middle" fill="#1f2a37" opacity="0">${c.n}</text></svg>`}
+
+/* ===== 게임 로직 ===== */
+const app=document.getElementById('app');let map=null,quiz=[],order=[],i=0,sc=[0,0],stage=0;
+const shuf=a=>[...a].sort(()=>Math.random()-.5);
+const head=(s,n)=>`<div class="top"><span>${s==1?'1단계 위치와 지명':'2단계 기후 특성'}</span><span>${n+1} / ${order.length} · 점수 ${sc[s-1]}</span></div><div class="bar"><i style="width:${n/order.length*100}%"></i></div>`;
+function kill(){if(map){map.remove();map=null}}
+function start(){kill();sc=[0,0];order=shuf(CITIES).slice(0,5);quiz=[...order];app.innerHTML=`<div class="card"><h1>🌏 세계 도시 & 기후 탐험</h1><p>지도에서 도시를 찾고(1단계), 기후 그래프와 경관을 보고 쾨펜의 기후 구분을 알아맞혀 보세요(2단계).</p><ul><li>1단계 5문항, 2단계 5문항으로 진행됩니다. 한 화면에 질문 하나만 나옵니다.</li><li>정답을 고르면 바로 해설이 나옵니다.</li></ul><button class="go" id="b">1단계 시작</button></div>`;b.onclick=()=>{stage=1;i=0;q1()}}
+function opts(list,key,right){return `<div class="opts">${list.map(o=>`<button data-v="${key(o)}">${o.label||o.n}</button>`).join('')}</div>`}
+function q1(){kill();const c=order[i];const o=shuf([c,...shuf(CITIES.filter(x=>x!==c)).slice(0,3)]);
+app.innerHTML=`${head(1,i)}<div class="card"><span class="stage">1단계</span><h2>빨간 점이 가리키는 도시는 어디일까요? <small style="font-size:13px;color:var(--sub);font-weight:400">(축척 1:100,000 · 확대/축소 가능)</small></h2><div id="map"></div>${opts(o,x=>x.n)}<div id="fb"></div></div>`;
+let pop=null;
+const box=document.getElementById('map');
+box.innerHTML=svgMap(c)+'<div id="fbn" style="position:absolute;left:8px;bottom:6px;font-size:12px;background:#fffc;padding:2px 8px;border-radius:6px">대략적 위치 · 지도 서버에 연결되면 1:100,000 지도가 표시됩니다</div><div id="lm" style="position:absolute;inset:0;visibility:hidden"></div>';
+if(window.maplibregl){try{
+const lm=document.getElementById('lm');
+const SRC=[['https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png','© OpenStreetMap, © CARTO',18],['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}','© Esri',17],['https://tile.openstreetmap.org/{z}/{x}/{y}.png','© OpenStreetMap',18]];
+const rs=q=>({type:'raster',tiles:[q[0]],tileSize:256,maxzoom:q[2],attribution:q[1]});
+const geo={type:'FeatureCollection',features:WORLD.map(w=>({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[...w,w[0]].map(q=>[q[1],Math.max(-84,Math.min(84,q[0]))])]}}))};
+let si=0,bad=0;const Z=Math.log2(40075016*Math.cos(c.lat*Math.PI/180)/(512*26.46));/* 1:100,000 (96dpi 기준) */
+map=new maplibregl.Map({container:lm,center:[c.lng,c.lat],zoom:Z,minZoom:0.5,maxZoom:18,attributionControl:{compact:true},style:{version:8,sources:{world:{type:'geojson',data:geo},base:rs(SRC[0]),pt:{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'Point',coordinates:[c.lng,c.lat]}}}},layers:[{id:'bg',type:'background',paint:{'background-color':'#cfe6f2'}},{id:'w',type:'fill',source:'world',paint:{'fill-color':'#e7efe3','fill-outline-color':'#94a3b8'}},{id:'base',type:'raster',source:'base'},{id:'halo',type:'circle',source:'pt',paint:{'circle-radius':20,'circle-color':'#ef4444','circle-opacity':.28}},{id:'pt',type:'circle',source:'pt',paint:{'circle-radius':8,'circle-color':'#ef4444','circle-stroke-color':'#fff','circle-stroke-width':3}}]}});
+map.on('error',e=>{if(e.sourceId==='base'&&++bad>=3&&si<SRC.length-1){si++;bad=0;map.removeLayer('base');map.removeSource('base');map.addSource('base',rs(SRC[si]));map.addLayer({id:'base',type:'raster',source:'base'},'halo')}});
+const mp=map,zb=document.createElement('div');zb.style.cssText='position:absolute;top:8px;right:8px;z-index:3;display:flex;flex-direction:column;gap:4px';
+[['+',()=>mp.zoomIn()],['−',()=>mp.zoomOut()]].forEach(([t,f])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-label',t=='+'?'확대':'축소');b.style.cssText='width:32px;height:32px;font-size:20px;border:1px solid #94a3b8;border-radius:6px;background:#fff;cursor:pointer';b.onclick=f;zb.appendChild(b)});lm.appendChild(zb);
+let ok=false;map.on('sourcedata',e=>{if(e.sourceId==='base'&&e.tile)ok=true});
+setTimeout(()=>{if(ok||!document.body.contains(lm))return;mp.jumpTo({center:[c.lng,c.lat],zoom:2});const n=document.createElement('div');n.style.cssText='position:absolute;left:8px;top:8px;z-index:3;font-size:12px;background:#fffd;padding:3px 8px;border-radius:6px';n.textContent='지도 서버에 연결하지 못해 대륙 단위 위치만 표시합니다.';lm.appendChild(n)},6000);map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-left');
+map.on('load',()=>{map.jumpTo({center:[c.lng,c.lat],zoom:Z});const fn=document.getElementById('fbn');if(fn)fn.remove();lm.style.visibility='visible';box.firstChild.style.display='none';map.resize()});
+pop=()=>new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:16}).setLngLat([c.lng,c.lat]).setText(c.n).addTo(map);
+}catch(e){}}
+document.querySelectorAll('.opts button').forEach(bt=>bt.onclick=()=>{const ok=bt.dataset.v==c.n;if(ok)sc[0]++;
+document.querySelectorAll('.opts button').forEach(x=>{x.disabled=true;if(x.dataset.v==c.n)x.classList.add('ok')});if(!ok)bt.classList.add('no');
+const lb=document.getElementById('lbl');if(lb)lb.setAttribute('opacity',1);if(pop)pop();
+fb.innerHTML=`<div class="msg ${ok?'':'bad'}"><b>${ok?'정답!':'아쉬워요.'}</b> 이 도시는 <b>${c.n}</b>입니다.<br>국가: ${c.co} · 대륙: ${c.ct} · 위도 ${c.lat}°, 경도 ${c.lng}°</div><div class="msg" style="margin-top:10px"><b>🌡️ 쾨펜 기후 구분: ${CL[c.k][0]} (${c.k})</b><div class="two" style="margin-top:8px"><figure>${chart(c)}<figcaption>기후 그래프 (막대: 강수량, 꺾은선: 기온)</figcaption></figure><div><div class="stat"><span>연평균 기온 ${(c.t.reduce((a,b)=>a+b)/12).toFixed(1)}℃</span><span>최난월 ${Math.max(...c.t)}℃</span><span>최한월 ${Math.min(...c.t)}℃</span><span>연강수량 약 ${c.p.reduce((a,b)=>a+b)}mm</span></div><ul>${CL[c.k][1].map(x=>`<li>${x}</li>`).join('')}</ul></div></div></div><button class="go" id="nx">${i<order.length-1?'다음 도시':'2단계로 이동'}</button>`;
+nx.onclick=()=>{i++;if(i<order.length)q1();else mid()}})}
+function mid(){kill();app.innerHTML=`<div class="card"><span class="stage">1단계 완료</span><h2>${sc[0]} / ${order.length} 정답</h2><p>이제 이 도시들의 <b>기후</b>를 알아봅시다. 월별 기온(꺾은선)과 강수량(막대) 그래프, 대표 경관을 단서로 쾨펜의 기후 구분을 맞혀 보세요.</p><div class="msg">그래프 읽기 팁: ① 기온이 가장 높은 달은 언제인가? ② 연교차는 큰가? ③ 비가 많이 내리는 시기는?</div><button class="go" id="b">2단계 시작</button></div>`;b.onclick=()=>{stage=2;order=shuf(quiz);i=0;q2()}}
+function q2(){const c=order[i],cl=CL[c.k];
+const ks=shuf([c.k,...shuf(Object.keys(CL).filter(k=>k!=c.k)).slice(0,3)]).map(k=>({label:`${CL[k][0]} (${k})`,k}));
+const ta=(c.t.reduce((a,b)=>a+b)/12).toFixed(1),pt=c.p.reduce((a,b)=>a+b);
+app.innerHTML=`${head(2,i)}<div class="card"><span class="stage">2단계</span><h2>📍 ${c.n} (${c.co})의 기후는?</h2><div class="two"><figure>${chart(c)}<figcaption>기후 그래프 (강수량 축은 모든 도시 동일: 0~800mm)</figcaption></figure><figure>${land(c)}<figcaption>대표 경관 (일러스트)</figcaption></figure></div>${opts(ks,x=>x.k)}<div id="fb"></div></div>`;
+document.querySelectorAll('.opts button').forEach(bt=>bt.onclick=()=>{const ok=bt.dataset.v==c.k;if(ok)sc[1]++;
+document.querySelectorAll('.opts button').forEach(x=>{x.disabled=true;if(x.dataset.v==c.k)x.classList.add('ok')});if(!ok)bt.classList.add('no');
+fb.innerHTML=`<div class="msg ${ok?'':'bad'}"><b>${ok?'정답!':'아쉬워요.'}</b> ${c.n}은(는) <b>${cl[0]}(${c.k})</b>입니다.<div class="stat"><span>연평균 기온 ${ta}℃</span><span>최난월 ${Math.max(...c.t)}℃</span><span>최한월 ${Math.min(...c.t)}℃</span><span>연강수량 약 ${pt}mm</span></div><ul>${cl[1].map(x=>`<li>${x}</li>`).join('')}</ul></div><button class="go" id="nx">${i<order.length-1?'다음 도시':'결과 보기'}</button>`;
+nx.onclick=()=>{i++;if(i<order.length)q2();else end()}})}
+function end(){app.innerHTML=`<div class="card"><h2>🎉 학습 완료!</h2><p>1단계(위치·지명) <b>${sc[0]}/${quiz.length}</b> · 2단계(기후) <b>${sc[1]}/${quiz.length}</b></p><h3>복습표</h3><table><tr><th>도시</th><th>국가</th><th>기후</th></tr>${quiz.map(c=>`<tr><td>${c.n}</td><td>${c.co}</td><td>${CL[c.k][0]} (${c.k})</td></tr>`).join('')}</table><button class="go" id="b">다시 도전</button></div>`;b.onclick=start}
+start();
+</script>
+</body>
+</html>
