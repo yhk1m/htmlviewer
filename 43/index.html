@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>안양시 도시재개발 탐구 스튜디오</title>
+<!-- Leaflet & Leaflet-Geoman (그리기 라이브러리) CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.css">
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f2f5f9;color:#24364b;font-family:system-ui,"Malgun Gothic",sans-serif}
+header{padding:16px 22px;background:#1d4269;color:white}
+h1{margin:0 0 4px;font-size:24px}
+header p{margin:0;font-size:13px;color:#dceafa}
+
+/* 탭 메뉴 스타일 */
+.tab-nav{display:flex;background:#132e4c;padding:0 22px;gap:4px;border-bottom:3px solid #2866a6}
+.tab-btn{padding:12px 20px;background:#1d4269;color:#b0c4de;border:0;border-top-left-radius:8px;border-top-right-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s}
+.tab-btn:hover{background:#244f7d;color:white}
+.tab-btn.active{background:#2866a6;color:white}
+
+.container{max-width:1400px;margin:0 auto;padding:15px}
+
+/* 상단 고정 지도 영역 (모든 단계 공통) */
+.map-section{background:white;padding:15px;border-radius:10px;border:1px solid #dce3eb;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.03)}
+.map-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+.map-header h2{margin:0;font-size:16px;color:#1d4269;display:flex;align-items:center;gap:6px}
+#map{height:48vh;min-height:360px;border-radius:8px;border:1px solid #d5dfe9}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+/* 단계별 스텝 콘텐츠 영역 */
+.step-content{display:none}
+.step-content.active{display:block}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.box{background:white;padding:15px;border-radius:10px;border:1px solid #dce3eb;margin-bottom:15px}
+h2{font-size:15px;margin:0 0 10px;color:#1d4269}
+label{font-size:12px;display:block;margin:7px 0;font-weight:600}
+input,select,textarea{font:inherit;font-size:12px;border:1px solid #d7e0e9;border-radius:7px;padding:8px;width:100%}
+.check{display:flex;gap:7px;align-items:center;font-weight:normal;margin:5px 0}
+.check input{width:auto}
+button{border:0;border-radius:7px;padding:9px 11px;background:#2866a6;color:white;font-weight:700;cursor:pointer;font-size:12px}
+.alt{background:#e9f0f7;color:#244d75}
+.row{display:flex;gap:7px}
+.row>*{flex:1}
+.hint{font-size:11px;line-height:1.6;color:#68798c}
+.warn{background:#fff6e8;border:1px solid #f0dfc4;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.6;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat{background:white;border:1px solid #dce3eb;border-radius:9px;padding:10px}
+.stat b{display:block;font-size:16px;color:#1d4269}
+.stat span{font-size:10px;color:#68798c}
+
+.proposal{background:#f5f8fb;border:1px solid #dce3eb;border-radius:7px;padding:12px;margin-top:10px;font-size:12px}
+.img-preview{width:100%;max-height:150px;object-fit:cover;border-radius:6px;margin-top:6px;display:none;border:1px dashed #cbd5e1}
+.img-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.img-grid img{width:100%;height:110px;object-fit:cover;border-radius:5px;border:1px solid #cbd5e1}
+.field-title{font-size:11px;font-weight:700;color:#2866a6;margin-top:6px;margin-bottom:3px}
+.roadview-btn{display:inline-block;margin-top:5px;padding:4px 8px;background:#fee2e2;color:#991b1b;border-radius:4px;text-decoration:none;font-weight:bold;font-size:11px}
+.roadview-btn:hover{background:#fecaca}
+
+@media(max-width:850px){
+  .grid-2, .grid-3{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .tab-btn{padding:10px 12px;font-size:11px}
+  #map{height:35vh}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏙️ 안양시 도시재개발 탐구 스튜디오</h1>
+  <p>지도 데이터 분석부터 360° 로드뷰 현색, 재개발 도면 작성까지 단계별 GIS 탐구 수업</p>
+</header>
+
+<!-- 단계별 탭 네비게이션 -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchStep(1)">📍 1단계: 탐구 지역 & 데이터 분석</button>
+  <button class="tab-btn" onclick="switchStep(2)">🚶‍♂️ 2단계: 360° 로드뷰 현장 탐색</button>
+  <button class="tab-btn" onclick="switchStep(3)">📝 3단계: 모둠 제안 & 사진/도면 등록</button>
+</nav>
+
+<div class="container">
+  <!-- 🗺️ 모든 단계 상단 고정 지도 섹션 -->
+  <div class="map-section">
+    <div class="map-header">
+      <h2>🗺️ 안양시 GIS 탐구 지도 <span style="font-size:11px;font-weight:normal;color:#68798c">(상단에 고정되어 모든 단계에서 확인 가능합니다)</span></h2>
+      <div class="toolbar">
+        <button class="alt" id="street">일반 지도</button>
+        <button class="alt" id="sat">위성영상</button>
+        <button class="alt" id="reset">안양시 중심</button>
+        <button class="alt" id="clearDrawn" style="background:#fee2e2;color:#991b1b">그린 구역 삭제</button>
+      </div>
+    </div>
+    <div id="map"></div>
+    <div id="mapnote" style="font-size:11px;color:#68798c;margin-top:6px;display:flex;justify-content:space-between">
+      <span>✏️ 우상단 도형 도구(Leaflet Geoman)로 재개발 구역을 지도 위에 직접 그리세요.</span>
+      <span>📍 지도를 클릭하면 해당 위치 360° 로드뷰 링크가 열립니다.</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: 탐구 지역 및 데이터 분석 -->
+  <div id="step1" class="step-content active">
+    <div class="stats">
+      <div class="stat"><span>인구 구조</span><b>연령·성별</b><span>동별 인구구조</span></div>
+      <div class="stat"><span>교통안전</span><b>사고 유형</b><span>사고·보행환경</span></div>
+      <div class="stat"><span>생활안전</span><b>범죄 유형</b><span>공개 집계자료</span></div>
+      <div class="stat"><span>도시환경</span><b>녹지·건물</b><span>접근성·밀집도</span></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="box">
+        <h2>1. 탐구 지역 및 데이터 레이어</h2>
+        <label for="district">지역 선택</label>
+        <select id="district">
+          <option value="all">안양시 전체</option>
+          <option value="manan">만안구</option>
+          <option value="dongan">동안구</option>
+        </select>
+        
+        <label style="margin-top:12px">지도 데이터 레이어 켜기/끄기</label>
+        <label class="check"><input type="checkbox" data-layer="population" checked> 인구·연령·성별 (예시 지점)</label>
+        <label class="check"><input type="checkbox" data-layer="traffic" checked> 교통사고 (예시 지점)</label>
+        <label class="check"><input type="checkbox" data-layer="crime"> 범죄 유형 (예시 지점)</label>
+        <label class="check"><input type="checkbox" data-layer="green" checked> 녹지·공원 (예시 지점)</label>
+        <label class="check"><input type="checkbox" data-layer="density" checked> 건물 집합도·노후도 (예시 지점)</label>
+      </div>
+
+      <div class="box">
+        <h2>2. 공식 통계 CSV 불러오기</h2>
+        <p class="hint">학교 수업용 맞춤 CSV 파일이 있다면 직접 불러와 지도 위에 표시할 수 있습니다.<br>열 이름: <code>name,lat,lon,layer,value,detail</code></p>
+        <button class="alt" id="choose" style="margin-top:5px">CSV 파일 선택</button>
+        <input id="file" type="file" accept=".csv" hidden>
+        <button class="alt" id="template" style="width:100%;margin-top:6px">CSV 입력 양식 다운로드</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: 360도 로드뷰 현장 탐색 -->
+  <div id="step2" class="step-content">
+    <div class="warn">
+      <b>🚶‍♂️ 360도 로드뷰 현장 탐색 안내:</b> 위 지도의 원하는 지점을 마우스로 직접 클릭해 보세요! <br>
+      팝업창의 <b>[🚩 카카오 360° 로드뷰]</b> 또는 <b>[🌐 구글 스트리트뷰]</b> 버튼을 누르면 해당 위치의 실제 길거리 풍경을 바로 둘러볼 수 있습니다.
+    </div>
+
+    <div class="box">
+      <h2>도시재개발 현장 탐구 체크리스트</h2>
+      <div class="grid-2">
+        <div>
+          <label class="check"><input type="checkbox"> 연령·성별 인구구조 및 유동인구를 확인했나요?</label>
+          <label class="check"><input type="checkbox"> 보행자 사고 다발 지점과 도로/횡단보도 안전 상태를 확인했나요?</label>
+          <label class="check"><input type="checkbox"> 조명, CCTV 등 방범/생활안전 환경을 검토했나요?</label>
+        </div>
+        <div>
+          <label class="check"><input type="checkbox"> 주변 공원 및 녹지까지 걸어서 안전하게 갈 수 있나요?</label>
+          <label class="check"><input type="checkbox"> 건물 밀집도, 노후도, 골목길 도로 폭을 확인했나요?</label>
+          <label class="check"><input type="checkbox"> 원주민 이주, 임대료 상승 등 주민 영향을 고려했나요?</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>도시재개발 모둠 토론 가이드</h2>
+      <div class="grid-3">
+        <p class="hint"><b>누구를 위한 변화인가?</b><br>어린이·고령자·장애인·상인·세입자 등 다양한 주민에게 미치는 영향을 살펴보세요.</p>
+        <p class="hint"><b>무엇을 우선할까?</b><br>주택, 교통안전, 녹지, 문화공간, 지역경제 중 우선순위를 정하고 근거를 제시하세요.</p>
+        <p class="hint"><b>부작용은 없을까?</b><br>임대료 상승, 원주민 이주, 공사 소음, 차량 증가를 예방할 방법도 제안하세요.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: 모둠 제안 및 사진/도면 등록 -->
+  <div id="step3" class="step-content">
+    <div class="grid-2">
+      <div class="box">
+        <h2>3. 모둠별 재개발 제안 작성</h2>
+        <label for="team">모둠 이름</label>
+        <input id="team" placeholder="예: 2모둠 - 안전한 통학로">
+        
+        <label for="issue">발견한 도시 문제</label>
+        <textarea id="issue" rows="3" placeholder="로드뷰와 데이터로 발견한 문제는 무엇인가요?"></textarea>
+        
+        <label for="idea">재개발 아이디어</label>
+        <textarea id="idea" rows="3" placeholder="어떻게 바꾸면 좋을지 제안해 주세요."></textarea>
+        
+        <!-- 파일 업로드 -->
+        <label for="photoFile">📷 학생들이 직접 촬영한 현장 사진 올리기</label>
+        <input type="file" id="photoFile" accept="image/*">
+        <img id="photoPreview" class="img-preview" alt="현장 사진 미리보기">
+
+        <label for="designFile">🎨 직접 그린 조감도/도면 올리기</label>
+        <input type="file" id="designFile" accept="image/*">
+        <img id="preview" class="img-preview" alt="도면 미리보기">
+
+        <div class="row" style="margin-top:12px">
+          <button id="save" style="padding:11px">제안서 저장하기</button>
+          <button id="export" class="alt" style="padding:11px">제안서 전체 CSV 다운로드</button>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>제출된 모둠별 제안서 목록</h2>
+        <div id="proposals"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS 라이브러리: Leaflet & Leaflet-Geoman -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.min.js"></script>
+
+<script>
+// 탭 전환 기능
+function switchStep(stepNum) {
+  document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === (stepNum - 1));
+  });
+  document.querySelectorAll('.step-content').forEach((content, idx) => {
+    content.classList.toggle('active', idx === (stepNum - 1));
+  });
+  // 탭 전환 시 지도 크기 재계산 (Leaflet 깨짐 방지)
+  setTimeout(() => map.invalidateSize(), 100);
+}
+
+const center = [37.3943, 126.9568];
+const map = L.map('map').setView(center, 13);
+
+const normal = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles © Esri' });
+normal.addTo(map);
+
+// Leaflet Geoman 그리기 도구 컨트롤 추가
+map.pm.addControls({
+  position: 'topright',
+  drawMarker: true,
+  drawPolygon: true,
+  drawPolyline: true,
+  drawRectangle: true,
+  drawCircle: true,
+  editMode: true,
+  dragMode: true,
+  cutPolygon: false,
+  removalMode: true
+});
+
+const colors = { population: '#3978bd', traffic: '#d9534f', crime: '#8755aa', green: '#32956d', density: '#d58a32' };
+const groups = {};
+Object.keys(colors).forEach(k => groups[k] = L.layerGroup().addTo(map));
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function getKakaoRoadviewUrl(lat, lng) { return `https://map.kakao.com/link/roadview/${lat},${lng}`; }
+function getGoogleStreetviewUrl(lat, lng) { return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`; }
+
+function point(p){
+  if(!groups[p.layer] || !Number.isFinite(+p.lat) || !Number.isFinite(+p.lon)) return;
+  const kakaoUrl = getKakaoRoadviewUrl(p.lat, p.lon);
+  const googleUrl = getGoogleStreetviewUrl(p.lat, p.lon);
+
+  const popupContent = `
+    <b>${esc(p.name)}</b><br>
+    분류: ${esc(p.layer)}<br>
+    값: ${esc(p.value)}<br><br>
+    ${esc(p.detail)}<br><br>
+    <a href="${kakaoUrl}" target="_blank" class="roadview-btn">🚩 카카오 360° 로드뷰 보기</a><br>
+    <a href="${googleUrl}" target="_blank" class="roadview-btn" style="background:#e0f2fe;color:#0369a1;margin-top:3px">🌐 구글 스트리트뷰 보기</a>
+  `;
+
+  L.circleMarker([+p.lat, +p.lon], { radius: 9, color: 'white', weight: 2, fillColor: colors[p.layer], fillOpacity: .9 })
+   .bindPopup(popupContent)
+   .addTo(groups[p.layer]);
+}
+
+[
+  ['만안구 주거지역', 37.389, 126.923, 'population', '가상 예시', '연령별·성별 인구와 고령 1인가구 비율을 동별 통계로 확인해 보세요.'],
+  ['안양역 주변', 37.401, 126.922, 'traffic', '가상 예시', '보행자 사고, 횡단보도, 버스정류장 접근성을 살펴보세요.'],
+  ['중앙시장 주변', 37.397, 126.923, 'crime', '가상 예시', '공개된 범죄 유형 집계와 조명·CCTV·유동인구를 함께 검토하세요.'],
+  ['학의천 인근', 37.392, 126.973, 'green', '가상 예시', '공원까지 보행거리와 하천 녹지 연결성을 비교하세요.'],
+  ['구도심 블록', 37.396, 126.934, 'density', '가상 예시', '건물 수·층수·노후도·도로 폭을 조사해 보세요.'],
+  ['평촌 중심상업지역', 37.391, 126.951, 'population', '가상 예시', '주간·야간 인구와 상업·주거 기능 혼합을 살펴보세요.'],
+  ['범계역 주변', 37.389, 126.951, 'traffic', '가상 예시', '교통량, 보행자 사고, 자전거 동선과 대중교통 환승을 확인하세요.'],
+  ['관악산 접근지역', 37.416, 126.944, 'green', '가상 예시', '산림·공원 접근성과 녹지 단절 여부를 살펴보세요.']
+].forEach(a => point({ name: a[0], lat: a[1], lon: a[2], layer: a[3], value: a[4], detail: a[5] }));
+
+// 지도 클릭 시 해당 위치 로드뷰 팝업
+const clickPopup = L.popup();
+map.on('click', function(e) {
+  if(map.pm && map.pm.globalDrawModeEnabled()) return;
+  
+  const lat = e.latlng.lat.toFixed(5);
+  const lng = e.latlng.lng.toFixed(5);
+  const kakaoUrl = getKakaoRoadviewUrl(lat, lng);
+  const googleUrl = getGoogleStreetviewUrl(lat, lng);
+
+  clickPopup
+    .setLatLng(e.latlng)
+    .setContent(`
+      <div style="font-size:12px;text-align:center;">
+        <b>📍 클릭한 지점 현장 탐색</b><br>
+        <span style="font-size:10px;color:#666">위도: ${lat}, 경도: ${lng}</span><br><br>
+        <a href="${kakaoUrl}" target="_blank" class="roadview-btn">🚩 카카오 360° 로드뷰 열기</a><br>
+        <a href="${googleUrl}" target="_blank" class="roadview-btn" style="background:#e0f2fe;color:#0369a1;margin-top:4px">🌐 구글 스트리트뷰 열기</a>
+      </div>
+    `)
+    .openOn(map);
+});
+
+document.querySelectorAll('[data-layer]').forEach(c => c.onchange = () => c.checked ? map.addLayer(groups[c.dataset.layer]) : map.removeLayer(groups[c.dataset.layer]));
+
+document.getElementById('street').onclick = () => { map.removeLayer(sat); normal.addTo(map); };
+document.getElementById('sat').onclick = () => { map.removeLayer(normal); sat.addTo(map); };
+document.getElementById('reset').onclick = () => map.setView(center, 13);
+
+document.getElementById('clearDrawn').onclick = () => {
+  if(confirm('지도 위에 그린 구역들을 모두 삭제하시겠습니까?')) {
+    map.eachLayer(layer => {
+      if(layer.pm && !layer._url && !(layer instanceof L.CircleMarker && layer.options.radius === 9)) {
+        map.removeLayer(layer);
+      }
+    });
+  }
+};
+
+document.getElementById('district').onchange = e => {
+  const val = e.target.value;
+  map.setView(val === 'manan' ? [37.394, 126.923] : val === 'dongan' ? [37.393, 126.963] : center, val === 'all' ? 13 : 14);
+};
+
+// CSV 불러오기
+document.getElementById('choose').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = async e => {
+  let f = e.target.files[0];
+  if(!f) return;
+  let lines = (await f.text()).replace(/^﻿/, '').split(/\r?\n/).filter(Boolean);
+  let h = lines.shift().split(',').map(x => x.trim());
+  let need = ['name', 'lat', 'lon', 'layer', 'value', 'detail'];
+  if(!need.every(x => h.includes(x))) {
+    alert('CSV 열 이름을 확인하세요: ' + need.join(', '));
+    return;
+  }
+  let n = 0;
+  lines.forEach(line => {
+    let v = line.split(','), p = {};
+    h.forEach((x, i) => p[x] = (v[i] || '').trim());
+    if(groups[p.layer] && Number.isFinite(+p.lat) && Number.isFinite(+p.lon)) {
+      point(p);
+      n++;
+    }
+  });
+  alert(n + '개 지점을 추가했습니다.');
+};
+
+function csvDownload(name, content) {
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('template').onclick = () => csvDownload('안양시_통계자료_입력양식.csv', 'name,lat,lon,layer,value,detail\n안양역 주변,37.401,126.922,traffic,예시값,자료 설명');
+
+// 학생 촬영 현장 사진 업로드 처리
+let uploadedPhotoData = "";
+document.getElementById('photoFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      uploadedPhotoData = evt.target.result;
+      const previewImg = document.getElementById('photoPreview');
+      previewImg.src = uploadedPhotoData;
+      previewImg.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// 도면 파일 업로드 미리보기 처리
+let uploadedImageData = "";
+document.getElementById('designFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      uploadedImageData = evt.target.result;
+      const previewImg = document.getElementById('preview');
+      previewImg.src = uploadedImageData;
+      previewImg.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// 제안서 저장 및 관리
+let saved = [];
+document.getElementById('save').onclick = () => {
+  let team = document.getElementById('team').value || '이름 없는 모둠';
+  let issue = document.getElementById('issue').value;
+  let idea = document.getElementById('idea').value;
+
+  if(!issue || !idea) {
+    alert('문제와 아이디어를 입력하세요.');
+    return;
+  }
+
+  let p = {
+    team: team,
+    issue: issue,
+    idea: idea,
+    photo: uploadedPhotoData,
+    image: uploadedImageData
+  };
+
+  saved.push(p);
+
+  let d = document.createElement('div');
+  d.className = 'proposal';
+  
+  let imgsHtml = '';
+  if (p.photo || p.image) {
+    imgsHtml += '<div class="img-grid">';
+    if (p.photo) imgsHtml += `<div><div class="field-title">📷 현장 촬영 사진</div><img src="${p.photo}" alt="현장 촬영 사진"></div>`;
+    if (p.image) imgsHtml += `<div><div class="field-title">🎨 재개발 도면/조감도</div><img src="${p.image}" alt="재개발 도면"></div>`;
+    imgsHtml += '</div>';
+  }
+
+  d.innerHTML = `<b>${esc(p.team)}</b><br><b>문제:</b> ${esc(p.issue)}<br><b>제안:</b> ${esc(p.idea)}${imgsHtml}`;
+  
+  document.getElementById('proposals').prepend(d);
+
+  // 폼 초기화
+  document.getElementById('issue').value = '';
+  document.getElementById('idea').value = '';
+  document.getElementById('photoFile').value = '';
+  document.getElementById('designFile').value = '';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('preview').style.display = 'none';
+  uploadedPhotoData = "";
+  uploadedImageData = "";
+};
+
+document.getElementById('export').onclick = () => {
+  if(!saved.length) {
+    alert('저장된 제안이 없습니다.');
+    return;
+  }
+  let q = x => '"' + String(x).replace(/"/g, '""') + '"';
+  csvDownload('안양시_학생_재개발_제안서.csv', ['team,issue,idea', ...saved.map(p => [p.team, p.issue, p.idea].map(q).join(','))].join('\n'));
+};
+</script>
+</body>
+</html>
