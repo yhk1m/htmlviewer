@@ -1,0 +1,96 @@
+/**
+ * 한반도 탐험 퀴즈 — 랭킹 서버 (Google Apps Script)
+ * 구글 시트 > 확장 프로그램 > Apps Script 에 붙여 넣어 사용합니다.
+ * 학생 기록은 이 시트의 '기록' 탭에 한 줄씩 쌓입니다.
+ */
+const SHEET_NAME = '기록';
+const HEADERS = ['시각', '반', '이름', '모드', '문항 수', '맞힌 수', '정답률(%)', '평균 응답(초)', '점수', '최대 콤보'];
+
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  const boot = {
+    appUrl: ScriptApp.getService().getUrl(),
+    view: p.view === 'board' ? 'board' : 'game',
+    cls: clean_(p['class'] || '', 10)
+  };
+  const t = HtmlService.createTemplateFromFile('Index');
+  t.boot = JSON.stringify(boot).replace(/</g, '\\u003c');
+  return t.evaluate()
+    .setTitle('한반도 탐험 퀴즈')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function sheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.getRange('B:C').setNumberFormat('@'); // '2-3' 같은 반 이름이 날짜로 바뀌지 않게
+    sh.appendRow(HEADERS);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+// 글자 정리: 제어문자·꺾쇠 제거, 수식으로 해석될 수 있는 앞 기호 제거, 길이 제한
+function clean_(s, n) {
+  return String(s || '').replace(/[\u0000-\u001f<>]/g, '').trim().replace(/^[=+\-@]+/, '').slice(0, n);
+}
+function num_(v, min, max) {
+  v = Number(v);
+  if (!isFinite(v)) return min;
+  return Math.min(max, Math.max(min, v));
+}
+
+/** 게임 결과 저장 후, 같은 반 랭킹을 돌려줌 */
+function saveResult(r) {
+  r = r || {};
+  const name = clean_(r.name, 12);
+  if (!name) throw new Error('이름을 입력해 주세요.');
+  const cls = clean_(r.cls, 10);
+  const mode = r.mode === 'practice' ? '연습' : '도전';
+  const total = Math.round(num_(r.total, 1, 50));
+  const correct = Math.round(num_(r.correct, 0, total));
+  const avg = Math.round(num_(r.avg, 0, 999) * 10) / 10;
+  const score = Math.round(num_(r.score, 0, 100000));
+  const combo = Math.round(num_(r.combo, 0, total));
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    sheet_().appendRow([new Date(), cls, name, mode, total, correct,
+      Math.round(correct / total * 100), avg, score, combo]);
+  } finally {
+    lock.releaseLock();
+  }
+  return getRanking(cls, name);
+}
+
+/**
+ * 랭킹: 도전 모드 기록만, 학생(반+이름)마다 가장 좋은 기록 1개
+ * 순위 기준 ① 정답률 높은 순 → ② 평균 응답 시간 짧은 순 → ③ 점수 높은 순
+ */
+function getRanking(cls, me) {
+  cls = clean_(cls, 10);
+  const sh = sheet_();
+  const last = sh.getLastRow();
+  if (last < 2) return { rows: [], players: 0, mine: null };
+  const data = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  const cmp = (a, b) => (b.rate - a.rate) || (a.avg - b.avg) || (b.score - a.score);
+  const best = {};
+  data.forEach(d => {
+    if (d[3] !== '도전') return;
+    const c = String(d[1]);
+    if (cls && c !== cls) return;
+    const row = {
+      cls: c, name: String(d[2]), total: Number(d[4]), correct: Number(d[5]),
+      rate: Number(d[6]), avg: Number(d[7]), score: Number(d[8])
+    };
+    const key = c + '|' + row.name;
+    if (!best[key] || cmp(row, best[key]) < 0) best[key] = row;
+  });
+  const all = Object.keys(best).map(k => best[k]).sort(cmp);
+  all.forEach((r, i) => r.rank = i + 1);
+  const mine = me ? (all.filter(r => r.name === me && r.cls === cls)[0] || null) : null;
+  return { rows: all.slice(0, 30), players: all.length, mine: mine };
+}
