@@ -1,0 +1,607 @@
+
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인구 변천 모형 탐구 (통합사회)</title>
+    
+    <!-- 폰트 및 스타일 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js (그래프 렌더링) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- ECharts (세계 지도 렌더링) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 지도 컨테이너 최소 높이 보장 */
+        #map-container {
+            min-height: 400px;
+        }
+        
+        /* 토스트 메시지 애니메이션 */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            90% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+        .toast-animate {
+            animation: fadeInOut 3s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-indigo-600 text-white shadow-md p-4 flex-shrink-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">🌍 세계 인구 변천 모형 탐구</h1>
+                <p class="text-indigo-200 text-sm mt-1">고등학교 통합사회 - 세계 지도에서 국가를 선택하여 인구 변천 단계를 확인하세요.</p>
+            </div>
+            <div class="hidden sm:block bg-indigo-500/50 px-4 py-2 rounded-lg text-sm font-medium">
+                지원 국가: 전 세계 모든 국가 (World Bank API 실시간 연동)
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 (좌: 지도, 우: 차트) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6 overflow-hidden">
+        
+        <!-- 왼쪽: 세계 지도 패널 -->
+        <section class="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col relative overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-slate-50">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <span>🗺️</span> 1단계: 국가 선택
+                </h2>
+                <p class="text-sm text-slate-500 mt-1">지도에서 파란색으로 표시된 국가를 클릭해보세요.</p>
+            </div>
+            
+            <div class="flex-1 relative w-full h-full" id="map-wrapper">
+                <!-- ECharts가 그려질 DOM -->
+                <div id="map-container" class="w-full h-full absolute inset-0"></div>
+                
+                <!-- 로딩 오버레이 -->
+                <div id="loading-map" class="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10">
+                    <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="mt-4 text-indigo-600 font-medium">세계 지도를 불러오는 중...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 오른쪽: 그래프 패널 -->
+        <section class="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative">
+            <div class="p-4 border-b border-slate-100 bg-slate-50">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2" id="chart-title">
+                    <span>📊</span> 2단계: 인구 변천 모형 분석
+                </h2>
+                <p class="text-sm text-indigo-600 font-medium mt-1 min-h-[1.25rem]" id="chart-subtitle">
+                    왼쪽 지도에서 국가를 선택해주세요.
+                </p>
+            </div>
+            
+            <div class="flex-1 p-4 relative flex flex-col">
+                <!-- 차트 렌더링 캔버스 -->
+                <div class="relative flex-1 w-full min-h-[300px]">
+                    <canvas id="dtm-chart"></canvas>
+                </div>
+                
+                <!-- 차트 범례 및 설명 -->
+                <div class="mt-4 p-4 bg-slate-50 rounded-xl text-sm text-slate-600 border border-slate-100">
+                    <ul class="flex flex-wrap gap-4 justify-center">
+                        <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> <strong>출생률</strong> (인구 1,000명당 출생아 수)</li>
+                        <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> <strong>사망률</strong> (인구 1,000명당 사망자 수)</li>
+                        <li class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> <strong>총인구</strong> (해당 연도의 전체 인구 수)</li>
+                    </ul>
+                </div>
+
+                <!-- 초기 빈 상태 오버레이 -->
+                <div id="empty-state" class="absolute inset-0 bg-white/95 flex flex-col items-center justify-center z-10">
+                    <div class="text-6xl mb-4" id="empty-icon">👆</div>
+                    <h3 class="text-xl font-bold text-slate-700 mb-2" id="empty-title">국가를 먼저 선택해주세요</h3>
+                    <p class="text-slate-500 text-center px-6" id="empty-desc">
+                        지도에서 국가를 클릭하면<br>해당 국가의 인구 변천 데이터를 분석할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- AI 배경지식 모달 컨테이너 (숨김 상태) -->
+    <div id="ai-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-11/12 max-w-lg overflow-hidden transform scale-95 transition-transform duration-300" id="ai-modal-content">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <span>🤖</span> AI 역사/사회 배경 분석
+                </h3>
+                <button onclick="closeAiModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 min-h-[160px] relative">
+                <!-- 로딩 상태 -->
+                <div id="ai-modal-loading" class="absolute inset-0 bg-white flex flex-col items-center justify-center z-10 hidden">
+                    <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p class="text-indigo-600 font-medium text-center text-sm">Gemini AI가 해당 시점의 역사적, 세계적<br>배경을 분석하고 있습니다...</p>
+                </div>
+                <!-- 결과 상태 -->
+                <div id="ai-modal-result" class="text-slate-700 leading-relaxed space-y-3">
+                    <div class="mb-4 pb-4 border-b border-slate-100">
+                        <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold mb-2" id="ai-modal-badge">국가 - 연도</span>
+                        <div class="flex gap-4 text-sm text-slate-500">
+                            <span id="ai-modal-cbr">출생률: -</span>
+                            <span id="ai-modal-cdr">사망률: -</span>
+                        </div>
+                    </div>
+                    <div id="ai-modal-text" class="text-[15px]">
+                        <!-- AI 텍스트 결과 삽입 -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-right">
+                <button onclick="closeAiModal()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 컨테이너 -->
+    <div id="toast-container" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"></div>
+
+    <script>
+        // -------------------------------------------------------------
+        // 1. World Bank API 연동 및 데이터 처리 로직
+        // -------------------------------------------------------------
+        let currentChart = null;
+        let countryNameToIdMap = {};
+
+        // UI 상태 관리 함수
+        function setChartLoadingState(isLoading, countryName = "") {
+            const emptyStateEl = document.getElementById('empty-state');
+            const icon = document.getElementById('empty-icon');
+            const title = document.getElementById('empty-title');
+            const desc = document.getElementById('empty-desc');
+
+            if (isLoading) {
+                emptyStateEl.style.display = 'flex';
+                icon.innerHTML = '<div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>';
+                title.innerText = '데이터를 불러오는 중...';
+                desc.innerText = `World Bank 오픈 API에서\n'${countryName}'의 실시간 통계를 가져옵니다.`;
+            } else {
+                emptyStateEl.style.display = 'none';
+            }
+        }
+
+        function setChartErrorState() {
+            const emptyStateEl = document.getElementById('empty-state');
+            const icon = document.getElementById('empty-icon');
+            const title = document.getElementById('empty-title');
+            const desc = document.getElementById('empty-desc');
+
+            emptyStateEl.style.display = 'flex';
+            icon.innerHTML = '😢';
+            title.innerText = '데이터가 부족합니다';
+            desc.innerHTML = 'World Bank에 해당 국가의 인구 지표(출생/사망률 등) 데이터가 부족하여<br>모형을 구성할 수 없습니다. 다른 국가를 선택해주세요.';
+        }
+
+        // World Bank API에서 데이터 가져오기 (비동기)
+        async function fetchDemographicData(countryCode, countryName) {
+            setChartLoadingState(true, countryName);
+            
+            try {
+                // API URL (지표: 출생률, 사망률, 총인구 / 기간: 1960~최신)
+                const baseUrl = `https://api.worldbank.org/v2/country/${countryCode}/indicator/`;
+                const params = `?format=json&date=1960:2026&per_page=100`;
+
+                // 세 개의 API를 동시에 병렬 호출하여 속도 최적화
+                const [cbrRes, cdrRes, popRes] = await Promise.all([
+                    fetch(`${baseUrl}SP.DYN.CBRT.IN${params}`).then(r => r.json()),
+                    fetch(`${baseUrl}SP.DYN.CDRT.IN${params}`).then(r => r.json()),
+                    fetch(`${baseUrl}SP.POP.TOTL${params}`).then(r => r.json())
+                ]);
+
+                // 응답 데이터 유효성 검사 (데이터가 없는 경우 등)
+                if (!cbrRes[1] || !cdrRes[1] || !popRes[1]) {
+                    throw new Error("No data available from World Bank");
+                }
+
+                // 연도별로 데이터 병합하기
+                let yearDataMap = {};
+                
+                cbrRes[1].forEach(d => { if(d.value !== null) yearDataMap[d.date] = { ...yearDataMap[d.date], cbr: d.value }; });
+                cdrRes[1].forEach(d => { if(d.value !== null) yearDataMap[d.date] = { ...yearDataMap[d.date], cdr: d.value }; });
+                popRes[1].forEach(d => { if(d.value !== null) yearDataMap[d.date] = { ...yearDataMap[d.date], pop: d.value }; });
+
+                // 연도 오름차순 정렬
+                const years = Object.keys(yearDataMap).sort((a, b) => a - b);
+                
+                if (years.length === 0) {
+                    throw new Error("No valid data points available");
+                }
+
+                // 차트에 입력할 배열 생성 (비어있는 값은 null로 처리하여 spanGaps로 이어지게 함)
+                let cbrArr = [], cdrArr = [], popArr = [];
+                years.forEach(y => {
+                    cbrArr.push(yearDataMap[y].cbr || null);
+                    cdrArr.push(yearDataMap[y].cdr || null);
+                    popArr.push(yearDataMap[y].pop || null);
+                });
+
+                // 차트 렌더링 호출
+                renderChart(countryName, years, cbrArr, cdrArr, popArr);
+                
+            } catch (error) {
+                console.error("데이터 로드 실패:", error);
+                setChartErrorState();
+                showToast("해당 국가의 데이터가 온전하지 않습니다.");
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 2. Chart.js 그래프 설정 및 렌더링
+        // -------------------------------------------------------------
+        function renderChart(countryName, years, cbrArr, cdrArr, popArr) {
+            const canvasEl = document.getElementById('dtm-chart');
+            if (!canvasEl) return;
+            
+            const ctx = canvasEl.getContext('2d');
+
+            setChartLoadingState(false);
+            
+            const chartTitleEl = document.getElementById('chart-title');
+            if (chartTitleEl) chartTitleEl.innerHTML = `📊 <span class="text-indigo-600">${countryName}</span>의 인구 변천 모형`;
+            
+            const chartSubtitleEl = document.getElementById('chart-subtitle');
+            if (chartSubtitleEl) chartSubtitleEl.innerHTML = `${years[0]}년부터 ${years[years.length-1]}년까지의 추이입니다. <span class="text-indigo-600 font-bold ml-1 animate-pulse">💡점(연도)을 클릭하면 배경지식을 알려줍니다!</span>`;
+
+            // 기존 차트가 있으면 삭제 후 새로 그리기
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: '출생률 (1,000명당)',
+                            data: cbrArr,
+                            borderColor: '#3b82f6', 
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'yRate',
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            spanGaps: true // 빈 데이터 구간을 부드럽게 이어줌
+                        },
+                        {
+                            label: '사망률 (1,000명당)',
+                            data: cdrArr,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'yRate',
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            spanGaps: true
+                        },
+                        {
+                            label: '총인구 (명)',
+                            data: popArr,
+                            borderColor: '#10b981', 
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            yAxisID: 'yPop',
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            spanGaps: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    onClick: (e, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const dataIndex = activeElements[0].index;
+                            const year = currentChart.data.labels[dataIndex];
+                            const cbr = currentChart.data.datasets[0].data[dataIndex];
+                            const cdr = currentChart.data.datasets[1].data[dataIndex];
+                            const pop = currentChart.data.datasets[2].data[dataIndex];
+                            
+                            analyzeDemographicsWithAI(countryName, year, cbr, cdr, pop);
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#334155',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            titleFont: { size: 14, family: "'Noto Sans KR', sans-serif" },
+                            bodyFont: { size: 13, family: "'Noto Sans KR', sans-serif" },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label + '년 (' + countryName + ')';
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    
+                                    if (context.raw === null) {
+                                        return label + '데이터 없음';
+                                    }
+
+                                    if (context.dataset.yAxisID === 'yPop') {
+                                        let val = context.raw;
+                                        if (val >= 100000000) {
+                                            label += (val / 100000000).toFixed(2) + '억 명';
+                                        } else {
+                                            label += Math.floor(val / 10000).toLocaleString() + '만 명';
+                                        }
+                                    } else {
+                                        label += context.raw.toFixed(1) + ' 명';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 10 }
+                        },
+                        yRate: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 0,
+                            title: {
+                                display: true,
+                                text: '출생/사망률 (‰)',
+                                font: { family: "'Noto Sans KR', sans-serif" }
+                            }
+                        },
+                        yPop: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            grid: { drawOnChartArea: false }, 
+                            title: {
+                                display: true,
+                                text: '총인구 (명)',
+                                font: { family: "'Noto Sans KR', sans-serif" }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if(value >= 100000000) return (value / 100000000).toFixed(1) + '억';
+                                    if(value >= 10000) return (value / 10000).toFixed(0) + '만';
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // -------------------------------------------------------------
+        // 3. ECharts 세계 지도 설정
+        // -------------------------------------------------------------
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg text-sm font-medium toast-animate';
+            toast.innerText = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // -------------------------------------------------------------
+        // 4. Gemini AI 연동 (역사적/사회적 배경 분석)
+        // -------------------------------------------------------------
+        function openAiModal(country, year, cbr, cdr) {
+            const modal = document.getElementById('ai-modal');
+            const modalContent = document.getElementById('ai-modal-content');
+            const badge = document.getElementById('ai-modal-badge');
+            const cbrEl = document.getElementById('ai-modal-cbr');
+            const cdrEl = document.getElementById('ai-modal-cdr');
+            
+            badge.innerText = `${country} - ${year}년`;
+            cbrEl.innerText = `출생률: ${cbr ? cbr.toFixed(1) + '‰' : '데이터 없음'}`;
+            cdrEl.innerText = `사망률: ${cdr ? cdr.toFixed(1) + '‰' : '데이터 없음'}`;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeAiModal() {
+            const modal = document.getElementById('ai-modal');
+            const modalContent = document.getElementById('ai-modal-content');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        async function analyzeDemographicsWithAI(country, year, cbr, cdr, pop) {
+            openAiModal(country, year, cbr, cdr);
+            
+            const loadingEl = document.getElementById('ai-modal-loading');
+            const textEl = document.getElementById('ai-modal-text');
+            
+            loadingEl.classList.remove('hidden');
+            textEl.innerHTML = '';
+
+            const apiKey = ""; // API 키 자동 주입
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const systemPrompt = "너는 고등학교 통합사회 선생님이야. 학생이 세계 지도의 인구 변천 모형 그래프에서 특정 국가의 특정 연도를 클릭했어. 학생은 왜 그 시기에 인구 지표(출생률, 사망률, 인구 수)가 급변하거나 특정한 양상을 띄는지 알고 싶어해. 구글 검색을 활용해서 해당 연도(혹은 그 즈음)에 발생한 그 국가의 역사적 사건, 사회적 배경, 세계적 상황, 전쟁, 전염병, 정책 변화 등을 파악하고, 이를 바탕으로 인구 변화의 원인을 3~4문장으로 친절하고 이해하기 쉽게 설명해줘.";
+            const userQuery = `${country}의 ${year}년 당시 인구 지표(출생률: ${cbr ? cbr.toFixed(1) : '알수없음'}‰, 사망률: ${cdr ? cdr.toFixed(1) : '알수없음'}‰)가 이렇게 나타난 사회적, 역사적, 세계적 배경은 무엇인가요?`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                let text = "해당 시기의 명확한 역사적/사회적 배경을 찾기 어렵습니다.";
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                    text = result.candidates[0].content.parts[0].text;
+                    // 마크다운(굵은 글씨 등)을 HTML 태그로 변환하여 가독성 향상
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\n/g, '<br>');
+                }
+                
+                textEl.innerHTML = text;
+            } catch (error) {
+                console.error("AI 분석 실패:", error);
+                textEl.innerHTML = '<span class="text-red-500">AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</span>';
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDom = document.getElementById('map-container');
+            if (!chartDom) return;
+            
+            const myChart = echarts.init(chartDom);
+            
+            window.addEventListener('resize', function() {
+                myChart.resize();
+                if(currentChart) currentChart.resize();
+            });
+
+            // GeoJSON 세계 지도 데이터 가져오기
+            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+                .then(response => response.json())
+                .then(geoJson => {
+                    const loadingMapEl = document.getElementById('loading-map');
+                    if (loadingMapEl) loadingMapEl.style.display = 'none';
+
+                    echarts.registerMap('world', geoJson);
+
+                    // 지도 이름 -> ISO 3자리 코드 매핑 테이블 생성
+                    geoJson.features.forEach(feature => {
+                        countryNameToIdMap[feature.properties.name] = feature.id;
+                    });
+
+                    // 모든 국가를 파란색 테마로 설정
+                    const mapData = geoJson.features.map(feature => {
+                        return {
+                            name: feature.properties.name,
+                            value: 1,
+                            itemStyle: {
+                                areaColor: '#a5b4fc', // indigo-300 (클릭 가능한 모든 국가)
+                                borderColor: '#ffffff'
+                            }
+                        };
+                    });
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: function(params) {
+                                return `<strong>${params.name}</strong><br>클릭하여 실시간 인구 데이터 조회`;
+                            }
+                        },
+                        series: [
+                            {
+                                type: 'map',
+                                map: 'world',
+                                roam: true, 
+                                emphasis: {
+                                    label: { show: false },
+                                    itemStyle: {
+                                        areaColor: '#6366f1' // 호버 시 indigo-500
+                                    }
+                                },
+                                select: {
+                                    itemStyle: { areaColor: '#3730a3' }
+                                },
+                                data: mapData,
+                                boundingCoords: [
+                                    [-180, 90], 
+                                    [180, -90]  
+                                ],
+                                zoom: 1.2
+                            }
+                        ]
+                    };
+
+                    myChart.setOption(option);
+
+                    // 지도 클릭 이벤트 (World Bank API 호출)
+                    myChart.on('click', function (params) {
+                        const clickedCountryName = params.name;
+                        const iso3Code = countryNameToIdMap[clickedCountryName];
+                        
+                        if (iso3Code) {
+                            fetchDemographicData(iso3Code, clickedCountryName);
+                        } else {
+                            showToast("선택하신 지역의 국가 코드를 식별할 수 없습니다.");
+                        }
+                    });
+
+                })
+                .catch(error => {
+                    console.error('지도 데이터를 불러오는데 실패했습니다.', error);
+                    const loadingMapEl = document.getElementById('loading-map');
+                    if (loadingMapEl) {
+                        loadingMapEl.innerHTML = '<div class="text-red-500 font-bold mb-2">오류 발생</div><p class="text-slate-600 text-sm">지도 데이터를 불러오는 데 실패했습니다.<br>인터넷 연결을 확인해주세요.</p>';
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
