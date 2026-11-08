@@ -131,22 +131,31 @@ function q1(){kill();const c=order[i];const o=shuf([c,...shuf(CITIES.filter(x=>x
 app.innerHTML=`${head(1,i)}<div class="card"><span class="stage">1단계</span><h2>빨간 점이 가리키는 도시는 어디일까요? <small style="font-size:13px;color:var(--sub);font-weight:400">(축척 1:100,000 · 확대/축소 가능)</small></h2><div id="map"></div>${opts(o,x=>x.n)}<div id="fb"></div></div>`;
 let pop=null;
 const box=document.getElementById('map');
-box.innerHTML=svgMap(c)+'<div id="fbn" style="position:absolute;left:8px;bottom:6px;font-size:12px;background:#fffc;padding:2px 8px;border-radius:6px">대략적 위치 · 지도 서버에 연결되면 1:100,000 지도가 표시됩니다</div><div id="lm" style="position:absolute;inset:0;visibility:hidden"></div>';
+box.innerHTML=svgMap(c)+'<div id="fbn" style="position:absolute;left:8px;bottom:6px;font-size:12px;background:#fffc;padding:2px 8px;border-radius:6px">대략적 위치 · 지도 서버에 연결되면 1:100,000 지도가 표시됩니다</div><div id="lm" style="position:absolute;top:0;right:0;bottom:0;left:0"></div>';
 if(window.maplibregl){try{
 const lm=document.getElementById('lm');
-const SRC=[['https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png','© OpenStreetMap, © CARTO',18],['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}','© Esri',17],['https://tile.openstreetmap.org/{z}/{x}/{y}.png','© OpenStreetMap',18]];
-const rs=q=>({type:'raster',tiles:[q[0]],tileSize:256,maxzoom:q[2],attribution:q[1]});
 const geo={type:'FeatureCollection',features:WORLD.map(w=>({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[...w,w[0]].map(q=>[q[1],Math.max(-84,Math.min(84,q[0]))])]}}))};
-let si=0,bad=0;const Z=Math.log2(40075016*Math.cos(c.lat*Math.PI/180)/(512*26.46));/* 1:100,000 (96dpi 기준) */
-map=new maplibregl.Map({container:lm,center:[c.lng,c.lat],zoom:Z,minZoom:0.5,maxZoom:18,attributionControl:{compact:true},style:{version:8,sources:{world:{type:'geojson',data:geo},base:rs(SRC[0]),pt:{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'Point',coordinates:[c.lng,c.lat]}}}},layers:[{id:'bg',type:'background',paint:{'background-color':'#cfe6f2'}},{id:'w',type:'fill',source:'world',paint:{'fill-color':'#e7efe3','fill-outline-color':'#94a3b8'}},{id:'base',type:'raster',source:'base'},{id:'halo',type:'circle',source:'pt',paint:{'circle-radius':20,'circle-color':'#ef4444','circle-opacity':.28}},{id:'pt',type:'circle',source:'pt',paint:{'circle-radius':8,'circle-color':'#ef4444','circle-stroke-color':'#fff','circle-stroke-width':3}}]}});
-map.on('error',e=>{if(e.sourceId==='base'&&++bad>=3&&si<SRC.length-1){si++;bad=0;map.removeLayer('base');map.removeSource('base');map.addSource('base',rs(SRC[si]));map.addLayer({id:'base',type:'raster',source:'base'},'halo')}});
-const mp=map,zb=document.createElement('div');zb.style.cssText='position:absolute;top:8px;right:8px;z-index:3;display:flex;flex-direction:column;gap:4px';
+const Z=Math.log2(40075016*Math.cos(c.lat*Math.PI/180)/(512*26.46));/* 1:100,000 (96dpi 기준) */
+const F=(id,t,sl,paint,x)=>Object.assign({id:id,type:t,source:'ofm','source-layer':sl,paint:paint},x||{});
+map=new maplibregl.Map({container:lm,center:[c.lng,c.lat],zoom:Z,minZoom:0.5,maxZoom:18,attributionControl:{compact:true},style:{version:8,sources:{world:{type:'geojson',data:geo},ofm:{type:'vector',url:'https://tiles.openfreemap.org/planet',attribution:'<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> © <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'},pt:{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'Point',coordinates:[c.lng,c.lat]}}}},layers:[
+{id:'bg',type:'background',paint:{'background-color':'#f2efe9'}},
+{id:'w',type:'fill',source:'world',layout:{visibility:'none'},paint:{'fill-color':'#e7efe3','fill-outline-color':'#94a3b8'}},
+F('lc','fill','landcover',{'fill-color':['match',['get','class'],'wood','#cfe3bd','grass','#dcebc8','ice','#ffffff','sand','#f2e8c8','#e4ecd6']}),
+F('lu','fill','landuse',{'fill-color':['match',['get','class'],'residential','#e6dfd2',['park','cemetery','pitch'],'#d3e6c3','rgba(0,0,0,0)']}),
+F('wt','fill','water',{'fill-color':'#a8d1ee'}),
+F('ww','line','waterway',{'line-color':'#a8d1ee','line-width':1}),
+F('bd','line','boundary',{'line-color':'#9f86a8','line-width':1,'line-dasharray':[3,2]},{filter:['<=',['get','admin_level'],4]}),
+F('rd','line','transportation',{'line-color':['match',['get','class'],['motorway','trunk'],'#e8964a',['primary','secondary'],'#f0c060','#c9c2b4'],'line-width':['interpolate',['linear'],['zoom'],5,.5,10,1.2,14,3]}),
+F('bl','fill','building',{'fill-color':'#d8d0c4'},{minzoom:13}),
+{id:'halo',type:'circle',source:'pt',paint:{'circle-radius':20,'circle-color':'#ef4444','circle-opacity':.28}},
+{id:'pt',type:'circle',source:'pt',paint:{'circle-radius':8,'circle-color':'#ef4444','circle-stroke-color':'#fff','circle-stroke-width':3}}]}});
+const mp=map;box.firstChild.style.display='none';const fn0=document.getElementById('fbn');if(fn0)fn0.remove();const zb=document.createElement('div');zb.style.cssText='position:absolute;top:8px;right:8px;z-index:3;display:flex;flex-direction:column;gap:4px';
 [['+',()=>mp.zoomIn()],['−',()=>mp.zoomOut()]].forEach(([t,f])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-label',t=='+'?'확대':'축소');b.style.cssText='width:32px;height:32px;font-size:20px;border:1px solid #94a3b8;border-radius:6px;background:#fff;cursor:pointer';b.onclick=f;zb.appendChild(b)});lm.appendChild(zb);
-let ok=false;map.on('sourcedata',e=>{if(e.sourceId==='base'&&e.tile)ok=true});
-setTimeout(()=>{if(ok||!document.body.contains(lm))return;mp.jumpTo({center:[c.lng,c.lat],zoom:2});const n=document.createElement('div');n.style.cssText='position:absolute;left:8px;top:8px;z-index:3;font-size:12px;background:#fffd;padding:3px 8px;border-radius:6px';n.textContent='지도 서버에 연결하지 못해 대륙 단위 위치만 표시합니다.';lm.appendChild(n)},6000);map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-left');
+let ok=false,em='';map.on('error',e=>{em=(e&&e.error&&e.error.message)||''});map.on('sourcedata',e=>{if(e.sourceId==='ofm'&&e.tile)ok=true});
+setTimeout(()=>{if(ok||!document.body.contains(lm))return;mp.setPaintProperty('bg','background-color','#cfe6f2');mp.setLayoutProperty('w','visibility','visible');mp.jumpTo({center:[c.lng,c.lat],zoom:2});const n=document.createElement('div');n.style.cssText='position:absolute;left:8px;top:8px;z-index:3;font-size:12px;background:#fffd;padding:3px 8px;border-radius:6px';n.textContent='지도 타일을 불러오지 못해 대륙 단위 위치만 표시합니다.'+(em?' ('+em.slice(0,70)+')':'');lm.appendChild(n)},6000);map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-left');
 map.on('load',()=>{map.jumpTo({center:[c.lng,c.lat],zoom:Z});const fn=document.getElementById('fbn');if(fn)fn.remove();lm.style.visibility='visible';box.firstChild.style.display='none';map.resize()});
 pop=()=>new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:16}).setLngLat([c.lng,c.lat]).setText(c.n).addTo(map);
-}catch(e){}}
+}catch(e){const l=document.getElementById('lm');if(l)l.style.display='none'}}
 document.querySelectorAll('.opts button').forEach(bt=>bt.onclick=()=>{const ok=bt.dataset.v==c.n;if(ok)sc[0]++;
 document.querySelectorAll('.opts button').forEach(x=>{x.disabled=true;if(x.dataset.v==c.n)x.classList.add('ok')});if(!ok)bt.classList.add('no');
 const lb=document.getElementById('lbl');if(lb)lb.setAttribute('opacity',1);if(pop)pop();
