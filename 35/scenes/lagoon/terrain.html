@@ -22,6 +22,8 @@
   body.show-map #foot { color:#f0eee6; text-shadow:none; font-size:11px; padding:5px 9px; background:rgba(22,26,24,.92); border:1px solid var(--line); border-radius:4px; }
   #schem { position:fixed; right:0; top:0; bottom:0; width:min(600px,42vw); padding:16px 20px; overflow:auto; background:rgba(22,26,24,.9); border-left:1px solid var(--line); color:var(--ink); }
   #schem[hidden] { display:none; }
+  /* 왼쪽 아래 출처 칸과 겹치지 않게 패널 높이를 줄인다. 넘치는 글은 패널 안에서 내려 본다. */
+  @media (min-width:821px) { #panel { max-height:calc(100vh - 40px - var(--foot) - 30px); } }
   #schem h2 { font-size:18px; margin:4px 0 6px; font-weight:700; }
   #schem figure { margin:0 0 10px; }
   #schem svg { display:block; width:100%; height:auto; border-radius:3px; background:#23302a; font-family:inherit; }
@@ -66,10 +68,10 @@
     <button data-view="oblique" class="on">비스듬히</button><button data-view="above">위에서</button><button data-view="close">사주 가까이</button>
   </div>
   <div class="row">
-    <button id="labelsBtn" class="on">이름표</button><button id="schemBtn" class="on">모식도</button><button id="qualityBtn"></button>
+    <button id="labelsBtn" class="on">이름표</button><button id="buildingsBtn" class="on">건물</button><button id="schemBtn" class="on">모식도</button><button id="qualityBtn"></button>
   </div>
   <p class="cap" id="heightNote"></p>
-  <p class="cap" style="margin-top:4px">두 번 누르면 그 자리를 중심으로 돕니다. 실제 자료는 오늘날의 땅 높이뿐입니다. 원자료 해상도가 약 30m, 화면 격자가 약 12m라 폭이 수백 m인 사주와 해변은 뭉개지고, 해안사구처럼 작은 언덕은 잘 보이지 않습니다. 호수, 경포천, 해변, 해안선의 자리는 지도 자료에서 옮겼고, 호수 바닥과 바다 바닥은 자료에 없습니다. 석호의 물은 바닷물과 민물이 섞여 바다와 색을 다르게 칠했습니다. 사주가 생긴 시기와 호수가 얼마나 줄었는지는 이 자료로 알 수 없어 적지 않았습니다. 표면 재질은 규칙으로 만든 예시이고, 높이에는 건물과 도로, 나무가 섞여 있을 수 있습니다.</p>
+  <p class="cap" style="margin-top:4px">두 번 누르면 그 자리를 중심으로 돕니다. 실제 자료는 오늘날의 땅 높이뿐입니다. 원자료 해상도가 약 30m, 화면 격자가 약 12m라 폭이 수백 m인 사주와 해변은 뭉개지고, 해안사구처럼 작은 언덕은 잘 보이지 않습니다. 호수, 경포천, 해변, 해안선의 자리는 지도 자료에서 옮겼고, 호수 바닥과 바다 바닥은 자료에 없습니다. 석호의 물은 바닷물과 민물이 섞여 바다와 색을 다르게 칠했습니다. 사주가 생긴 시기와 호수가 얼마나 줄었는지는 이 자료로 알 수 없어 적지 않았습니다. 표면 재질은 규칙으로 만든 예시이고, 높이에는 건물과 도로, 나무가 섞여 있을 수 있습니다. 건물은 브이월드 건물 자료의 바닥 윤곽을 지상 층수 × 3m 높이로 올린 덩어리이며, 실제 높이와 지붕 모양은 다를 수 있습니다. 땅은 과장해도 건물 높이는 과장하지 않으므로 땅과 비교할 때는 실제 높이를 누르세요.</p>
 </section>
 <canvas id="mapView" hidden></canvas>
 <aside id="schem" aria-label="사빈, 사주, 석호 모식도"></aside>
