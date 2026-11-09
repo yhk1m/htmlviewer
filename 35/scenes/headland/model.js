@@ -476,10 +476,10 @@ export function ratioNote(m) {
   const r = m.headEnergy() / Math.max(0.01, m.bayEnergy());
   return r > 1.3 ? `곶에 닿는 파랑 에너지가 만의 ${r.toFixed(1)}배입니다. 그래서 곶은 깎이고 만에는 쌓입니다.` : '곶과 만의 파랑 에너지가 비슷해졌습니다. 해안이 단순해질수록 차이가 줄어듭니다.';
 }
-export const CLIFF_CAVE_NOTE = '파랑이 모인 곶의 해식애에서는 절리나 단층처럼 약한 줄(검은 줄)을 따라 침식이 집중됩니다. 해식애 안쪽으로 크고 깊게 파인 이 굴이 해식 동굴입니다.';
+export const CLIFF_CAVE_NOTE = '파랑이 모인 곶의 해식애에서는 절리나 단층처럼 약한 곳을 따라 침식이 집중됩니다. 해식애 안쪽으로 크고 깊게 파인 이 굴이 해식 동굴입니다.';
 export function caveViewNote(m) {
   if (m.cliffCaves.some(c => c.depth >= 1)) return CLIFF_CAVE_NOTE;
-  return '아직 해식애가 낮아 굴이 파이지 않았습니다. 곶이 깎여 해식애가 높아지면 검은 줄을 따라 해식 동굴이 파입니다.';
+  return '아직 해식애가 낮아 굴이 파이지 않았습니다. 곶이 깎여 해식애가 높아지면 절리처럼 약한 곳을 따라 해식 동굴이 파입니다.';
 }
 export function archNote(name) {
   if (name === 'cave') return '좁게 튀어나온 곶의 해식애에도 절리를 따라 해식 동굴이 파입니다. 양쪽이 바다라 굴이 계속 커지면 반대쪽 해식애까지 뚫릴 수 있습니다.';

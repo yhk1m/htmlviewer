@@ -58,7 +58,7 @@ export function createBlock(model) {
   const waterSidePos = new Float32Array(skirtPts.length * 6), waterSideGeo = new THREE.BufferGeometry();
   waterSideGeo.setAttribute('position', new THREE.BufferAttribute(waterSidePos, 3));
   waterSideGeo.setIndex(skirtGeo.index);
-  const waterSide = new THREE.Mesh(waterSideGeo, new THREE.MeshBasicMaterial({ color: 0x2f86c9, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+  const waterSide = new THREE.Mesh(waterSideGeo, new THREE.MeshBasicMaterial({ color: 0x2f86c9, transparent: true, opacity: 0.38, side: THREE.DoubleSide, depthWrite: false }));
   waterSide.frustumCulled = false;
   waterSide.renderOrder = 1;
   group.add(waterSide);
@@ -158,7 +158,7 @@ export function createBlock(model) {
       // 만과 석호는 얕아도 물로 읽히도록 덜 투명하게 칠한다.
       const kind = d > 0 ? model.cellKind(c) : 'land', closed = kind === 'lagoon' || kind === 'bay';
       for (let q = 0; q < 3; q++) { let v = SHALLOW[q] + (CLEAN[q] - SHALLOW[q]) * a; v += (DEEPW[q] - v) * b; if (kind === 'lagoon') v = LAGOON[q] * (1 - 0.2 * a); else if (closed) v = CLEAN[q] * 0.85 + SHALLOW[q] * 0.15; sCol[k * 4 + q] = v; }
-      sCol[k * 4 + 3] = kind === 'lagoon' ? 0.8 : closed ? 0.62 + 0.25 * a : 0.18 + 0.22 * a + 0.3 * b;
+      sCol[k * 4 + 3] = kind === 'lagoon' ? 0.72 : closed ? 0.5 + 0.2 * a : 0.08 + 0.14 * a + 0.2 * b;
     }
     sGeo.attributes.color.needsUpdate = true;
     if (force || Math.abs(sea - lastSea) > 0.01) {

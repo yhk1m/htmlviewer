@@ -217,12 +217,6 @@ export function createBlock(model) {
     cliffCaves.forEach((c, n) => {
       if (c.depth < 0.05) { hideCaveArrow(n + 1); return; }
       const q = model.caveMouth(c);
-      // 굴 위로 올라가는 절리
-      const top = h[(front[c.x] - 1) * N + c.x], jw = 0.35, jl = c.x - jw, jr = c.x + jw, ja = q.height, N2 = 4;
-      for (let s = 0; s < N2; s++) {
-        const y0 = ja + ((top - ja) * s) / N2, y1 = ja + ((top - ja) * (s + 1)) / N2, r = (x, y) => [x - CENTER, y, faceRow(x, y) + 0.3 - CENTER];
-        if (top > ja) tri(JOINT, r(jl, y0), r(jr, y0), r(jr, y1), r(jl, y0), r(jr, y1), r(jl, y1));
-      }
       arch(c, q.half + 0.7, q.height + 0.35, 0.25, RIM);
       arch(c, q.half, q.height, 0.4, DARK);
       // 굴로 들어가는 파랑
@@ -263,8 +257,6 @@ export function createBlock(model) {
         if (sand[k] > 0.02) v = SAND[q];
         // 절리: 둘레 바위에 난 검은 줄. 해식 동굴이 이 줄을 따라 파인다.
         if (model.fin[k] && !model.arch.collapsed && j === ((ARCH.j0 + ARCH.j1) >> 1)) v = JOINT[q];
-        // 곶의 절리. 땅에 고정된 줄이라 해식애가 물러나도 자리가 그대로이다.
-        if (CLIFF_CAVE.xs.includes(i) && j > model.firstFront[i] - CLIFF_CAVE.jointRows) v = JOINT[q];
       } else if (sand[k] > 0.02) v = SAND[q] * 0.85 + BED[q] * 0.15;
       else if (model.caved[k] && !model.arch.through) v = DARK[q];
       // 좁은 곶의 발치: 옆면이 물속 바닥색으로 번지지 않아 시 아치와 둘레 절벽의 색이 같아진다.
