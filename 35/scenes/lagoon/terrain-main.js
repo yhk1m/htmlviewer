@@ -16,6 +16,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { buildGyeongpo, sampleH, lakeProfile, profileMarks, barStats, placesOf, N, SIZE, CELL, WATER_LEVEL, LAKE_LEVEL } from './sim.js';
 import { createSchematic } from './schematic.js';
 import { createBuildingLayer, clearUnder } from '../../shared/buildings.js';
+import { createRoadLayer } from '../../shared/roads.js';
 
 const PHONE = isPhone();
 const QUALITY_NAME = currentQuality(PHONE), Q = QUALITY[QUALITY_NAME];
@@ -62,6 +63,7 @@ async function start() {
   const buildingData = await (await fetch(new URL('./data/gyeongpo-buildings.json', import.meta.url))).json();
   // 건물 자리에는 나무를 심지 않는다.
   clearUnder(buildingData, N, sim.stage.forest, sim.mountain);
+  const roadData = await (await fetch(new URL('./data/gyeongpo-roads.json', import.meta.url))).json();
   const stage = sim.stage, PLACES = placesOf(sim), line = lakeProfile(sim), bar = barStats(line);
 
   const geo = new THREE.BufferGeometry();
@@ -103,6 +105,8 @@ async function start() {
   window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
   // 건물: 땅 높이 배율이 바뀌면 다시 얹는다. 건물 높이는 과장하지 않는다.
+  // 도로: 땅 높이 배율이 바뀌면 다시 얹는다.
+  const roads = createRoadLayer(THREE, scene, roadData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(Math.max(sampleH(sim.h, i, j), 0.9)), cellM: CELL });
   const buildings = createBuildingLayer(THREE, scene, buildingData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(Math.max(sampleH(sim.h, i, j), 0.9)) });
   const veg = { N, SIZE, CELL, WATER_LEVEL, ex, sampleH, dense: false, treeFactor: Q.trees };
   const treeCache = {}, nearCache = {};
@@ -123,6 +127,7 @@ async function start() {
     nearMesh = nearCache[key] ??= buildNearTrees(veg, stage, sim.mountain);
     scene.add(treeMesh, nearMesh);
     buildings.place(scale.factor);
+    roads.place(scale.factor);
     renderer.shadowMap.needsUpdate = true;
   };
 
@@ -217,6 +222,7 @@ async function start() {
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   document.querySelectorAll('[data-height]').forEach(b => b.onclick = () => setHeight(+b.dataset.height));
   document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); placeLabels(); };
+  document.getElementById('roadsBtn').onclick = e => { e.currentTarget.classList.toggle('on', roads.toggle()); invalidate(); };
   document.getElementById('buildingsBtn').onclick = e => { e.currentTarget.classList.toggle('on', buildings.toggle()); renderer.shadowMap.needsUpdate = true; invalidate(); };
 
   setView('oblique');
@@ -226,11 +232,11 @@ async function start() {
   document.getElementById('load').hidden = true;
   startLoop(() => { placeLabels(); meter(); });
 
-  window.__LAB = { setView, setHeight, setSchematic, stats: sim.stats, bar, buildings: buildings.info, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
+  window.__LAB = { setView, setHeight, setSchematic, stats: sim.stats, bar, buildings: buildings.info, roads: () => roads.info(), labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
   window.__APP_READY = true;
 }
 
 document.getElementById('note').textContent = '강릉 경포호 일대입니다. 바다와 호수 사이를 좁고 긴 모래 띠인 사주가 막고 있고, 사주의 바다 쪽에는 경포해변(사빈)이 펼쳐집니다. 사주가 만의 입구를 거의 막아 생긴 이런 호수가 석호이며, 동해안에 많습니다. 경포호는 강문해변 쪽 좁은 물길로 바다와 이어져 있고, 호수 남쪽으로는 경포천이 흐릅니다.';
-document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '호수, 하천, 해변, 해안선, 지명 위치: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '논밭과 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '호수, 하천, 해변, 해안선, 도로, 지명 위치: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '논밭과 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });
