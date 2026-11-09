@@ -7,5 +7,5 @@ export const SCENES = [
   { area: '해안', name: '곶과 만, 암석 해안', shows: '파도가 모이는 곳, 해식애와 파식대', href: 'scenes/headland/model.html' },
   { area: '해안', name: '해안 단구', shows: '솟아오른 옛 파식대', href: 'scenes/terrace/model.html' },
   { area: '해안', name: '사빈, 사주, 석호', shows: '연안류가 옮기는 모래와 막힌 바다', href: 'scenes/lagoon/model.html' },
-  { area: '해안', name: '갯벌', shows: '조차와 고운 흙, 간척 뒤의 변화' },
+  { area: '해안', name: '갯벌', shows: '조차와 고운 흙, 간척 뒤의 변화', href: 'scenes/tidalflat/model.html' },
 ];
