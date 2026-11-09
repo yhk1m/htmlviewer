@@ -73,7 +73,7 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay, int
     ctx.fillText(barM >= 1000 ? `${barM / 1000}km` : `${barM}m`, ox + 10, oy + side - 24);
     ctx.fillText(`등고선 간격 ${interval}m, 굵은 선 ${thick}m`, ox + 10, oy + 18);
   } else {
-    ctx.fillText('설명용 모형이라 축척이 없습니다.', ox + 10, oy + 18);
+    ctx.fillText('설명용 모형이라 축척이 없고, 높이 숫자는 모형 단위입니다.', ox + 10, oy + 18);
   }
   if (north) drawNorth(ctx, ox, oy, side);
 }

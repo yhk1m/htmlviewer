@@ -25,7 +25,7 @@ export async function loadTerrainUniforms(renderer, size) {
     tA: { value: null }, tB: { value: null }, tNoise: { value: noiseTexture() },
     tRock: { value: tRock }, tRockN: { value: tRockN }, tGravel: { value: tGravel }, tGravelN: { value: tGravelN },
     tGrass: { value: tGrass }, tMixed: { value: tMixed }, tSoil: { value: tSoil }, tSoilN: { value: tSoilN },
-    uSize: { value: size }, uGrainView: { value: 0 },
+    uSize: { value: size }, uGrainView: { value: 0 }, uSand: { value: 0 },
   };
 }
 
@@ -58,7 +58,7 @@ function noiseTexture() {
 
 const TERRAIN_GLSL_HEAD = /* glsl */`
 uniform sampler2D tA, tB, tNoise, tRock, tRockN, tGravel, tGravelN, tGrass, tMixed, tSoil, tSoilN;
-uniform float uSize, uGrainView;
+uniform float uSize, uGrainView, uSand;
 varying vec3 vWP; varying vec3 vWN;
 float hash21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 vec3 triRock(vec3 wp, vec3 n, float s){
@@ -146,6 +146,13 @@ vec3 wetBed=gravelC*.42;
 vec3 waterC=mix(wetBed,vec3(.045,.085,.08),smoothstep(.55,.95,sb.g));
 base=mix(base,waterC,wtr);
 terrainRough=mix(terrainRough,.42,wtr);
+// 모래 해안: uSand를 켠 장면만 B 채널의 파랑(입자 보기와 같은 자리)을 모래 양으로 읽는다. 다른 장면은 꺼져 있어 그대로다.
+if(uSand>.5){
+  vec3 sandC=mix(vec3(.80,.72,.55),vec3(.88,.81,.64),fin)*(.86+.22*mid);
+  sandC*=mix(vec3(1.),gravelC*2.2,.12);
+  base=mix(base,sandC,smoothstep(.1,.6,sb.b));
+  terrainRough=mix(terrainRough,.9,sb.b);
+}
 
 if(uGrainView>.5){
   vec3 g1=vec3(.93,.84,.72),g2=vec3(.85,.42,.14),g3=vec3(.35,.09,.05);
