@@ -89,6 +89,41 @@ export function footprintMask(data, N) {
   return mark;
 }
 
+// 건물 자리의 숲 값을 지워 나무가 건물을 뚫고 나오지 않게 한다.
+export function clearUnder(data, N, ...fields) {
+  const mark = footprintMask(data, N);
+  for (let k = 0; k < N * N; k++) if (mark[k]) for (const f of fields) f[k] = 0;
+}
+
+// 중심 칸 [i, j]에서 r칸 안에 무게중심이 있는 건물을 뺀다. 따로 만든 건물 모형과 겹치지 않게 할 때 쓴다.
+export function dropNear(data, [ci, cj], r) {
+  const keep = data.rings.map(ring => {
+    let x = 0, y = 0;
+    for (let n = 0; n < ring.length; n += 2) { x += ring[n]; y += ring[n + 1]; }
+    const m = ring.length / 2;
+    return Math.hypot(x / m - ci, y / m - cj) > r;
+  });
+  return { ...data, floors: data.floors.filter((_, b) => keep[b]), rings: data.rings.filter((_, b) => keep[b]) };
+}
+
+// 켜고 끄는 건물 층. 땅 높이 배율(key)마다 한 번 만들어 둔다.
+export function createBuildingLayer(THREE, scene, data, opts) {
+  const cache = {};
+  let mesh = null, on = true, allowed = true;
+  const show = () => { if (mesh) mesh.visible = on && allowed; };
+  return {
+    place(key) {
+      if (mesh) scene.remove(mesh);
+      mesh = cache[key] ??= createBuildingMesh(THREE, data, opts);
+      show();
+      scene.add(mesh);
+    },
+    toggle() { on = !on; show(); return on; },
+    allow(v) { allowed = v; show(); },
+    info: () => ({ count: mesh ? mesh.userData.count : 0, visible: !!mesh && mesh.visible }),
+  };
+}
+
 // THREE 덩어리 하나로 합친다.
 export function createBuildingMesh(THREE, data, opts) {
   const a = buildingArrays(data, opts), geo = new THREE.BufferGeometry();

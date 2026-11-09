@@ -10,12 +10,41 @@ export const VE = 1.5; // 그림에서 높이를 조금 키우는 배율. 계산
 const SHEET = 128, CREST_GAP = 13, CRESTS = Math.floor(RAY_STEPS / CREST_GAP) - 1, ARROWS = 12;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+// 바위 표면을 울퉁불퉁하게 그리는 잡음. 그림에만 쓰고 계산에는 쓰지 않는다.
+const hash = (i, j) => { let n = (i * 374761393 + j * 668265263) | 0; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967295; };
+const vnoise = (x, y) => {
+  const i = Math.floor(x), j = Math.floor(y), u = x - i, v = y - j, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+  const a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1);
+  return a + (b - a) * su + (c - a) * sv + (a - b - c + d) * su * sv;
+};
+const rough = (x, y) => vnoise(x * 0.45, y * 0.45) * 0.65 + vnoise(x * 1.4 + 7, y * 1.4) * 0.35;
+const BOULDERS = 520;
 
 export function createBlock(model) {
   const group = new THREE.Group();
   group.scale.y = VE;
   const linear = hex => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
   const FOREST = linear('#46603a'), FOREST2 = linear('#5a7346'), GRASS = linear('#8ea765'), SAND = linear('#e6cf90'), ROCK = linear('#6f665a'), CLIFF = linear('#8a7f70'), PLATFORM = linear('#7d7566'), BED = linear('#c4b48e'), DEEP = linear('#1f3442'), HARD = linear('#4f4a44'), JOINT = linear('#17140f'), DARK = linear('#0e1112');
+
+  // 바위 색: 높이에 따라 층이 지고, 곳마다 조금씩 다르다.
+  const rockColor = (y, x, z, q) => {
+    const r = rough(x, z), band = 0.84 + 0.26 * (0.5 + 0.5 * Math.sin(y * 4.2 + r * 2.6));
+    const v = HARD[q] * band;
+    return v + (ROCK[q] - v) * r * 0.45;
+  };
+  // 바위 칸의 그림 높이: 윗면은 울퉁불퉁하고, 물가 쪽 모서리는 둥글게 깎인다.
+  const isRocky = k => model.h[k] >= SEA && (model.isStackRock[k] || model.stackMark[k] || model.fin[k]);
+  const visH = k => {
+    const h = model.h, y = h[k];
+    if (!isRocky(k)) return y;
+    const i = k % N, j = (k / N) | 0;
+    let wet = 0;
+    if (i > 0 && h[k - 1] < SEA) wet++;
+    if (i < N - 1 && h[k + 1] < SEA) wet++;
+    if (j > 0 && h[k - N] < SEA) wet++;
+    if (j < N - 1 && h[k + N] < SEA) wet++;
+    return y + (rough(i, j) - 0.5) * 0.55 - wet * 0.22 * Math.min(1, y);
+  };
 
   const pos = new Float32Array(N * N * 3), nor = new Float32Array(N * N * 3), col = new Float32Array(N * N * 3), speckle = new Float32Array(N * N), patch = new Float32Array(N * N);
   {
@@ -110,7 +139,66 @@ export function createBlock(model) {
   grains.frustumCulled = false;
   group.add(grains);
 
-  // 수심을 비교하는 줄: 먼바다에서 같은 거리에 있는 곶 앞과 만 앞을 잇는다.
+  // 굴러떨어진 바위: 해식애와 시 아치, 시 스택 발치의 얕은 물에 흩어 놓는다. 그림 꾸밈이고 계산에는 들어가지 않는다.
+  const boulderGeo = new THREE.IcosahedronGeometry(1, 0);
+  {
+    const p = boulderGeo.attributes.position;
+    for (let n = 0; n < p.count; n++) { const s = 0.75 + 0.5 * hash(n * 7 + 1, 3); p.setXYZ(n, p.getX(n) * s, p.getY(n) * s * 0.8, p.getZ(n) * s); }
+    boulderGeo.computeVertexNormals();
+  }
+  const boulders = new THREE.InstancedMesh(boulderGeo, new THREE.MeshStandardMaterial({ roughness: 0.95, flatShading: true }), BOULDERS);
+  boulders.castShadow = boulders.receiveShadow = true;
+  boulders.frustumCulled = false;
+  group.add(boulders);
+  const near = new Uint8Array(N * N), nearTmp = new Uint8Array(N * N), bq = new THREE.Quaternion(), bAxis = new THREE.Vector3(), bv = new THREE.Vector3(), bs = new THREE.Vector3(), bc = new THREE.Color();
+  function syncBoulders() {
+    const { h } = model;
+    // 바위 벽(단단한 바위나 가파른 해식애) 둘레 4칸까지를 표시한다.
+    near.fill(0);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i;
+      if (h[k] < SEA + 0.6) continue;
+      const steep = Math.max(Math.abs(h[k + 1] - h[k - 1]), Math.abs(h[k + N] - h[k - N])) / 2 > 1.1;
+      if (isRocky(k) || steep) near[k] = 1;
+    }
+    for (let pass = 0; pass < 4; pass++) {
+      nearTmp.set(near);
+      for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+        const k = j * N + i;
+        if (!nearTmp[k] && (nearTmp[k - 1] || nearTmp[k + 1] || nearTmp[k - N] || nearTmp[k + N])) near[k] = 2 + pass;
+      }
+    }
+    let n = 0;
+    for (let k = 0; k < N * N && n < BOULDERS; k++) {
+      const d = near[k];
+      if (d < 2 || h[k] >= SEA + 0.15 || h[k] < SEA - (d === 2 ? 4 : 1.8) || model.sand[k] > 0.05) continue;
+      const i = k % N, j = (k / N) | 0;
+      // 벽에 가까울수록 많고 크다.
+      if (hash(i, j) > (d === 2 ? 0.5 : 0.34 - d * 0.05)) continue;
+      // 시 아치 아래는 뚫린 구멍이 보이도록 비워 둔다.
+      if (j >= ARCH.j0 - 1 && j <= ARCH.j1 + 1 && i >= ARCH.x0 - 2 && i <= ARCH.x1 + 2) continue;
+      // 벽 바로 옆에는 큰 돌이 벽에 기대어 쌓인다.
+      let size = (0.35 + 0.75 * hash(i + 11, j) ** 2) * (d === 2 ? 1.7 : d === 3 ? 1 : 0.7);
+      // 벽 옆 깊은 곳의 돌은 물 위로 머리가 나올 만큼 크다.
+      if (d === 2) size = Math.min(3, Math.max(size, ((SEA - h[k] + 0.4) / 1.3) * (0.8 + 0.4 * hash(i + 6, j))));
+      bAxis.set(hash(i, j + 5) - 0.5, 1, hash(i + 5, j) - 0.5).normalize();
+      bq.setFromAxisAngle(bAxis, hash(i + 3, j + 9) * 6.28);
+      bv.set(i + (hash(i, j + 1) - 0.5) * 0.8 - CENTER, h[k] + size * 0.35, j + (hash(i + 1, j) - 0.5) * 0.8 - CENTER);
+      bs.set(size, size / VE, size * (0.8 + 0.4 * hash(i + 2, j)));
+      m4.compose(bv, bq, bs);
+      boulders.setMatrixAt(n, m4);
+      const g = 0.85 + 0.3 * hash(i + 4, j + 4);
+      bc.setRGB(HARD[0] * g * 1.15, HARD[1] * g * 1.12, HARD[2] * g * 1.08);
+      boulders.setColorAt(n, bc);
+      n++;
+    }
+    boulders.count = n;
+    boulders.instanceMatrix.needsUpdate = true;
+    if (boulders.instanceColor) boulders.instanceColor.needsUpdate = true;
+  }
+  let boulderTick = 0, boulderKey = '';
+
+  // 수심을 비교하는 줄:먼바다에서 같은 거리에 있는 곶 앞과 만 앞을 잇는다.
   const depthLineGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
   const depthLine = new THREE.Line(depthLineGeo, new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 3, gapSize: 2.4 }));
   depthLine.frustumCulled = false; depthLine.renderOrder = 3;
@@ -132,40 +220,57 @@ export function createBlock(model) {
     const a = model.arch, key = `${a.caveL},${a.collapsed}`;
     if (key === roofKey) return;
     roofKey = key;
-    const tris = [], norm = [], cols = [];
-    const jA = ARCH.j0 - 1, jB = ARCH.j1 + 1, mid = (jA + jB) / 2, span = (jB - jA) / 2, STEPS = 18;
-    // 처음에는 해식애에 뚫린 작은 입구이고, 굴이 깊어질수록 입구가 넓고 높아진다.
+    const tris = [], cols = [];
+    const jA = ARCH.j0 - 1, jB = ARCH.j1 + 1, mid = (jA + jB) / 2, span = (jB - jA) / 2, STEPS = 22;
+    // 처음에는 해식애에 뚫린 작은 입구이고, 굴이 깊어질수록 입구가 넓고 높아진다. 천장 아랫면은 활 모양이되 바위라 울퉁불퉁하다.
     const grow = 0.42 + 0.58 * Math.min(1, a.caveL / (ARCH.x1 - ARCH.x0 + 1));
-    const under = j => { const t = (j - mid) / (span * grow), q = 1 - t * t; return SEA - 0.3 + (ARCH.crown * grow + 0.3) * Math.sqrt(q < 0 ? 0 : q); };
-    const top = j => model.sample(ARCH.cx, jA) + (model.sample(ARCH.cx, jB) - model.sample(ARCH.cx, jA)) * ((j - jA) / (jB - jA));
-    const quad = (color, p, q, r, s) => {
-      tris.push(...p, ...q, ...r, ...p, ...r, ...s);
-      for (let n = 0; n < 6; n++) cols.push(...color);
-      const ux = q[0] - p[0], uy = q[1] - p[1], uz = q[2] - p[2], vx = r[0] - p[0], vy = r[1] - p[1], vz = r[2] - p[2];
-      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
-      for (let n = 0; n < 6; n++) norm.push(nx, ny, nz);
+    const under = (x, j) => {
+      const t = (j - mid) / (span * grow), q = 1 - t * t, s = Math.sqrt(q < 0 ? 0 : q);
+      return SEA - 0.3 + (ARCH.crown * grow + 0.3) * s + (rough(x * 1.3 + 40, j * 1.3) - 0.5) * 0.7 * s;
     };
+    // 윗면은 양 끝 줄의 땅 그림 높이를 이어 붙여 둘레와 틈이 없고, 가운데는 조금 울퉁불퉁하다.
+    const colH = (x, j) => visH(j * N + clamp(Math.round(x), ARCH.x0, ARCH.x1));
+    const top = (x, j) => { const t = (j - jA) / (jB - jA); return colH(x, jA) * (1 - t) + colH(x, jB) * t + (rough(x * 1.7, j * 1.7) - 0.5) * 0.6 * Math.sin(Math.PI * t); };
     const P = (x, y, j) => [x - CENTER, y, j - CENTER];
-    const pad = 0.15, spans = [];
+    const tri3 = (ca, cb, cc, pa, pb, pc) => { tris.push(...pa, ...pb, ...pc); cols.push(...ca, ...cb, ...cc); };
+    const quad = (c, p, q, r, s) => { tri3(c[0], c[1], c[2], p, q, r); tri3(c[0], c[2], c[3], p, r, s); };
+    const rockAt = (p, dim = 1) => [0, 1, 2].map(q => rockColor(p[1], p[0] + CENTER, p[2] + CENTER, q) * dim);
+    const darkAt = () => DARK;
+    // 입구 가장자리는 곧은 선이 아니라 들쭉날쭉하다.
+    const pad = 0.15, edgeA = j => ARCH.x0 - pad - 0.5 * vnoise(3.1, j * 0.7), edgeB = j => ARCH.x1 + pad + 0.5 * vnoise(9.7, j * 0.7);
+    const spans = [];
     if (!a.collapsed) {
-      if (a.through) spans.push([ARCH.x0 - pad, ARCH.x1 + pad, true, true]);
-      else if (a.caveL) spans.push([ARCH.x0 - pad, ARCH.x0 + a.caveL, true, false]);
+      if (a.through) spans.push([true, true, null]);
+      else if (a.caveL) spans.push([true, false, ARCH.x0 + a.caveL]);
     }
-    for (const [xa, xb, openA, openB] of spans) for (let n = 0; n < STEPS; n++) {
-      const j0 = jA + ((jB - jA) * n) / STEPS, j1 = jA + ((jB - jA) * (n + 1)) / STEPS;
-      // 천장 윗면은 둘레 바위와 같은 색이고, 가운데에 절리가 지나간다.
-      const onJoint = j0 <= mid && j1 > mid;
-      quad(onJoint ? JOINT : HARD, P(xa, top(j0), j0), P(xa, top(j1), j1), P(xb, top(j1), j1), P(xb, top(j0), j0));
-      quad(a.through ? HARD : DARK, P(xa, under(j0), j0), P(xb, under(j0), j0), P(xb, under(j1), j1), P(xa, under(j1), j1));
-      // 옆면에서 보이는 입구의 윗부분
-      if (openA) quad(HARD, P(xa, under(j0), j0), P(xa, under(j1), j1), P(xa, top(j1), j1), P(xa, top(j0), j0));
-      if (openB) quad(HARD, P(xb, under(j0), j0), P(xb, top(j0), j0), P(xb, top(j1), j1), P(xb, under(j1), j1));
-      // 아직 뚫리지 않은 굴의 안쪽 끝은 빛이 닿지 않아 어둡다.
-      if (!openB) quad(DARK, P(xb, SEA - 0.3, j0), P(xb, under(j0), j0), P(xb, under(j1), j1), P(xb, SEA - 0.3, j1));
+    for (const [openA, openB, endX] of spans) {
+      const inner = [];
+      for (let x = ARCH.x0 + 1; x < (endX ?? ARCH.x1); x++) inner.push(x);
+      const xsAt = j => [edgeA(j), ...inner, endX ?? edgeB(j)];
+      for (let n = 0; n < STEPS; n++) {
+        const j0 = jA + ((jB - jA) * n) / STEPS, j1 = jA + ((jB - jA) * (n + 1)) / STEPS;
+        const xs0 = xsAt(j0), xs1 = xsAt(j1), last = xs0.length - 1;
+        // 가운데에 절리가 지나간다.
+        const onJoint = !a.collapsed && j0 <= mid && j1 > mid;
+        for (let c = 0; c < last; c++) {
+          const p = P(xs0[c], top(xs0[c], j0), j0), q = P(xs1[c], top(xs1[c], j1), j1), r = P(xs1[c + 1], top(xs1[c + 1], j1), j1), s = P(xs0[c + 1], top(xs0[c + 1], j0), j0);
+          // 윗면: 가장자리는 바위, 안쪽은 풀과 떨기나무
+          const capC = pt => { if (onJoint) return JOINT; const e = Math.min(pt[0] + CENTER - xs0[0], xs0[last] - pt[0] - CENTER); const w = smooth(0.8, 2.2, e) * 0.85, rc = rockAt(pt); return rc.map((v, q2) => v + ((hash(Math.round(pt[0]), Math.round(pt[2])) > 0.5 ? FOREST2 : FOREST)[q2] - v) * w); };
+          quad([capC(p), capC(q), capC(r), capC(s)], p, q, r, s);
+          const u = [P(xs0[c], under(xs0[c], j0), j0), P(xs0[c + 1], under(xs0[c + 1], j0), j0), P(xs1[c + 1], under(xs1[c + 1], j1), j1), P(xs1[c], under(xs1[c], j1), j1)];
+          quad(a.through ? u.map(pt => rockAt(pt, 0.72)) : u.map(darkAt), ...u);
+        }
+        // 옆면에서 보이는 입구 위의 바위
+        if (openA) { const f = [P(xs0[0], under(xs0[0], j0), j0), P(xs1[0], under(xs1[0], j1), j1), P(xs1[0], top(xs1[0], j1), j1), P(xs0[0], top(xs0[0], j0), j0)]; quad(f.map(pt => rockAt(pt)), ...f); }
+        if (openB) { const f = [P(xs0[last], under(xs0[last], j0), j0), P(xs0[last], top(xs0[last], j0), j0), P(xs1[last], top(xs1[last], j1), j1), P(xs1[last], under(xs1[last], j1), j1)]; quad(f.map(pt => rockAt(pt)), ...f); }
+        // 아직 뚫리지 않은 굴의 안쪽 끝은 빛이 닿지 않아 어둡다.
+        else { const f = [P(endX, SEA - 0.3, j0), P(endX, under(endX, j0), j0), P(endX, under(endX, j1), j1), P(endX, SEA - 0.3, j1)]; quad(f.map(darkAt), ...f); }
+      }
     }
     roofGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(tris), 3));
-    roofGeo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(norm), 3));
     roofGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(cols), 3));
+    roofGeo.deleteAttribute('normal');
+    roofGeo.computeVertexNormals();
     roof.visible = tris.length > 0;
     // 굴을 파는 동안 옆면으로 들어가는 파랑을 화살표로 보여 준다.
     if (a.through || a.collapsed) hideCaveArrow(0);
@@ -241,11 +346,26 @@ export function createBlock(model) {
 
   function paint(k) {
     const { h, sand, cutAt, isStackRock, stackMark } = model, i = k % N, j = (k / N) | 0;
-    pos[k * 3 + 1] = h[k];
+    const rocky = isRocky(k);
+    pos[k * 3 + 1] = visH(k);
+    // 바위 벽의 위 모서리는 옆으로 들쭉날쭉하게 옮기고, 벽 발치의 물속 칸은 무너진 돌이 쌓여 조금 높게 그린다.
+    // 시 아치 천장과 이어지는 줄은 천장과 틈이 생기지 않게 옮기지 않는다.
+    let ox = 0, oz = 0;
+    const edge = rocky && ((i > 0 && h[k - 1] < SEA) || (i < N - 1 && h[k + 1] < SEA) || (j > 0 && h[k - N] < SEA) || (j < N - 1 && h[k + N] < SEA));
+    const archRows = j >= ARCH.j0 - 1 && j <= ARCH.j1 + 1 && i >= ARCH.x0 - 1 && i <= ARCH.x1 + 1;
+    if (rocky && !archRows) {
+      if (edge) { ox = (vnoise(i * 0.7, j * 0.7 + 50) - 0.5) * 1.1; oz = (vnoise(i * 0.7 + 80, j * 0.7) - 0.5) * 1.1; }
+    } else if (h[k] < SEA && !archRows) {
+      const r = (i > 0 && isRocky(k - 1)) || (i < N - 1 && isRocky(k + 1)) || (j > 0 && isRocky(k - N)) || (j < N - 1 && isRocky(k + N));
+      if (r) pos[k * 3 + 1] = Math.min(SEA - 0.05, h[k] + Math.min(1.2, SEA - h[k] + 0.3) * (0.45 + 0.3 * hash(i, j)));
+    }
+    pos[k * 3] = i - CENTER + ox; pos[k * 3 + 2] = j - CENTER + oz;
     const il = i > 0 ? k - 1 : k, ir = i < N - 1 ? k + 1 : k, jl = j > 0 ? k - N : k, jr = j < N - 1 ? k + N : k;
-    const dhx = h[ir] - h[il], dhz = h[jr] - h[jl], dx = dhx * 0.5 * VE, dz = dhz * 0.5 * VE, len = Math.hypot(dx, 1, dz);
+    const dhx = h[ir] - h[il], dhz = h[jr] - h[jl], slope = Math.hypot(dhx, dhz) / 2;
+    // 바위는 그림 높이로 면 방향을 구해 울퉁불퉁함이 빛에 드러나게 한다.
+    const gx = rocky ? visH(ir) - visH(il) : dhx, gz = rocky ? visH(jr) - visH(jl) : dhz;
+    const dx = gx * 0.5 * VE, dz = gz * 0.5 * VE, len = Math.hypot(dx, 1, dz);
     nor[k * 3] = -dx / len; nor[k * 3 + 1] = 1 / len; nor[k * 3 + 2] = -dz / len;
-    const slope = Math.hypot(dhx, dhz) / 2;
     for (let q = 0; q < 3; q++) {
       let v;
       if (h[k] >= SEA) {
@@ -253,7 +373,12 @@ export function createBlock(model) {
         v += (FOREST2[q] - v) * patch[k] * 0.4;
         // 가파른 비탈은 바위가 드러난다. 곧 깎일 물가의 비탈이 해식애다.
         v += (CLIFF[q] - v) * smooth(0.5, 1.4, slope);
-        if (isStackRock[k] || stackMark[k]) v = HARD[q];
+        if (rocky) {
+          // 단단한 바위는 어둡고 층이 진다. 평평한 꼭대기에는 둘레 땅처럼 풀과 떨기나무가 덮인다.
+          v = rockColor(h[k], i, j, q);
+          const cap = (edge ? 0 : 1) * smooth(0.7, 0.3, slope) * smooth(SEA + 1.8, SEA + 3, h[k]) * (0.55 + 0.45 * rough(i * 2, j * 2));
+          v += ((patch[k] > 0.5 ? FOREST2 : FOREST)[q] - v) * cap * 0.85;
+        }
         if (sand[k] > 0.02) v = SAND[q];
         // 절리: 둘레 바위에 난 검은 줄. 해식 동굴이 이 줄을 따라 파인다.
         if (model.fin[k] && !model.arch.collapsed && j === ((ARCH.j0 + ARCH.j1) >> 1)) v = JOINT[q];
@@ -321,6 +446,9 @@ export function createBlock(model) {
     syncSectionLine();
     syncRoof();
     syncCliffCaves();
+    // 바위 자리는 땅이 바뀌면 다시 고른다. 매번 하면 무거워 몇 번에 한 번만 한다.
+    const bk = `${model.arch.caveL},${model.arch.collapsed},${model.stacks ? model.stacks.length : 0}`;
+    if (full || bk !== boulderKey || ++boulderTick % 12 === 0) { boulderKey = bk; syncBoulders(); }
     const dl = depthLineGeo.attributes.position, row = model.depthRow() - CENTER;
     dl.setXYZ(0, HEAD_X[0] - CENTER, SEA + 0.1, row); dl.setXYZ(1, BAY_X - CENTER, SEA + 0.1, row); dl.needsUpdate = true;
     depthLine.computeLineDistances();

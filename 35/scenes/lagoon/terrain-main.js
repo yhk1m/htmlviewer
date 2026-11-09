@@ -15,7 +15,7 @@ import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
 import { buildGyeongpo, sampleH, lakeProfile, profileMarks, barStats, placesOf, N, SIZE, CELL, WATER_LEVEL, LAKE_LEVEL } from './sim.js';
 import { createSchematic } from './schematic.js';
-import { createBuildingMesh, footprintMask } from '../../shared/buildings.js';
+import { createBuildingLayer, clearUnder } from '../../shared/buildings.js';
 
 const PHONE = isPhone();
 const QUALITY_NAME = currentQuality(PHONE), Q = QUALITY[QUALITY_NAME];
@@ -61,8 +61,7 @@ async function start() {
   say('건물 자료 받는 중');
   const buildingData = await (await fetch(new URL('./data/gyeongpo-buildings.json', import.meta.url))).json();
   // 건물 자리에는 나무를 심지 않는다.
-  const built = footprintMask(buildingData, N);
-  for (let k = 0; k < N * N; k++) if (built[k]) { sim.stage.forest[k] = 0; sim.mountain[k] = 0; }
+  clearUnder(buildingData, N, sim.stage.forest, sim.mountain);
   const stage = sim.stage, PLACES = placesOf(sim), line = lakeProfile(sim), bar = barStats(line);
 
   const geo = new THREE.BufferGeometry();
@@ -104,15 +103,7 @@ async function start() {
   window.__PIVOT = { pivot, camera, controls, dom: renderer.domElement };
 
   // 건물: 땅 높이 배율이 바뀌면 다시 얹는다. 건물 높이는 과장하지 않는다.
-  const buildingCache = {};
-  let buildingMesh = null, buildingsOn = true;
-  const buildingOpts = () => ({ toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(Math.max(sampleH(sim.h, i, j), 0.9)) });
-  const placeBuildings = () => {
-    if (buildingMesh) scene.remove(buildingMesh);
-    buildingMesh = buildingCache[scale.factor] ??= createBuildingMesh(THREE, buildingData, buildingOpts());
-    buildingMesh.visible = buildingsOn;
-    scene.add(buildingMesh);
-  };
+  const buildings = createBuildingLayer(THREE, scene, buildingData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(Math.max(sampleH(sim.h, i, j), 0.9)) });
   const veg = { N, SIZE, CELL, WATER_LEVEL, ex, sampleH, dense: false, treeFactor: Q.trees };
   const treeCache = {}, nearCache = {};
   let treeMesh = null, nearMesh = null;
@@ -131,7 +122,7 @@ async function start() {
     treeMesh = treeCache[key] ??= buildTrees(veg, stage, sim.mountain);
     nearMesh = nearCache[key] ??= buildNearTrees(veg, stage, sim.mountain);
     scene.add(treeMesh, nearMesh);
-    placeBuildings();
+    buildings.place(scale.factor);
     renderer.shadowMap.needsUpdate = true;
   };
 
@@ -226,7 +217,7 @@ async function start() {
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   document.querySelectorAll('[data-height]').forEach(b => b.onclick = () => setHeight(+b.dataset.height));
   document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); placeLabels(); };
-  document.getElementById('buildingsBtn').onclick = e => { buildingsOn = !buildingsOn; buildingMesh.visible = buildingsOn; e.currentTarget.classList.toggle('on', buildingsOn); renderer.shadowMap.needsUpdate = true; invalidate(); };
+  document.getElementById('buildingsBtn').onclick = e => { e.currentTarget.classList.toggle('on', buildings.toggle()); renderer.shadowMap.needsUpdate = true; invalidate(); };
 
   setView('oblique');
   setHeight(3);
@@ -235,7 +226,7 @@ async function start() {
   document.getElementById('load').hidden = true;
   startLoop(() => { placeLabels(); meter(); });
 
-  window.__LAB = { setView, setHeight, setSchematic, stats: sim.stats, bar, buildings: () => ({ count: buildingMesh.userData.count, visible: buildingMesh.visible }), labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
+  window.__LAB = { setView, setHeight, setSchematic, stats: sim.stats, bar, buildings: buildings.info, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
   window.__APP_READY = true;
 }
 

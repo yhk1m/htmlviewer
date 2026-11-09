@@ -29,6 +29,26 @@ export const NO_RISE = 5;
 
 const SEA = '#3f8fc4', LAGOON = '#4fa59a', LAND = '#5a7346', HILL = '#46603a', FLOOR = '#9a8f72', SAND = '#e6cf90', DUNE = '#c8c68a', MARSH = '#8f9a5c', RIVER = '#3d8fc9', ACCENT = '#e4b15a', AIR = '#23302a', CREST = '#ffffff';
 const f1 = v => v.toFixed(1);
+// 해안사구(평면): 사빈 바로 뒤에 낮은 모래 언덕이 줄지어 있다. 언덕 위에는 갯그령 같은 풀이 듬성듬성 자란다.
+function duneBand(x0, x1, base) {
+  let d = `M${x0} ${base}`, grass = '';
+  for (let x = x0, n = 0; x < x1; n++) {
+    const w = 14 + ((n * 7) % 3) * 4, h = 6 + ((n * 5) % 4) * 1.6, e = Math.min(x1, x + w);
+    d += `Q${f1((x + e) / 2)} ${f1(base - h * 2)} ${f1(e)} ${base}`;
+    if (n % 2 === 0) grass += `<circle cx="${f1((x + e) / 2 + 2)}" cy="${f1(base - h + 1)}" r="1.6"/>`;
+    x = e;
+  }
+  return `<path data-dune="1" d="${d}Z" fill="${DUNE}" stroke="#a9a46a" stroke-width="1"/><g fill="#7d8f4e">${grass}</g>`;
+}
+// 사주(단면): 낮고 넓은 모래 둔덕. 석호 쪽 둔덕 위에 해안사구가 솟고, 바다 쪽은 사빈이 완만하게 물로 내려간다.
+function barProfile(b, seaY, floor, opts = {}) {
+  const top = seaY - 9, inner = opts.land ? `L${f1(b - 120)} ${top + 2}` : `L${f1(b - 54)} ${seaY}L${f1(b - 42)} ${top}`;
+  const start = opts.land ? `M${f1(b - 120)} ${f1(floor(b - 120))}` : `M${f1(b - 92)} ${f1(floor(b - 92))}`;
+  const sand = `${start}${inner}L${f1(b - 36)} ${top}Q${f1(b - 16)} ${top - 66} ${f1(b + 4)} ${top}L${f1(b + 18)} ${top + 1}L${f1(b + 46)} ${seaY}L${f1(b + 92)} ${f1(floor(b + 92))}Z`;
+  const dune = `M${f1(b - 36)} ${top}Q${f1(b - 16)} ${top - 66} ${f1(b + 4)} ${top}Z`;
+  const grass = [-26, -16, -6].map(dx => `<path d="M${f1(b + dx)} ${f1(top - (dx === -16 ? 32 : 24))}l-3 -7M${f1(b + dx)} ${f1(top - (dx === -16 ? 32 : 24))}l3 -7" stroke="#7d8f4e" stroke-width="1.6"/>`).join('');
+  return `<path data-bar="1" d="${sand}" fill="${SAND}"/><path data-dune="1" d="${dune}" fill="${DUNE}"/>${grass}`;
+}
 
 // 평면: 위쪽이 육지, 아래쪽이 바다다. 골짜기는 가운데 세로로 놓인다.
 export const PLAN = { W: 720, H: 380 };
@@ -54,10 +74,10 @@ function planNoRise() {
     <rect y="${COAST_Y}" width="${PLAN.W}" height="${PLAN.H - COAST_Y}" fill="${SEA}"/>
     <path d="M${CX} 0C${CX - 14} 22 ${CX + 12} 42 ${CX} ${VALLEY_TOP}L${CX} ${COAST_Y}" fill="none" stroke="${RIVER}" stroke-width="5"/>
     <path data-beach="1" d="M0 ${COAST_Y + 4}H${PLAN.W}" stroke="${SAND}" stroke-width="10"/>
-    <path data-dune="1" d="M10 ${COAST_Y - 1}H${PLAN.W - 10}" stroke="${DUNE}" stroke-width="4" stroke-dasharray="10 5"/>
+    ${duneBand(10, PLAN.W - 10, COAST_Y - 1)}
     ${crests}
     <g stroke="#ffd36b" stroke-width="3" fill="#ffd36b"><path d="M640 ${COAST_Y + 24}h-120" fill="none"/><path d="M508 ${COAST_Y + 24}l13 -7v14z"/></g>
-    ${L('current', '연안류', 584, COAST_Y + 52, '#ffd36b')}${L('beach', '사빈', 640, COAST_Y - 12, '#ffd36b')}${L('dune', '해안사구', 470, COAST_Y - 14, '#e8e3b0', 16)}${L('river', '하천', CX + 50, 30, '#d8efff', 17)}${L('wave', '파랑', 640, PLAN.H - 14, '#ffffff')}
+    ${L('current', '연안류', 584, COAST_Y + 52, '#ffd36b')}${L('beach', '사빈', 640, COAST_Y - 12, '#ffd36b')}${L('dune', '해안사구', 470, COAST_Y - 22, '#e8e3b0', 16)}${L('river', '하천', CX + 50, 30, '#d8efff', 17)}${L('wave', '파랑', 640, PLAN.H - 14, '#ffffff')}
     <text x="${CX}" y="150" text-anchor="middle" font-size="18" font-weight="700" fill="#f3f1ea" paint-order="stroke" stroke="#1c211e" stroke-width="3.5">만이 없음</text>
   </svg>`;
 }
@@ -68,10 +88,10 @@ function sectionNoRise() {
     <style>svg.sec text{paint-order:stroke;stroke:#1c211e;stroke-width:3.5px;stroke-linejoin:round}</style>
     <rect width="${SEC.W}" height="${SEC.H}" fill="${AIR}"/>
     <rect x="${f1(b)}" y="${sea}" width="${f1(SEC.W - b)}" height="${SEC.H - sea}" fill="${SEA}"/>
-    <polygon points="0,${SEC.H} 0,${sea - 34} ${f1(b - 30)},${sea - 8} ${f1(b + 30)},${sea + 6} ${SEC.W},${sea + 90} ${SEC.W},${SEC.H}" fill="#6f665a"/>
-    <path d="M${f1(b - 60)} ${sea - 10}Q${f1(b - 34)} ${sea - 34} ${f1(b - 10)} ${sea - 8}L${f1(b + 40)} ${sea + 8}L${f1(b - 60)} ${sea}Z" fill="${SAND}"/>
+    <polygon points="0,${SEC.H} 0,${sea - 34} ${f1(b - 120)},${sea - 7} ${f1(b + 30)},${sea + 6} ${SEC.W},${sea + 90} ${SEC.W},${SEC.H}" fill="#6f665a"/>
+    ${barProfile(b, sea, x => (x < b ? sea - 6 : sea + 6 + ((x - b - 30) / (SEC.W - b - 30)) * 84), { land: true })}
     <line x1="${f1(b)}" x2="${SEC.W}" y1="${sea}" y2="${sea}" stroke="#d8efff" stroke-width="2"/>
-    ${say('dune', '해안사구', b - 40, sea - 44, '#e8e3b0')}${say('beach', '사빈', b + 50, sea - 14, '#ffd36b')}${say('river', '물이 들지 않은 골짜기 바닥', 230, sea - 46, '#f3f1ea')}${say('wave', '바다', SEC.W - 50, sea + 44, '#ffffff')}
+    ${say('dune', '해안사구', b - 16, sea - 53, '#e8e3b0')}${say('beach', '사빈', b + 50, sea - 14, '#ffd36b')}${say('river', '물이 들지 않은 골짜기 바닥', 230, sea - 46, '#f3f1ea')}${say('wave', '바다', SEC.W - 50, sea + 44, '#ffffff')}
     <text x="10" y="26" font-size="21" font-weight="800" fill="${ACCENT}">A</text>
     <text x="${SEC.W - 10}" y="26" text-anchor="end" font-size="21" font-weight="800" fill="${ACCENT}">B</text>
     <text x="16" y="${SEC.H - 12}" font-size="15" font-weight="700" fill="#efe9d8">세로를 크게 과장했습니다.</text>
@@ -92,15 +112,17 @@ function plan(stage) {
   if (stage === 0) body += `<line x1="0" x2="${PLAN.W}" y1="${COAST_Y}" y2="${COAST_Y}" stroke="#d8efff" stroke-width="2" stroke-dasharray="7 6"/><text x="14" y="${COAST_Y - 8}" font-size="15" font-weight="700" fill="#d8efff" paint-order="stroke" stroke="#1c211e" stroke-width="3">오늘날 해안선</text>`;
   if (stage >= 1) body += `<path data-bay="1" d="${bayPath}" fill="${stage >= 3 ? LAGOON : SEA}"/>`;
   // 메워진 땅: 안쪽 끝에서부터
+  // 하천이 실어 온 토사는 물길 끝에 쌓여, 메워진 땅이 하천을 따라 혀처럼 석호 쪽으로 뻗는다. 물가 양옆은 덜 나아간다.
   if (FILL_TO[stage]) {
-    const pts = [];
-    for (let y = VALLEY_TOP; y <= FILL_TO[stage]; y += 6) pts.push(`${f1(CX - bayHalf(y) + 1)} ${y}`);
-    pts.push(`${CX} ${FILL_TO[stage] + 18}`);
-    for (let y = FILL_TO[stage]; y >= VALLEY_TOP; y -= 6) pts.push(`${f1(CX + bayHalf(y) - 1)} ${y}`);
-    body += `<path data-fill="1" d="M${pts.join('L')}Z" fill="${MARSH}"/>`;
+    const F = FILL_TO[stage], side = F - 40, tip = F + 28, w = bayHalf(side);
+    const left = [], right = [];
+    for (let y = VALLEY_TOP; y <= side; y += 6) left.push(`${f1(CX - bayHalf(y) + 1)} ${y}`);
+    for (let y = side; y >= VALLEY_TOP; y -= 6) right.push(`${f1(CX + bayHalf(y) - 1)} ${y}`);
+    const front = `C${f1(CX - w * 0.6)} ${F - 6} ${CX - 14} ${tip} ${CX} ${tip}C${CX + 14} ${tip} ${f1(CX + w * 0.6)} ${F - 6} ${f1(CX + w - 1)} ${side}`;
+    body += `<path data-fill="1" d="M${left.join('L')}${front}L${right.join('L')}Z" fill="${MARSH}"/>`;
   }
   // 하천
-  const riverEnd = stage === 0 ? GLACIAL_COAST : FILL_TO[stage] ? FILL_TO[stage] + 16 : VALLEY_TOP + 4;
+  const riverEnd = stage === 0 ? GLACIAL_COAST : FILL_TO[stage] ? FILL_TO[stage] + 22 : VALLEY_TOP + 4;
   body += `<path d="M${CX} 0C${CX - 14} 22 ${CX + 12} 42 ${CX} ${VALLEY_TOP}L${CX} ${riverEnd}" fill="none" stroke="${RIVER}" stroke-width="5"/>`;
   // 사빈: 만 밖 해안선을 따라 쌓인 모래 띠, 사취와 사주
   if (stage >= 2) {
@@ -108,7 +130,7 @@ function plan(stage) {
     if (stage >= 3) body += `<path d="M0 ${COAST_Y + 4}H${MOUTH.x0}" stroke="${SAND}" stroke-width="8"/>`;
     const tip = SPIT_TIP[stage];
     body += `<path data-spit="1" d="M${MOUTH.x1 + 4} ${COAST_Y + 4}L${tip} ${COAST_Y + 4}" stroke="${SAND}" stroke-width="12" stroke-linecap="round"/>`;
-    if (stage >= 3) body += `<path data-dune="1" d="M${MOUTH.x0 + 8} ${COAST_Y - 1}H${PLAN.W - 10}" stroke="${DUNE}" stroke-width="4" stroke-dasharray="10 5"/>`;
+    if (stage >= 3) body += duneBand(MOUTH.x0 + 4, PLAN.W - 10, COAST_Y - 1);
   }
   // 파봉선과 연안류
   let crests = '';
@@ -122,7 +144,7 @@ function plan(stage) {
   if (stage === 0) names += L('valley', '하천 골짜기', CX + 96, 160, '#ffe9b0') + `<text x="${CX}" y="${GLACIAL_COAST + 22}" text-anchor="middle" font-size="16" font-weight="700" fill="#d8efff" paint-order="stroke" stroke="#1c211e" stroke-width="3">빙기의 바닷가</text>`;
   if (stage === 1 || stage === 2) names += L('bay', '만', CX, 180, '#d8efff');
   if (stage === 2) names += L('spit', '사취', (SPIT_TIP[2] + MOUTH.x1) / 2 + 6, COAST_Y + 34, '#ffb38a');
-  if (stage >= 3) names += L('bar', '사주', MOUTH.x0 + 46, COAST_Y + 34, '#ffb38a') + L('lagoon', '석호', CX, stage === 4 ? 206 : 170, '#bff0e6') + L('dune', '해안사구', MOUTH.x1 + 70, COAST_Y - 14, '#e8e3b0', 16);
+  if (stage >= 3) names += L('bar', '사주', MOUTH.x0 + 46, COAST_Y + 34, '#ffb38a') + L('lagoon', '석호', CX, stage === 4 ? 206 : 170, '#bff0e6') + L('dune', '해안사구', MOUTH.x1 + 70, COAST_Y - 22, '#e8e3b0', 16);
   if (stage >= 1) names += L('river', stage === 4 ? '메워진 땅' : '하천', CX + 70, stage === 4 ? 104 : 30, '#d8efff', 17);
   return `<svg viewBox="0 0 ${PLAN.W} ${PLAN.H}" role="img" aria-label="위에서 본 해안. ${STAGE_NAMES[stage]} 단계이다. 위쪽이 육지, 아래쪽이 바다다.">
     ${body}${crests}
@@ -153,10 +175,9 @@ function section(stage) {
   else water += `<path d="M${f1(wx0)} ${seaY}H${SEC.W}V${SEC.H}H${f1(wx0)}Z" fill="${SEA}"/>`;
   if (stage >= 3) {
     // 사주: 수면 위로 솟은 모래 둔덕. 바다 쪽은 사빈, 위에는 해안사구
-    const b = BAR_X, top = seaY - 26;
-    extra += `<path data-bar="1" d="M${f1(b - 46)} ${f1(floorY(b - 46))}Q${f1(b - 20)} ${top} ${f1(b)} ${top}Q${f1(b + 24)} ${top + 4} ${f1(b + 40)} ${seaY}L${f1(b + 70)} ${f1(floorY(b + 70))}Z" fill="${SAND}"/>`;
-    extra += `<path data-dune="1" d="M${f1(b - 22)} ${top + 3}Q${f1(b - 6)} ${top - 22} ${f1(b + 12)} ${top + 2}Z" fill="${DUNE}"/>`;
-    names += say('bar', '사주', b + 4, seaY + 62, '#ffb38a') + say('dune', '해안사구', b - 10, top - 28, '#e8e3b0') + say('beach', '사빈', b + 74, seaY - 14, '#ffd36b');
+    const b = BAR_X, top = seaY - 9;
+    extra += barProfile(b, seaY, floorY);
+    names += say('bar', '사주', b + 4, seaY + 56, '#ffb38a') + say('dune', '해안사구', b - 16, top - 44, '#e8e3b0') + say('beach', '사빈', b + 70, seaY - 14, '#ffd36b');
     names += say('lagoon', '석호', (wx0 + b) / 2 + (stage === 4 ? 60 : 0), seaY + 30, '#bff0e6');
   }
   if (stage === 4) {

@@ -14,7 +14,8 @@ export const COAST = 150; // 오늘날 해안선 줄(만 밖)
 export const MOUTH = { x0: 95, x1: 161 }; // 만 입구의 왼쪽 끝과 오른쪽 끝
 export const RIVER_X = 128; // 골짜기의 가운데 줄
 export const BAR = { half: 3, crest: 0.7, beach: 0.25 }; // 사주의 반폭과 높이
-export const DUNE_TOP = 1.5;
+export const DUNE_TOP = 2.1;
+const FILL_SIDE = 0.06; // 하천 줄기에서 옆으로 갈수록 늦게 메워지는 정도
 export const RAYS = 80;
 export const RAY_STEPS = 260;
 const RAY_DT = 0.9;
@@ -224,10 +225,10 @@ export function createModel(seed = 11) {
     const q = sandRate * clamp(m.drift / 0.6, 0.3, 1.5) * SAND_K * ROUND;
     m.supplied += q;
     const spit = m.spit;
-    if (!m.hasBay) { beachGrow(q * 0.05, 6, N - 6); if (roundNo % 3 === 0) emitTrail(); return; }
+    if (!m.hasBay) { beachGrow(q * 0.18, 6, N - 6); if (roundNo % 3 === 0) emitTrail(); return; }
     if (!spit.closed) {
-      store += q * 0.82; // 일부는 사취를 지나 블록 밖으로 옮겨 간다.
-      beachGrow(q * 0.04, MOUTH.x1 + 6, N - 6);
+      store += q * 0.82; // 나머지는 사빈을 넓히거나 사취를 지나 블록 밖으로 옮겨 간다.
+      beachGrow(q * 0.1, MOUTH.x1 + 6, N - 6);
       // 칸을 다 메울 만큼 모이면 한 칸 자란다.
       while (!spit.closed) {
         const x = spit.tip - 1, need = columnNeed(x);
@@ -244,8 +245,8 @@ export function createModel(seed = 11) {
     } else {
       // 막힌 뒤의 모래는 사주 바깥의 사빈을 넓히고 만 밖 해안으로도 이어진다.
       // 나머지는 해안을 따라 블록 밖으로 옮겨 간다.
-      beachGrow(q * 0.025, MOUTH.x0 + 2, MOUTH.x1 - 2);
-      beachGrow(q * 0.025, 6, N - 6);
+      beachGrow(q * 0.08, MOUTH.x0 + 2, MOUTH.x1 - 2);
+      beachGrow(q * 0.14, 6, N - 6);
     }
     if (roundNo % 3 === 0) emitTrail();
   }
@@ -255,9 +256,10 @@ export function createModel(seed = 11) {
     for (let i = x0; i <= x1; i++) {
       let left = per;
       const j = front[i];
-      for (let b = 0; b < 8 && left > 0; b++) {
+      // 경사가 완만해 물가에서 바다 쪽으로 여러 칸이 물 위로 드러난다.
+      for (let b = 0; b < 12 && left > 0; b++) {
         const jj = j + b; if (jj >= N - 1) break;
-        const k = jj * N + i, top = m.sea + 0.28 - b * 0.16;
+        const k = jj * N + i, top = m.sea + 0.4 - b * 0.07;
         if (h[k] >= top) continue;
         const add = Math.min(left, (top - h[k]) * 0.3 + 0.004);
         h[k] += add; sand[k] += add; left -= add; touch(k);
@@ -291,7 +293,8 @@ export function createModel(seed = 11) {
   }
 
   // 하천 토사: 하구에서 가까운 물부터 메운다. 물이 고인 만이나 석호에서는 흐름이 느려져 토사가 쌓인다.
-  // 차례는 만의 안쪽 끝(하천이 처음 물을 만나는 곳)에서 거리 순이다. 이미 메운 칸도 거쳐 가므로 메워진 땅이 부채꼴로 넓어진다.
+  // 흙은 물길을 따라 실려 가므로 하천 줄기 앞쪽이 먼저 메워지고 양옆 물가는 늦게 메워진다. 그래서 메워진 땅이 하천을 따라 혀처럼 뻗는다.
+  // 차례 = 안쪽 끝에서 내려온 거리 + 하천 줄기에서 옆으로 떨어진 거리의 제곱에 비례하는 값.
   function rebuildOrder() {
     orderLen = 0;
     const k0 = m.headCell;
@@ -309,6 +312,10 @@ export function createModel(seed = 11) {
         seen[o] = 1; order[orderLen++] = o;
       }
     }
+    const i0 = k0 % N, j0 = (k0 / N) | 0;
+    const score = k => { const dx = (k % N) - i0; return ((k / N) | 0) - j0 + FILL_SIDE * dx * dx; };
+    const sorted = Array.from(order.subarray(0, orderLen)).sort((a, b) => score(a) - score(b) || a - b);
+    order.set(sorted);
   }
   function feedRiver() {
     let left = riverRate * RIVER_K * ROUND;
@@ -328,15 +335,16 @@ export function createModel(seed = 11) {
       const fr = front[i];
       // 사빈 폭: 물가에서 육지 쪽으로 모래 칸이 이어진 길이
       let w = 0;
-      while (w < 12 && fr - 1 - w > 0 && sand[(fr - 1 - w) * N + i] > 0.05) w++;
+      while (w < 16 && fr - 1 - w > 0 && sand[(fr - 1 - w) * N + i] > 0.05) w++;
       if (w < 3) continue;
-      const rate = 0.004 * (w - 2) * sandRate;
-      for (let b = 3; b <= 6; b++) {
+      const rate = 0.0045 * (w - 2) * sandRate;
+      // 물가에서 5칸까지는 파도가 닿는 사빈으로 남기고, 그 뒤에 사구가 쌓인다.
+      for (let b = 6; b <= 14; b++) {
         const j = fr - b, k = j * N + i;
         if (j < 1 || h[k] < m.sea) continue;
         // 석호 바로 옆까지는 쌓지 않는다.
         if (lagoon[k - N] || lagoon[k - 2 * N]) continue;
-        const top = m.sea + DUNE_TOP * (1 - Math.abs(b - 4.5) / 3);
+        const top = m.sea + DUNE_TOP * (1 - Math.abs(b - 10) / 5);
         if (h[k] >= top) continue;
         h[k] += rate; dune[k] += rate; touch(k);
       }
