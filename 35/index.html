@@ -43,7 +43,7 @@
   const rows = area => SCENES.filter(s => s.area === area).map(s => s.href
     ? `<a class="scene" href="./${s.href}"><div><b>${s.name}</b><span>${s.shows}</span></div><em>열기</em></a>`
     : `<div class="scene off"><div><b>${s.name}</b><span>${s.shows}</span></div><em>준비 중</em></div>`).join('');
-  document.getElementById('list').innerHTML = `<h2>하천</h2>${rows('하천')}<h2>해안</h2>${rows('해안')}`;
+  document.getElementById('list').innerHTML = `<h2>하천</h2>${rows('하천')}<h2>해안</h2>${rows('해안')}<h2>산지</h2>${rows('산지')}`;
   window.__APP_READY = true;
 </script>
 </body>
