@@ -3,7 +3,8 @@
 // 계산(roadArrays)은 THREE 없이 돌아 node에서 검사한다.
 
 export const ROAD_WIDTH_M = [16, 11, 7]; // 등급 0(고속도로와 국도), 1(큰 도로), 2(작은 도로)
-const COLORS = [[0.96, 0.9, 0.72], [0.93, 0.92, 0.88], [0.84, 0.83, 0.8]];
+// 모든 도로는 연회색이다. 흰빛이 도는 건물과 구분되도록 색조 없는 회색으로 하고, 큰 길일수록 조금 밝게 한다.
+const COLORS = [[0.7, 0.7, 0.7], [0.66, 0.66, 0.66], [0.62, 0.62, 0.62]];
 
 // data: {roads: [{c, p}]}. toWorld(i, j) → [x, z]. groundAt(i, j) → 화면 높이. cellM: 한 칸의 m. lift: 땅 위로 띄우는 높이.
 export function roadArrays(data, { toWorld, groundAt, cellM, lift = 1.2 }) {
@@ -43,7 +44,8 @@ export function roadArrays(data, { toWorld, groundAt, cellM, lift = 1.2 }) {
 // 켜고 끄는 도로 층. 땅 높이 배율(key)마다 한 번 만들어 둔다.
 export function createRoadLayer(THREE, scene, data, opts) {
   const cache = {};
-  let mesh = null, on = true;
+  let mesh = null, on = true, allowed = true;
+  const show = () => { if (mesh) mesh.visible = on && allowed; };
   const build = () => {
     const a = roadArrays(data, opts), geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(a.position, 3));
@@ -58,10 +60,11 @@ export function createRoadLayer(THREE, scene, data, opts) {
     place(key) {
       if (mesh) scene.remove(mesh);
       mesh = cache[key] ??= build();
-      mesh.visible = on;
+      show();
       scene.add(mesh);
     },
-    toggle() { on = !on; if (mesh) mesh.visible = on; return on; },
+    toggle() { on = !on; show(); return on; },
+    allow(v) { allowed = v; show(); },
     info: () => ({ count: mesh ? mesh.userData.count : 0, visible: !!mesh && mesh.visible }),
   };
 }

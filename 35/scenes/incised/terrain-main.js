@@ -13,6 +13,7 @@ import { drawContourMap, drawProfile } from '../../shared/map-views.js';
 import { createHeightScale } from '../../shared/height.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
+import { createRoadLayer } from '../../shared/roads.js';
 import { createBuildingLayer, clearUnder } from '../../shared/buildings.js';
 import { buildDonggang, sampleH, N, SIZE, CELL, WATER_LEVEL } from './sim.js';
 import { createSchematic } from './schematic.js';
@@ -72,6 +73,7 @@ async function start() {
   const sim = buildDonggang(dem);
   say('건물 자료 받는 중');
   const buildingData = await (await fetch(new URL('./data/donggang-buildings.json', import.meta.url))).json();
+  const roadData = await (await fetch(new URL('./data/donggang-roads.json', import.meta.url))).json();
   // 건물 자리에는 나무를 심지 않는다.
   clearUnder(buildingData, N, sim.stage.forest);
   const stage = sim.stage;
@@ -123,6 +125,7 @@ async function start() {
   const treeCache = {}, nearCache = {};
   let treeMesh = null, nearMesh = null;
   const buildings = createBuildingLayer(THREE, scene, buildingData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(sampleH(sim.h, i, j)) });
+  const roads = createRoadLayer(THREE, scene, roadData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(sampleH(sim.h, i, j)), cellM: CELL });
   const applyHeight = () => {
     for (let k = 0; k < N * N; k++) pos[k * 3 + 1] = ex(sim.h[k]);
     fillNormals(N, CELL, k => pos[k * 3 + 1], nor);
@@ -136,6 +139,7 @@ async function start() {
     nearMesh = nearCache[key] ??= buildNearTrees(veg, stage, sim.mountain);
     scene.add(treeMesh, nearMesh);
     buildings.place(scale.factor);
+    roads.place(scale.factor);
     renderer.shadowMap.needsUpdate = true;
   };
 
@@ -228,6 +232,7 @@ async function start() {
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   document.querySelectorAll('[data-height]').forEach(b => b.onclick = () => setHeight(+b.dataset.height));
   document.getElementById('buildingsBtn').onclick = e => { e.currentTarget.classList.toggle('on', buildings.toggle()); renderer.shadowMap.needsUpdate = true; invalidate(); };
+  document.getElementById('roadsBtn').onclick = e => { e.currentTarget.classList.toggle('on', roads.toggle()); invalidate(); };
   document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); placeLabels(); };
 
   setView('oblique');
@@ -237,11 +242,11 @@ async function start() {
   document.getElementById('load').hidden = true;
   startLoop(() => { placeLabels(); meter(); });
 
-  window.__LAB = { buildings: buildings.info, setView, setHeight, setSchematic, stats: sim.stats, arrowCount: arrowIdx.length, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
+  window.__LAB = { buildings: buildings.info, roads: () => roads.info(), setView, setHeight, setSchematic, stats: sim.stats, arrowCount: arrowIdx.length, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
   window.__APP_READY = true;
 }
 
 document.getElementById('note').textContent = '정선, 평창, 영월이 만나는 곳의 동강입니다. 강이 깊은 골짜기 속에서 크게 굽이칩니다. 위에서 보거나 등고선 지형도로 보면 굽이가 또렷합니다.';
-document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물길, 논밭, 숲, 암벽은 땅 높이에서 규칙으로 만든 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물길, 논밭, 숲, 암벽은 땅 높이에서 규칙으로 만든 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

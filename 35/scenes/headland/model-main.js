@@ -1,5 +1,6 @@
 // © 2026 김용현
 // 곶과 만 형성 모형 화면. 계산은 model.js가 하고, 여기서는 그 결과를 3D 블록과 단면으로 그린다.
+import { createProgressBar } from '../../shared/progress.js';
 import * as THREE from 'three';
 import { OrbitControls } from '../../shared/vendor/OrbitControls.js';
 import { isPhone, portraitZoom } from '../../shared/viewport.js';
@@ -266,6 +267,14 @@ const setPlaying = on => { playing = on; playBtn.textContent = on ? '멈춤' : '
 playBtn.onclick = () => setPlaying(!playing);
 const restart = () => { settle = 0; frameSync(true); setPlaying(true); };
 document.getElementById('resetBtn').onclick = () => { model.reset(); if (compare) modelB.reset(); restart(); };
+// 진행 막대: 누르거나 끌면 그 시점까지 처음부터 다시 계산해 옮긴다.
+const progress = createProgressBar(document.getElementById('progHost'), {
+  clock: () => model.clock, total: () => T_END, finished: () => model.finished,
+  reset: () => { model.reset(); if (compare) modelB.reset(); },
+  step: dt => { model.tick(dt); if (compare) modelB.tick(dt); },
+  pause: () => { const w = playing; setPlaying(false); return w; },
+  resume: w => { settle = 0; frameSync(true); setPlaying(w); },
+});
 document.getElementById('fastBtn').onclick = e => { speed = speed === 1 ? 3 : 1; e.currentTarget.classList.toggle('on', speed === 3); e.currentTarget.textContent = speed === 3 ? '3배 빠르게' : '빠르게'; };
 document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); dirty = true; };
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(compare && b.dataset.view === 'oblique' ? 'compare' : b.dataset.view));
@@ -358,6 +367,7 @@ function loop(now) {
     frameSync(false);
   } else if (wasComputing) frameSync(true);
   wasComputing = computing;
+  progress.update();
   if (!dirty) return;
   dirty = false;
   if (!computing) syncLabels();
@@ -376,7 +386,7 @@ frameSync(true);
 requestAnimationFrame(t => { last = t; loop(t); });
 
 window.__MODEL = {
-  model, modelB, setView, setPlaying, setCompare,
+  progress, model, modelB, setView, setPlaying, setCompare,
   advance(seconds) { setPlaying(false); model.tick(seconds); if (compare) modelB.tick(seconds); frameSync(true); renderer.render(scene, camera); return { clock: +model.clock.toFixed(1), retreat: +model.retreat().toFixed(1), plat: model.platformWidth(), stacks: model.stacks.length, head: +model.headEnergy().toFixed(2), bay: +model.bayEnergy().toFixed(2), finished: model.finished }; },
   preset: n => document.querySelector(`[data-preset="${n}"]`).click(),
   setOption: (n, v) => document.querySelector(`[data-opt="${n}:${v}"]`).click(),

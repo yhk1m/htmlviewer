@@ -19,6 +19,7 @@ const GURYE = SITE === 'gurye';
 import { createSchematic } from './schematic.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
+import { createRoadLayer } from '../../shared/roads.js';
 import { createBuildingLayer, clearUnder } from '../../shared/buildings.js';
 
 // 폰에서는 화면 배치와 부담을 줄인다.
@@ -81,11 +82,12 @@ async function start() {
   const t0 = performance.now();
   const sim = await runSim(SITE, say);
   // 구례는 오늘날 단계에만 실제 건물을 얹고, 그 자리에는 나무를 심지 않는다.
-  let buildingData = null;
+  let buildingData = null, roadData = null;
   if (GURYE) {
     say('건물 자료 받는 중');
     buildingData = await (await fetch(new URL('./data/gurye-buildings.json', import.meta.url))).json();
     clearUnder(buildingData, N, sim.stages[2].forest);
+    roadData = await (await fetch(new URL('./data/gurye-roads.json', import.meta.url))).json();
   }
   const simMs = Math.round(performance.now() - t0);
 
@@ -122,6 +124,7 @@ async function start() {
   });
   const treeCache = {}, townCache = {};
   const buildings = buildingData && createBuildingLayer(THREE, scene, buildingData, { toWorld: (i, j) => [(i / (N - 1) - 0.5) * SIZE, (j / (N - 1) - 0.5) * SIZE], groundAt: (i, j) => ex(sampleH(sim.stages[2].h, i, j)) });
+  const roads = roadData && createRoadLayer(THREE, scene, roadData, { toWorld: (i, j) => [(i / (N - 1) - 0.5) * SIZE, (j / (N - 1) - 0.5) * SIZE], groundAt: (i, j) => ex(sampleH(sim.stages[2].h, i, j)), cellM: CELL });
   let treeMesh = null, nearMesh = null, townMesh = null, stageNow = -1;
   const nearCache = {};
 
@@ -141,9 +144,11 @@ async function start() {
     nearMesh = nearCache[ck] ??= buildNearTrees(veg, s, sim.mountain);
     scene.add(nearMesh);
     if (buildings) {
-      if (n === 2) buildings.place(scale.factor);
+      if (n === 2) { buildings.place(scale.factor); roads.place(scale.factor); }
       buildings.allow(n === 2);
+      roads.allow(n === 2);
       document.getElementById('buildingsBtn').disabled = n !== 2;
+      document.getElementById('roadsBtn').disabled = n !== 2;
     } else if (n === 2) { townMesh = townCache[ck] ??= buildTown(veg, s, sim.places); scene.add(townMesh); }
     stageNow = n;
     document.querySelectorAll('[data-stage]').forEach(b => b.classList.toggle('on', +b.dataset.stage === n));
@@ -251,6 +256,9 @@ async function start() {
   const buildingsBtn = document.getElementById('buildingsBtn');
   buildingsBtn.hidden = !buildings;
   buildingsBtn.onclick = e => { e.currentTarget.classList.toggle('on', buildings.toggle()); renderer.shadowMap.needsUpdate = true; invalidate(); };
+  const roadsBtn = document.getElementById('roadsBtn');
+  roadsBtn.hidden = !roads;
+  roadsBtn.onclick = e => { e.currentTarget.classList.toggle('on', roads.toggle()); invalidate(); };
   document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); placeLabels(); };
   document.getElementById('grainBtn').onclick = e => { uniforms.uGrainView.value = uniforms.uGrainView.value ? 0 : 1; e.currentTarget.classList.toggle('on', !!uniforms.uGrainView.value); document.getElementById('legend').hidden = !uniforms.uGrainView.value; invalidate(); };
 
@@ -263,14 +271,14 @@ async function start() {
 
   startLoop(() => { placeLabels(); meter(); });
 
-  window.__LAB = { buildings: () => (buildings ? buildings.info() : null), setSchematic, setHeight,  setZone(k) { document.querySelector(`#schem [data-zone="${k}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true })); }, setStage, setView, sim: sim.stats, places: sim.places, simMs, setLabels(v) { labelsOn = v; placeLabels(); }, setGrain(v) { uniforms.uGrainView.value = v ? 1 : 0; document.getElementById('legend').hidden = !v; invalidate(); }, renderNow() { renderer.render(scene, camera); placeLabels(); }, info: () => renderer.info.render };
+  window.__LAB = { buildings: () => (buildings ? buildings.info() : null), roads: () => (roads ? roads.info() : null), setSchematic, setHeight,  setZone(k) { document.querySelector(`#schem [data-zone="${k}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true })); }, setStage, setView, sim: sim.stats, places: sim.places, simMs, setLabels(v) { labelsOn = v; placeLabels(); }, setGrain(v) { uniforms.uGrainView.value = v ? 1 : 0; document.getElementById('legend').hidden = !v; invalidate(); }, renderNow() { renderer.render(scene, camera); placeLabels(); }, info: () => renderer.info.render };
   window.__APP_READY = true;
 }
 
 const NOTES_GURYE = [
   '초기(추정): 지리산 골짜기에서 나온 물이 곡구 앞에 자갈을 쌓기 시작합니다.',
   '성장(추정): 물길이 옮겨 다니며 부채꼴이 넓어집니다. 초기와 성장은 계산으로 복원한 모습입니다.',
-  '오늘날: 실제 고도 자료로 그린 구례 화엄사 선상지입니다. 곡구에서 약 3km 내려가며 고도가 130m에서 40m로 낮아집니다. 표면의 잔 기복은 더한 것입니다. 건물은 브이월드 건물 자료의 바닥 윤곽을 지상 층수 × 3m 높이로 올린 덩어리이고, 높이는 과장하지 않습니다.',
+  '오늘날: 실제 고도 자료로 그린 구례 화엄사 선상지입니다. 곡구에서 약 3km 내려가며 고도가 130m에서 40m로 낮아집니다. 표면의 잔 기복은 더한 것입니다. 건물은 브이월드 건물 자료의 바닥 윤곽을 지상 층수 × 3m 높이로 올린 덩어리이고, 높이는 과장하지 않습니다. 도로는 OpenStreetMap의 도로 선을 등급별 대표 폭으로 땅 위에 얹은 띠라 실제 폭과 다를 수 있습니다.',
 ];
 const NOTES = [
   '초기: 곡구에서 나온 물이 자갈을 쏟아 놓기 시작합니다.',
@@ -281,7 +289,7 @@ const NOTES = [
 document.getElementById('title').textContent = GURYE ? '구례 화엄사 선상지' : '계산으로 만든 선상지';
 document.querySelector(`[data-site="${SITE}"]`).classList.add('on');
 document.getElementById('foot').innerHTML = (GURYE
-  ? ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭, 나무, 물길은 위치가 실제와 다른 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '표면 재질: ambientCG (CC0)']
+  ? ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭, 나무, 물길은 위치가 실제와 다른 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)']
   : ['표면 재질: ambientCG (CC0)']).map(t => `<span>${t}</span>`).join(' ');
 document.querySelectorAll('[data-site]').forEach(b => b.onclick = () => { location.href = b.dataset.site === 'model' ? './model.html' : b.dataset.site === 'gurye' ? './terrain.html?site=gurye' : './terrain.html'; });
 

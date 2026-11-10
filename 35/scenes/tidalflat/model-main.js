@@ -1,5 +1,6 @@
 // © 2026 김용현
 // 갯벌 형성 모형 화면. 계산은 model.js가 하고, 여기서는 그 결과를 3D 블록과 단면으로 그린다.
+import { createProgressBar } from '../../shared/progress.js';
 import * as THREE from 'three';
 import { OrbitControls } from '../../shared/vendor/OrbitControls.js';
 import { isPhone, portraitZoom } from '../../shared/viewport.js';
@@ -297,6 +298,14 @@ const dikeBtn = document.getElementById('dikeBtn');
 const markDike = () => { const on = model.options.dike === 'yes'; dikeBtn.classList.toggle('on', on); dikeBtn.textContent = on ? (model.dikeAt >= 0 ? '방조제 없애고 처음부터' : '방조제 쌓을 예정 (취소)') : '방조제 쌓기'; };
 const restart = () => { frameSync(true); setPlaying(true); markDike(); };
 document.getElementById('resetBtn').onclick = () => { model.reset(); if (compare) modelB.reset(); restart(); };
+// 진행 막대: 누르거나 끌면 그 시점까지 처음부터 다시 계산해 옮긴다.
+const progress = createProgressBar(document.getElementById('progHost'), {
+  clock: () => model.clock, total: () => model.endTime(), finished: () => model.finished,
+  reset: () => { model.reset(); if (compare) modelB.reset(); },
+  step: dt => { model.tick(dt); if (compare) modelB.tick(dt); },
+  pause: () => { const w = playing; setPlaying(false); return w; },
+  resume: w => { frameSync(true); setPlaying(w); markDike(); },
+});
 document.getElementById('fastBtn').onclick = e => { speed = speed === 1 ? 3 : 1; e.currentTarget.classList.toggle('on', speed === 3); e.currentTarget.textContent = speed === 3 ? '3배 빠르게' : '빠르게'; };
 document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); dirty = true; };
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(compare && b.dataset.view === 'oblique' ? 'compare' : b.dataset.view));
@@ -380,6 +389,7 @@ function loop(now) {
     frameSync(false);
     if (model.finished && model.dikeAt >= 0) markDike();
   }
+  progress.update();
   if (!dirty) return;
   dirty = false;
   if (!playing) syncLabels();
@@ -398,7 +408,7 @@ markDike();
 requestAnimationFrame(t => { last = t; loop(t); });
 
 window.__MODEL = {
-  model, modelB, setView, setPlaying, setCompare,
+  progress, model, modelB, setView, setPlaying, setCompare,
   advance(seconds) { setPlaying(false); model.tick(seconds); if (compare) modelB.tick(seconds); frameSync(true); markDike(); renderer.render(scene, camera); return { clock: +model.clock.toFixed(1), sea: +model.sea.toFixed(2), phase: model.phase(), finished: model.finished, flatPct: flatReport(model).flatPct }; },
   // 밀물과 썰물의 한 때를 골라 보여 준다(0: 가장 높음, 0.5: 가장 낮음).
   tideAt(u) { setPlaying(false); const t0 = (u - 0.75) * PERIOD, t = t0 + Math.ceil((model.tideTime - t0) / PERIOD) * PERIOD; model.setTideTime(t); if (compare) modelB.setTideTime(t); frameSync(true); renderer.render(scene, camera); return { sea: +model.sea.toFixed(2), rising: model.rising() }; },

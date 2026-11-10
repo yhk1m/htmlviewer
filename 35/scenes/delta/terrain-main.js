@@ -13,6 +13,7 @@ import { drawContourMap, drawHeightTint, drawPathProfile } from '../../shared/ma
 import { createHeightScale } from '../../shared/height.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
+import { createRoadLayer } from '../../shared/roads.js';
 import { createBuildingLayer, clearUnder } from '../../shared/buildings.js';
 import { buildGimhae, sampleH, plainProfile, profileMarks, placesOf, N, SIZE, CELL, WATER_LEVEL } from './sim.js';
 import { createSchematic } from './schematic.js';
@@ -63,6 +64,7 @@ async function start() {
   const sim = buildGimhae(dem);
   say('건물 자료 받는 중');
   const buildingData = await (await fetch(new URL('./data/gimhae-buildings.json', import.meta.url))).json();
+  const roadData = await (await fetch(new URL('./data/gimhae-roads.json', import.meta.url))).json();
   // 건물 자리에는 나무를 심지 않는다.
   clearUnder(buildingData, N, sim.stage.forest);
   const stage = sim.stage, PLACES = placesOf(sim), fieldLine = plainProfile(sim);
@@ -114,6 +116,7 @@ async function start() {
   const treeCache = {}, nearCache = {};
   let treeMesh = null, nearMesh = null;
   const buildings = createBuildingLayer(THREE, scene, buildingData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(sampleH(sim.h, i, j)) });
+  const roads = createRoadLayer(THREE, scene, roadData, { toWorld: (i, j) => { const w = world(i, j); return [w.x, w.z]; }, groundAt: (i, j) => ex(sampleH(sim.h, i, j)), cellM: CELL });
   const applyHeight = () => {
     for (let k = 0; k < N * N; k++) pos[k * 3 + 1] = ex(sim.h[k]);
     fillNormals(N, CELL, k => pos[k * 3 + 1], nor);
@@ -127,6 +130,7 @@ async function start() {
     nearMesh = nearCache[key] ??= buildNearTrees(veg, stage, sim.mountain);
     scene.add(treeMesh, nearMesh);
     buildings.place(scale.factor);
+    roads.place(scale.factor);
     renderer.shadowMap.needsUpdate = true;
   };
 
@@ -231,6 +235,7 @@ async function start() {
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   document.querySelectorAll('[data-height]').forEach(b => b.onclick = () => setHeight(+b.dataset.height));
   document.getElementById('buildingsBtn').onclick = e => { e.currentTarget.classList.toggle('on', buildings.toggle()); renderer.shadowMap.needsUpdate = true; invalidate(); };
+  document.getElementById('roadsBtn').onclick = e => { e.currentTarget.classList.toggle('on', roads.toggle()); invalidate(); };
   document.getElementById('labelsBtn').onclick = e => { labelsOn = !labelsOn; e.currentTarget.classList.toggle('on', labelsOn); placeLabels(); };
 
   setView('oblique');
@@ -240,11 +245,11 @@ async function start() {
   document.getElementById('load').hidden = true;
   startLoop(() => { placeLabels(); meter(); });
 
-  window.__LAB = { buildings: buildings.info, setView, setHeight, setSchematic, stats: sim.stats, arrowCount: arrowAt.length, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
+  window.__LAB = { buildings: buildings.info, roads: () => roads.info(), setView, setHeight, setSchematic, stats: sim.stats, arrowCount: arrowAt.length, labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent), setLabels(v) { labelsOn = v; placeLabels(); }, renderNow() { renderer.render(scene, camera); placeLabels(); } };
   window.__APP_READY = true;
 }
 
 document.getElementById('note').textContent = '김해 낙동강 하구입니다. 낙동강과 서낙동강 사이의 김해 평야는 높이가 대부분 약 1~4m로 낮고 평평합니다. 낙동강이 쌓는 퇴적 속도가 조차가 작은 남해의 침식 속도보다 빨라 생긴 땅입니다. 낮은 땅 지도와 단면에서 또렷합니다.';
-document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물, 논밭, 숲은 땅 높이와 물길 선에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료(작은 건물은 뺐습니다).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
+document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물, 논밭, 숲은 땅 높이와 물길 선에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료(작은 건물은 뺐습니다).', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

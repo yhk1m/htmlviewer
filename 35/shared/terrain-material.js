@@ -90,7 +90,7 @@ void fieldColor(vec2 p, float dry, float nz, out vec3 col, out float rough){
   } else if(h>.985){ c=plastic; }
   c*=.82+.36*nz;
   c=mix(vec3(.2,.18,.11),c,bund);
-  c=mix(c,vec3(.3,.29,.26),clamp(road,0.,1.)*.62);
+  c=mix(c,vec3(.5,.5,.5),clamp(road,0.,1.)*.62); // 논밭 사이 길도 도로처럼 연회색
   col=c; rough=(c==plastic)?.35:.92;
 }
 `;

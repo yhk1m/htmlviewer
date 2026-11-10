@@ -305,7 +305,7 @@ export function createModel(seed = 11) {
     get h() { return h; }, get base() { return base; }, get thick() { return thick; },
     get mask() { return mask; }, get surf() { return surf; }, get mountain() { return mountain; },
     get parcels() { return parcels; }, get drops() { return drops; }, get section() { return section; },
-    get flooding() { return flooding; }, get finished() { return !flooding && floodCount >= MAX_FLOODS; }, get floodCount() { return floodCount; }, get fanR() { return fanR; },
+    get flooding() { return flooding; }, get totalSeconds() { return (MAX_FLOODS - 1) * (FLOOD_SECONDS + CALM_SECONDS) + FLOOD_SECONDS; }, get finished() { return !flooding && floodCount >= MAX_FLOODS; }, get floodCount() { return floodCount; }, get fanR() { return fanR; },
     get calmPath() { return calmPath; }, get clock() { return clock; },
     sample,
     meanDistances() { return stats.map(s => (s.count ? s.sum / s.count : 0)); },

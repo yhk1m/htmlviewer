@@ -19,6 +19,10 @@
   .scene em { font-style:normal; font-size:13px; color:var(--sub); white-space:nowrap; }
   a.scene em { color:var(--accent); }
   .off b { color:var(--sub); }
+  footer { max-width:880px; margin:0 auto; padding:20px 20px 40px; border-top:1px solid var(--line); color:var(--sub); font-size:14px; line-height:1.7; }
+  footer h3 { font-size:14px; color:var(--ink); margin:0 0 4px; }
+  footer ul { margin:0; padding-left:18px; }
+  footer a { color:inherit; }
 </style>
 </head>
 <body>
@@ -27,6 +31,13 @@
   <p>지형이 어떻게 만들어지는지 3D로 쌓아 보고, 조건을 바꿔 비교합니다.</p>
   <div id="list"></div>
 </main>
+<footer>
+  <h3>제작</h3>
+  <ul>
+    <li>김용현(서울대학교 지리교육과 석사과정, <a href="mailto:mapper@snu.ac.kr">mapper@snu.ac.kr</a>)</li>
+    <li>김한성(서울대학교 지리교육과 석사과정, <a href="mailto:noname@snu.ac.kr">noname@snu.ac.kr</a>)</li>
+  </ul>
+</footer>
 <script type="module">
   import { SCENES } from './shared/scenes.js';
   const rows = area => SCENES.filter(s => s.area === area).map(s => s.href
