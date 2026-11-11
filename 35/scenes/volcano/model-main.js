@@ -124,6 +124,7 @@ function syncLabels() {
   };
   // 칼데라가 생기는 동안에는 꼭대기 이름표만 남겨 차례가 잘 보이게 한다.
   if (['bigEruption', 'collapse', 'atrio', 'central'].includes(model.phase())) for (const k of ['shield', 'scoria', 'horseshoe', 'tuffcone', 'tuffring', 'tube', 'column']) delete p[k];
+  if (['collapse', 'atrio', 'central'].includes(model.phase())) delete p.dome; // 꺼진 꼭대기에는 용암원정구가 남지 않는다.
   put('sea', p.sea, 0.5, 6, false);
   put('shield', p.shield, 0.5, 12);
   put('flow', p.flow, 1, 9, false);
@@ -361,6 +362,7 @@ window.__MODEL = {
   advance(seconds) { setPlaying(false); model.tick(seconds); if (compare) modelB.tick(seconds); frameSync(true); blockA.syncFx(0.4); if (compare) blockB.syncFx(0.4); renderer.render(scene, camera); const r = volcanoReport(model); return { clock: +model.clock.toFixed(1), phase: model.phase(), finished: model.finished, summit: r.summitM, slope: r.slope, width: r.widthKm, cones: r.cones, tube: r.tube, column: r.column }; },
   setOption: (n, v) => document.querySelector(`[data-opt="${n}:${v}"]`).click(),
   draws: () => renderer.info.render.frame,
+  camTo(p, t) { camera.position.set(...p); controls.target.set(...t); controls.update(); dirty = true; renderer.render(scene, camera); },
   labelsShown: () => [...document.querySelectorAll('#labels .label')].filter(e => e.style.display !== 'none').map(e => e.querySelector('b').textContent),
 };
 window.__APP_READY = true;

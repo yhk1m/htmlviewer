@@ -43,8 +43,9 @@
   #labels .label { z-index:2; }
   #phaseBadge { position:fixed; left:calc(min(360px,100vw - 40px) + 40px); top:16px; z-index:4; font-size:18px; font-weight:800; padding:5px 12px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; color:var(--accent); }
   body.panel-closed #phaseBadge { left:20px; top:76px; }
+  body.merged #phaseBadge { left:20px; top:16px; }
   body.comparing #phaseBadge { display:none; }
-  #faceLegend { position:fixed; right:calc(min(600px,42vw) + 16px); top:16px; z-index:4; font-size:14px; padding:4px 10px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  #faceLegend { position:fixed; right:calc(min(600px,42vw) + 16px); bottom:16px; z-index:4; font-size:14px; padding:4px 10px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; display:flex; align-items:center; gap:6px; white-space:nowrap; }
   #faceLegend i { display:inline-block; width:16px; height:9px; border-radius:1px; }
   #veBadge { position:fixed; left:calc(min(360px,100vw - 40px) + 40px); bottom:14px; z-index:4; font-size:13px; padding:3px 9px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; }
   body.panel-closed #veBadge { left:20px; }

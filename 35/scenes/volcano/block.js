@@ -317,50 +317,174 @@ export function createBlock(model) {
     }
   }
 
-  // 분출물: 용암 분수(주황 알갱이)와 수증기나 화산재 기둥(흰색, 회색 덩이)
-  const LAVA_MAX = 70, PLUME_MAX = 46;
-  const lavaBits = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.32, 0), new THREE.MeshBasicMaterial({ color: 0xff8a2a, toneMapped: false }), LAVA_MAX);
+  // 분출물. 실제 모습에 가깝게 그린다.
+  // 연기, 수증기, 화산재는 늘 카메라를 향하는 판(빌보드)에 뭉게뭉게한 무늬를 그려 겹쳐 쌓는다. 위에서 빛을 받아 윗면이 밝다.
+  // 화산재 기둥은 위로 갈수록 느려지며 넓게 퍼져 우산 모양이 되고, 큰 분출 때는 화쇄류가 산허리를 따라 낮게 흘러내린다.
+  // 용암 분수는 날아가는 방향으로 늘어난 불똥으로 그리고, 식으면서 노란색, 주황색, 검붉은색으로 바뀐다.
+  const SMOKE_MAX = 400, LAVA_MAX = 120, GLOW_MAX = 6;
+  const smokeTex = makeSmokeAtlas();
+  const billboardMat = (glow) => new THREE.ShaderMaterial({
+    uniforms: { map: { value: smokeTex } },
+    vertexShader: `
+      attribute vec3 iPos; attribute vec3 iColor; attribute vec4 iMisc;
+      varying vec2 vUv; varying vec3 vC; varying float vA; varying float vY;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(iPos, 1.0);
+        float c = cos(iMisc.w), s = sin(iMisc.w);
+        vec2 p = position.xy;
+        mv.xy += vec2(c * p.x - s * p.y, s * p.x + c * p.y) * iMisc.x;
+        gl_Position = projectionMatrix * mv;
+        vec2 cell = vec2(mod(iMisc.z, 2.0), floor(iMisc.z / 2.0));
+        vUv = (uv + cell) * 0.5; vC = iColor; vA = iMisc.y; vY = position.y + 0.5;
+      }`,
+    fragmentShader: glow ? `
+      varying vec2 vUv; varying vec3 vC; varying float vA; varying float vY;
+      void main() {
+        vec2 d = fract(vUv * 2.0) - 0.5; float r = length(d) * 2.0;
+        float a = vA * pow(max(0.0, 1.0 - r), 2.2);
+        if (a < 0.003) discard;
+        gl_FragColor = vec4(vC * a, a);
+      }` : `
+      uniform sampler2D map;
+      varying vec2 vUv; varying vec3 vC; varying float vA; varying float vY;
+      void main() {
+        vec4 t = texture2D(map, vUv);
+        float a = t.a * vA;
+        if (a < 0.004) discard;
+        gl_FragColor = vec4(vC * t.r * mix(0.68, 1.12, vY), a);
+        #include <colorspace_fragment>
+      }`,
+    transparent: true, depthWrite: false,
+    blending: glow ? THREE.AdditiveBlending : THREE.NormalBlending,
+  });
+  function makeBillboards(max, glow) {
+    const base = new THREE.PlaneGeometry(1, 1), g = new THREE.InstancedBufferGeometry();
+    g.index = base.index; g.setAttribute('position', base.attributes.position); g.setAttribute('uv', base.attributes.uv);
+    g.setAttribute('iPos', new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('iColor', new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('iMisc', new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4).setUsage(THREE.DynamicDrawUsage));
+    g.instanceCount = 0;
+    const mesh = new THREE.Mesh(g, billboardMat(glow));
+    mesh.frustumCulled = false; mesh.renderOrder = glow ? 4 : 3;
+    // 판을 먼 것부터 그려야 겹친 모습이 자연스러우므로, 그리기 직전에 카메라에서 먼 차례로 늘어놓는다.
+    const parts = [], mv = new THREE.Matrix4();
+    mesh.onBeforeRender = (r, s, camera) => {
+      const n = Math.min(parts.length, max);
+      if (!glow && n > 1) {
+        mv.multiplyMatrices(camera.matrixWorldInverse, mesh.matrixWorld);
+        const e = mv.elements;
+        for (const p of parts) p.d = e[2] * p.x + e[6] * p.y + e[10] * p.z;
+        parts.sort((a, b) => a.d - b.d);
+      }
+      const P = g.attributes.iPos.array, C = g.attributes.iColor.array, M = g.attributes.iMisc.array;
+      for (let i = 0; i < n; i++) {
+        const p = parts[i];
+        P[i * 3] = p.x; P[i * 3 + 1] = p.y; P[i * 3 + 2] = p.z;
+        C[i * 3] = p.r; C[i * 3 + 1] = p.g; C[i * 3 + 2] = p.b;
+        M[i * 4] = p.size; M[i * 4 + 1] = p.a; M[i * 4 + 2] = p.cell; M[i * 4 + 3] = p.rot;
+      }
+      g.instanceCount = n;
+      g.attributes.iPos.needsUpdate = true; g.attributes.iColor.needsUpdate = true; g.attributes.iMisc.needsUpdate = true;
+    };
+    group.add(mesh);
+    return { mesh, parts, push(x, y, z, size, a, color, cell, rot) { if (parts.length < max) parts.push({ x, y, z, size, a, r: color.r, g: color.g, b: color.b, cell, rot, d: 0 }); } };
+  }
+  const smoke = makeBillboards(SMOKE_MAX, false), glows = makeBillboards(GLOW_MAX, true);
+  const lavaBits = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.5, 0.12, 1, 7, 1).translate(0, -0.35, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), LAVA_MAX);
   lavaBits.frustumCulled = false; lavaBits.count = 0;
+  lavaBits.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(LAVA_MAX * 3), 3);
   group.add(lavaBits);
-  const plume = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, transparent: true, opacity: 0.55, depthWrite: false }), PLUME_MAX);
-  plume.frustumCulled = false; plume.count = 0; plume.renderOrder = 3;
-  plume.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(PLUME_MAX * 3), 3);
-  group.add(plume);
   const light = new THREE.PointLight(0xff7a30, 0, 40, 1.8);
   group.add(light);
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), cc = new THREE.Color();
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), vv = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();
+  const HOT = [new THREE.Color(0xfff4b0), new THREE.Color(0xffb030), new THREE.Color(0xf05a12), new THREE.Color(0x9a240a), new THREE.Color(0x2e1d16)];
+  const heatColor = (u, out) => { const f = Math.min(0.999, Math.max(0, u)) * (HOT.length - 1), i = Math.floor(f); return out.copy(HOT[i]).lerp(HOT[i + 1], f - i); };
+  const ASH_LOW = new THREE.Color(0x3f3934), ASH_HIGH = new THREE.Color(0x9b958d), FLOW_C = new THREE.Color(0xa69a8c), STEAM = new THREE.Color(0xf4f4f1), STEAM_LOW = new THREE.Color(0xc9c6c0), GAS = new THREE.Color(0xd8d5cf);
+  const groundAt = (x, y) => { const i = Math.max(0, Math.min(N - 1, Math.round(x))), j = Math.max(0, Math.min(NY - 1, Math.round(y))); return worldY(Math.max(0, model.z[j * N + i])); };
   let anim = 0;
   function syncFx(dt) {
     anim += dt;
     const vents = model.finished ? [] : model.vents || [];
-    let nl = 0, np = 0, lightOn = 0;
+    let nl = 0, lightOn = 0;
+    smoke.parts.length = 0; glows.parts.length = 0;
     vents.forEach((v, vi) => {
       const bx = v.x - CX0, bz = v.y - CY0, by = worldY(Math.max(v.z, v.kind === 'steam' ? 0 : v.z));
       if (v.kind === 'lava') {
-        if (!lightOn) { light.position.set(bx, by + 3, bz - 1); light.intensity = 70 * v.s; lightOn = 1; }
-        const cnt = Math.round(30 * v.s);
+        if (!lightOn) { light.position.set(bx, by + 3, bz - 1); light.intensity = (60 + 25 * Math.sin(anim * 13)) * v.s; lightOn = 1; }
+        // 화구의 빛
+        glows.push(bx, by + 0.8, bz - 0.3, 10 * v.s, 0.55 + 0.15 * Math.sin(anim * 9 + vi), cc.set(0xff7a2a), 0, 0);
+        // 용암 분수: 불똥이 포물선을 그리며 날아가 식는다.
+        const cnt = Math.round(85 * v.s);
         for (let a = 0; a < cnt && nl < LAVA_MAX; a++) {
-          const ph = (anim * 0.9 + hash(a, vi + 1)) % 1, ang = hash(a, 7) * 6.283, sp = 0.6 + hash(a, 9) * 1.6, up = 5 + hash(a, 11) * 6 * v.s;
-          pv.set(bx + Math.cos(ang) * sp * ph * 2, by + up * 4 * ph * (1 - ph) + 0.3, bz - Math.abs(Math.sin(ang)) * sp * ph * 2);
-          m4.compose(pv, q, sv.setScalar(0.6 + 0.6 * (1 - ph)));
-          lavaBits.setMatrixAt(nl++, m4);
+          const ph = (anim * (0.7 + 0.5 * hash(a, 13)) + hash(a, vi + 1)) % 1, ang = hash(a, 7) * 6.283;
+          const sp = 0.4 + hash(a, 9) * 1.8, up = (3 + hash(a, 11) * 7) * v.s * 1.4;
+          const hx = Math.cos(ang) * sp * 2, hz = -Math.abs(Math.sin(ang)) * sp * 2;
+          pv.set(bx + hx * ph, by + up * 4 * ph * (1 - ph) + 0.2, bz + hz * ph);
+          vv.set(hx, up * 4 * (1 - 2 * ph), hz);
+          const speed = vv.length();
+          q.setFromUnitVectors(UP, vv.multiplyScalar(1 / Math.max(1e-4, speed)));
+          // 뜨거울 때는 빠르게 날며 꼬리를 끌고(앞이 굵고 뒤가 가늘다), 식은 덩이(화산탄)는 짧고 뭉툭하다.
+          const cool = Math.min(1, Math.max(0, (ph - 0.45) / 0.5)), w = (0.16 + 0.16 * hash(a, 15)) * (1 - 0.6 * cool);
+          m4.compose(pv, q, sv.set(w, (0.2 + speed * 0.09) * (1 - 0.8 * cool) + w, w));
+          lavaBits.setMatrixAt(nl, m4);
+          lavaBits.setColorAt(nl++, heatColor(ph * 0.75 + 0.1 * hash(a, 17), cc));
+        }
+        // 용암에서 나오는 화산 가스: 옅은 흰 연기
+        const gas = Math.round(14 * v.s);
+        for (let a = 0; a < gas; a++) {
+          const ph = (anim * 0.22 + hash(a, vi + 21)) % 1;
+          smoke.push(bx + (hash(a, 22) - 0.5) * 2 + ph * 2.5, by + 1.5 + ph * 11, bz - 0.5 - hash(a, 23) * 2,
+            2.5 + ph * 6, 0.22 * fadeInOut(ph), cc.copy(GAS), a & 3, hash(a, 24) * 6.28 + anim * 0.05);
+        }
+      } else if (v.kind === 'ash') {
+        const big = v.s >= 0.9, H = (big ? 34 : 20) * Math.max(0.6, v.s), cnt = Math.round((big ? 200 : 110) * v.s);
+        glows.push(bx, by + 0.6, bz - 0.3, 5 * v.s, 0.4, cc.set(0xff6a20), 0, 0);
+        for (let a = 0; a < cnt; a++) {
+          const ph = (anim * (0.16 + 0.08 * hash(a, 31)) + hash(a, vi + 3)) % 1;
+          // 오르는 속도는 위로 갈수록 느려진다.
+          const rise = 1 - Math.pow(1 - ph, 1.8), y = by + 0.8 + rise * H;
+          const ang = hash(a, 32) * 6.283, ca = Math.cos(ang), sa = -Math.abs(Math.sin(ang));
+          // 기둥은 위로 갈수록 굵어지고, 꼭대기에서는 옆으로 크게 퍼져 우산 모양이 된다.
+          const umb = Math.max(0, (rise - 0.72) / 0.28), rad = (0.6 + rise * 3.2) * hash(a, 33) + umb * umb * (big ? 16 : 9) * (0.5 + 0.5 * hash(a, 34));
+          const size = (3 + rise * 7 + umb * 5) * (0.75 + 0.5 * hash(a, 35));
+          cc.copy(ASH_LOW).lerp(ASH_HIGH, Math.min(1, rise * 1.1) * (0.7 + 0.3 * hash(a, 36)));
+          smoke.push(bx + ca * rad + Math.sin(anim * 0.7 + a) * 0.3, y - umb * 2.5, bz + sa * rad, size, 0.6 * fadeInOut(ph), cc, a & 3, hash(a, 37) * 6.28 + anim * (hash(a, 38) - 0.5) * 0.4);
+        }
+        // 큰 분출: 화쇄류가 산허리를 따라 낮게 흘러내린다.
+        if (big) {
+          // 흐름은 몇 갈래로 나뉘어 골짜기를 따라 내려가므로, 갈래마다 덩이를 촘촘히 이어 놓는다.
+          const LOBES = [1.08, 1.3, 1.5, 1.7, 1.92];
+          for (let a = 0; a < 120; a++) {
+            const ph = (anim * (0.18 + 0.06 * hash(a, 41)) + hash(a, 42)) % 1, lobe = LOBES[a % LOBES.length];
+            const ang = Math.PI * lobe + (hash(a, 43) - 0.5) * 0.3 * (0.4 + ph), d = 2 + ph * (18 + 6 * hash(a, 44));
+            const x = v.x + Math.cos(ang) * d, y = v.y + Math.sin(ang) * d;
+            const size = (3 + ph * 6) * (0.8 + 0.4 * hash(a, 45));
+            smoke.push(x - CX0, groundAt(x, y) + size * 0.3, y - CY0, size, 0.6 * fadeInOut(ph), cc.copy(FLOW_C).multiplyScalar(0.85 + 0.25 * hash(a, 46)), a & 3, hash(a, 47) * 6.28);
+          }
         }
       } else {
-        const ash = v.kind === 'ash', cnt = Math.round((ash ? 40 : 18) * v.s);
-        for (let a = 0; a < cnt && np < PLUME_MAX; a++) {
-          const ph = (anim * (ash ? 0.35 : 0.45) + hash(a, vi + 3)) % 1, r = (ash ? 1.5 : 0.8) + ph * (ash ? 9 : 4);
-          pv.set(bx + (hash(a, 4) - 0.5) * r * 1.6, by + 1 + ph * (ash ? 26 : 12), bz - Math.abs(hash(a, 5) - 0.5) * r * 1.6);
-          m4.compose(pv, q, sv.setScalar(r * (ash ? 0.7 : 0.6)));
-          plume.setMatrixAt(np, m4);
-          cc.set(ash ? 0x6d6862 : 0xf4f6f8).multiplyScalar(ash ? 0.8 + 0.4 * ph : 1);
-          plume.setColorAt(np++, cc);
+        // 얕은 물에서 터질 때: 젖은 화산재가 검은 깃털처럼 비스듬히 뿜어져 나온다(수증기 폭발).
+        const JET = new THREE.Color(0x2f2b28);
+        for (let a = 0; a < Math.round(60 * v.s); a++) {
+          // 뿜어 나가는 줄기 몇 개를 따라 덩이를 촘촘히 잇는다.
+          const jet = a % 5, ph = (anim * (0.6 + 0.2 * hash(a, 61)) + hash(a, vi + 62)) % 1, tilt = (hash(jet, vi + 63) - 0.5) * 1.4, ang = hash(jet, vi + 64) * 6.283;
+          const hgt = (3 + 3 * hash(jet, 65)) * Math.sqrt(ph) * (1.2 - 0.5 * ph), out = ph * (1 + 4 * Math.abs(tilt));
+          smoke.push(bx + Math.cos(ang) * out, by + 0.4 + hgt, bz - Math.abs(Math.sin(ang)) * out, (0.9 + ph * 2.2) * (0.8 + 0.4 * hash(a, 66)), 0.7 * fadeInOut(ph), cc.copy(JET).lerp(STEAM_LOW, ph * 0.5), a & 3, tilt);
+        }
+        // 수증기: 마그마가 바닷물을 만나 하얗게 솟는다.
+        const cnt = Math.round(70 * v.s);
+        for (let a = 0; a < cnt; a++) {
+          const ph = (anim * (0.24 + 0.1 * hash(a, 51)) + hash(a, vi + 52)) % 1, rise = 1 - Math.pow(1 - ph, 1.5);
+          const ang = hash(a, 53) * 6.283, rad = (0.5 + rise * 3.5) * hash(a, 54);
+          cc.copy(STEAM_LOW).lerp(STEAM, Math.min(1, rise * 1.6));
+          smoke.push(bx + Math.cos(ang) * rad + rise * 2, by + 0.6 + rise * 16, bz - Math.abs(Math.sin(ang)) * rad, (1.2 + rise * 5.5) * (0.75 + 0.5 * hash(a, 55)), 0.8 * fadeInOut(ph), cc, a & 3, hash(a, 56) * 6.28);
         }
       }
     });
     if (!lightOn) light.intensity = 0;
-    lavaBits.count = nl; plume.count = np;
-    lavaBits.instanceMatrix.needsUpdate = true; plume.instanceMatrix.needsUpdate = true;
-    if (plume.instanceColor) plume.instanceColor.needsUpdate = true;
+    lavaBits.count = nl;
+    lavaBits.instanceMatrix.needsUpdate = true;
+    if (lavaBits.instanceColor) lavaBits.instanceColor.needsUpdate = true;
   }
 
   function paint(k, t, todayF) {
@@ -419,4 +543,45 @@ export function createBlock(model) {
   }
 
   return { group, terrain, syncTerrain, syncFx, faces };
+}
+
+// 분출물 판의 나타남과 사라짐: 처음에 빨리 짙어지고 끝에서 천천히 옅어진다.
+function fadeInOut(ph) { return Math.min(1, ph / 0.08) * Math.min(1, (1 - ph) / 0.3); }
+
+// 연기 무늬 넷(2x2). 둥근 덩이 여럿을 겹쳐 꽃양배추처럼 울퉁불퉁한 윤곽을 만들고, 잡음으로 속을 고르지 않게 한다.
+// r 칸은 밝기(윗면이 밝고 덩이 아래가 어둡다), a 칸은 짙기다. 그림에만 쓰는 무늬라 계산 값과 상관없다.
+function makeSmokeAtlas() {
+  // 캔버스를 거치면 반투명한 곳의 색이 어두워지므로(미리 곱한 알파) 바로 자료 무늬로 만든다.
+  const S = 128, W = S * 2, data = new Uint8Array(W * W * 4);
+  const vnoise = (x, y, s) => {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), w = yf * yf * (3 - 2 * yf);
+    const h = (a, b) => hash(a + s * 17, b - s * 31);
+    return (h(xi, yi) * (1 - u) + h(xi + 1, yi) * u) * (1 - w) + (h(xi, yi + 1) * (1 - u) + h(xi + 1, yi + 1) * u) * w;
+  };
+  for (let cell = 0; cell < 4; cell++) {
+    const blobs = [];
+    for (let b = 0; b < 22; b++) {
+      const ang = hash(b, cell * 7 + 1) * 6.283, d = Math.sqrt(hash(b, cell * 7 + 2)) * 0.27;
+      blobs.push([0.5 + Math.cos(ang) * d, 0.5 + Math.sin(ang) * d * 0.85, 0.07 + hash(b, cell * 7 + 3) * 0.11]);
+    }
+    const dens = (x, y) => { let s = 0; for (const [bx, by, br] of blobs) { const dx = x - bx, dy = y - by; s += Math.exp(-(dx * dx + dy * dy) / (br * br)); } return s; };
+    const ox = (cell % 2) * S, oy = Math.floor(cell / 2) * S;
+    for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) {
+      const x = (px + 0.5) / S, y = (py + 0.5) / S;
+      const n = 0.5 * vnoise(x * 7, y * 7, cell) + 0.3 * vnoise(x * 15, y * 15, cell + 4) + 0.2 * vnoise(x * 31, y * 31, cell + 8);
+      const d = dens(x, y) * (0.45 + 0.9 * n);
+      // 무늬 칸 끝에서 잘리지 않게만 둘레를 흐리게 한다. 윤곽은 덩이와 잡음이 정한다.
+      const edge = Math.min(1, Math.max(0, (0.5 - Math.hypot(x - 0.5, y - 0.5)) / 0.12));
+      const a = Math.min(1, Math.max(0, (d - 0.25) / 1.1)) ** 1.3 * edge;
+      // 빛은 위에서 온다(화면 위쪽이 y 큰 쪽): 조금 위쪽이 덜 짙으면 윗면이라 밝다.
+      const lit = Math.min(1, Math.max(0, 0.8 + (dens(x, y - 0.04) - dens(x, y + 0.04)) * 0.18 + (n - 0.5) * 0.25));
+      const k = ((oy + py) * W + ox + px) * 4;
+      data[k] = data[k + 1] = data[k + 2] = Math.round(lit * 255);
+      data[k + 3] = Math.round(a * 255);
+    }
+  }
+  const tex = new THREE.DataTexture(data, W, W, THREE.RGBAFormat);
+  tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.generateMipmaps = true;
+  tex.needsUpdate = true;
+  return tex;
 }
