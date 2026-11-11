@@ -87,8 +87,8 @@ export function createBlock(model) {
   // 첫 화면 전에 색 버퍼를 만들어 두어야 입자 색이 적용된다.
   { const c = new THREE.Color(); for (let s = 0; s < 2400; s++) grainMesh.setColorAt(s, c.set(GRAINS[0].color)); }
   group.add(grainMesh);
-  // 물: 물 덩어리가 지나온 길을 따라 휘어지는 가늘고 긴 띠. 머리는 굵고 진하며 꼬리로 갈수록 가늘고 옅어진다.
-  const TRAIL = 10, MAXD = 1600;
+  // 물: 물 덩어리가 지나온 길을 따라 휘어지는 가늘고 긴 띠. 굵기는 거의 같고 머리 끝만 둥글게 좁히며, 꼬리로 갈수록 옅어진다.
+  const TRAIL = 24, MAXD = 1600;
   const wPos = new Float32Array(MAXD * TRAIL * 2 * 3), wCol = new Float32Array(MAXD * TRAIL * 2 * 4);
   const wIdx = new Uint32Array(MAXD * (TRAIL - 1) * 6);
   for (let d = 0, t = 0; d < MAXD; d++) for (let k = 0; k < TRAIL - 1; k++) {
@@ -178,11 +178,11 @@ export function createBlock(model) {
         let dx = A[0] - B[0], dz = A[2] - B[2];
         const l = Math.hypot(dx, dz);
         if (l > 1e-6) { dx /= l; dz /= l; } else { dx = p.dx; dz = p.dy; }
-        const f = k / (TRAIL - 1), w = 0.55 * (1 - f * 0.8) * (k < tr.length ? 1 : 0);
+        const f = k / (TRAIL - 1), w = 0.32 * Math.min(1, 0.45 + k * 0.28) * (1 - f * 0.5) * (k < tr.length ? 1 : 0);
         const o = ((s * TRAIL + k) * 2) * 3;
         wPos[o] = P[0] - dz * w; wPos[o + 1] = P[1]; wPos[o + 2] = P[2] + dx * w;
         wPos[o + 3] = P[0] + dz * w; wPos[o + 4] = P[1]; wPos[o + 5] = P[2] - dx * w;
-        const c = ((s * TRAIL + k) * 2) * 4, al = 0.9 * (1 - f);
+        const c = ((s * TRAIL + k) * 2) * 4, al = 0.85 * (1 - f * f);
         for (const q of [c, c + 4]) { wCol[q] = 0.58 - 0.34 * f; wCol[q + 1] = 0.84 - 0.24 * f; wCol[q + 2] = 1; wCol[q + 3] = al; }
       }
     }
