@@ -11,11 +11,15 @@ export function setupSideToggle(aside, name, button) {
 
   const place = () => {
     const open = !aside.hidden;
-    tab.textContent = open ? `${name} 접기` : `${name} 열기`;
+    const phone = isPhone();
+    // 넓은 화면: 창 왼쪽 가장자리에 붙은 세로 손잡이(화살표와 세로 글씨). 휴대폰: 아래 창 위 작은 버튼.
+    tab.classList.toggle('edge', !phone);
+    if (phone) tab.textContent = open ? `${name} 접기` : `${name} 열기`;
+    else tab.innerHTML = `<svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><polyline points="${open ? '3,1 7,5 3,9' : '7,1 3,5 7,9'}" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>${open ? '접기' : name}</span>`;
     tab.setAttribute('aria-label', open ? `${name} 창 접기` : `${name} 창 열기`);
     tab.setAttribute('aria-expanded', String(open));
     tab.classList.toggle('closed', !open);
-    if (isPhone()) {
+    if (phone) {
       // 휴대폰에서는 아래 창 위쪽 오른쪽 모서리 안에 둔다(창 위 범례를 가리지 않게).
       tab.style.right = '12px';
       tab.style.top = 'auto';
@@ -23,7 +27,7 @@ export function setupSideToggle(aside, name, button) {
     } else {
       tab.style.bottom = 'auto';
       tab.style.top = '50%';
-      tab.style.right = (open ? aside.offsetWidth + 8 : 12) + 'px';
+      tab.style.right = (open ? aside.offsetWidth : 0) + 'px';
     }
   };
 

@@ -52,6 +52,9 @@ body.show-map #foot span { display:block; }
 #side[hidden], #schem[hidden] { display:none !important; }
 .side-tab { position:fixed; z-index:30; transform:translateY(-50%); font-size:13px; padding:5px 10px; background:rgba(22,26,24,.92); }
 .side-tab.closed { background:var(--accent, #e8b04b); color:#1b1d1c; border-color:transparent; font-weight:600; }
+/* 넓은 화면: 창 가장자리에 붙은 세로 손잡이. :root를 붙여 라이트 모드 규칙보다 앞선다. */
+:root body .side-tab.edge { display:flex; flex-direction:row; align-items:center; gap:6px; writing-mode:vertical-rl; padding:12px 5px; font-size:12px; letter-spacing:.12em; border-right:0; border-radius:6px 0 0 6px; box-shadow:-2px 0 8px rgba(0,0,0,.08); }
+:root body .side-tab.edge svg { flex:none; }
 
 /* 라이트 모드(기본, shared/theme.js가 html[data-theme]를 정한다): 흰 바탕에 검정과 회색만 쓰고, 가는 회색 줄로 나눈다. 3D 위 이름표와 그림(모식도, 단면 그림)은 제 색을 둔다.
    각 화면 style에 남아 있는 어두운 색을 html:not([data-theme="dark"]) body로 한 단계 높여 덮는다. */

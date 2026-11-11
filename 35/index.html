@@ -86,7 +86,7 @@
   const rows = area => SCENES.filter(s => s.area === area).map(s => s.href
     ? `<li><a class="scene" href="./${s.href}"><div><b>${s.name}</b><span>${s.shows}</span></div><em>열기</em></a></li>`
     : `<li><div class="scene off"><div><b>${s.name}</b><span>${s.shows}</span></div><em>준비 중</em></div></li>`).join('');
-  document.getElementById('list').innerHTML = ['하천', '해안', '산지'].map(a => `<section class="area" id="area-${a}"><h2>${a}</h2><ul>${rows(a)}</ul></section>`).join('');
+  document.getElementById('list').innerHTML = ['하천', '해안', '산지', '화산'].map(a => `<section class="area" id="area-${a}"><h2>${a}</h2><ul>${rows(a)}</ul></section>`).join('');
   window.__APP_READY = true;
 </script>
 <script type="module" src="./shared/theme.js"></script>
