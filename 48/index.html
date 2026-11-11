@@ -1,0 +1,448 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한국지리 형성 평가</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #666;
+    --line: #cfcfcf;
+    --src-bg: #f3f6fb;
+    --src-line: #7a93c2;
+    --src-ink: #2c4a7c;
+    --box-bg: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #e9e9e9;
+    color: var(--ink);
+    font-family: "Noto Serif KR", "Batang", serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .page {
+    max-width: 820px;
+    margin: 24px auto;
+    background: #fff;
+    padding: 48px 56px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.12);
+  }
+  header.title {
+    text-align: center;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 8px;
+  }
+  header.title h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: .08em; }
+  header.title p { margin: 0; color: var(--muted); font-family: "Noto Sans KR", sans-serif; font-size: 13px; }
+  .info {
+    display: flex; justify-content: flex-end; gap: 24px;
+    font-family: "Noto Sans KR", sans-serif; font-size: 14px;
+    margin: 10px 0 28px;
+  }
+  .info span { border-bottom: 1px solid var(--ink); min-width: 120px; display: inline-block; }
+  .note {
+    font-family: "Noto Sans KR", sans-serif; font-size: 13px;
+    background: #fff8e6; border: 1px solid #e8cf8a; padding: 10px 14px; margin-bottom: 28px;
+  }
+  h2.unit {
+    font-family: "Noto Sans KR", sans-serif;
+    font-size: 16px; font-weight: 700;
+    margin: 36px 0 16px; padding: 4px 10px;
+    border-left: 5px solid var(--ink); background: #f1f1f1;
+  }
+  .q { margin: 0 0 30px; break-inside: avoid; page-break-inside: avoid; }
+  .q .stem { margin: 0 0 8px; }
+  .q .stem b { margin-right: 4px; }
+  .src {
+    font-family: "Noto Sans KR", sans-serif; font-size: 12.5px;
+    color: var(--src-ink); background: var(--src-bg);
+    border: 1.5px dashed var(--src-line); border-radius: 4px;
+    padding: 18px 14px; margin: 8px 0 10px; text-align: center;
+    min-height: 90px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .src .tag { font-weight: 700; margin-bottom: 2px; }
+  .src .mod { color: #8a4b12; }
+  .bogi {
+    border: 1px solid var(--ink); padding: 8px 16px 8px; margin: 8px 0 10px; position: relative;
+    background: var(--box-bg);
+  }
+  .bogi::before {
+    content: "<보 기>"; position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: #fff; padding: 0 8px; font-size: 13px;
+  }
+  .bogi p { margin: 2px 0; padding-left: 1.6em; text-indent: -1.6em; }
+  .desc { border: 1px solid var(--line); padding: 8px 14px; margin: 8px 0 10px; background: var(--box-bg); }
+  ol.opts { list-style: none; padding: 0; margin: 0; }
+  ol.opts li { padding-left: 1.6em; text-indent: -1.6em; }
+  ol.opts.inline { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+  ol.opts.inline li { padding-left: 0; text-indent: 0; }
+  table.combo { border-collapse: collapse; margin: 4px 0; font-size: 14.5px; }
+  table.combo th, table.combo td { border: 1px solid var(--line); padding: 2px 16px; text-align: center; }
+  table.combo th { background: #f1f1f1; font-weight: 400; }
+  .answers h2 { font-family: "Noto Sans KR", sans-serif; font-size: 20px; margin: 0 0 16px; text-align: center; }
+  table.key { width: 100%; border-collapse: collapse; font-family: "Noto Sans KR", sans-serif; font-size: 13.5px; }
+  table.key th, table.key td { border: 1px solid var(--line); padding: 6px 10px; vertical-align: top; }
+  table.key th { background: #f1f1f1; }
+  table.key td:nth-child(1), table.key td:nth-child(2) { text-align: center; white-space: nowrap; }
+  .toolbar { position: fixed; right: 16px; bottom: 16px; font-family: "Noto Sans KR", sans-serif; }
+  .toolbar button {
+    font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid #999; background: #fff; border-radius: 4px; cursor: pointer;
+  }
+  body.hide-src .src { display: none; }
+  .copy-btn {
+    font-family: "Noto Sans KR", sans-serif; font-size: 11.5px; line-height: 1.4;
+    padding: 1px 8px; margin-left: 6px; vertical-align: 2px;
+    border: 1px solid #9aa9c7; background: #fff; color: #2c4a7c; border-radius: 3px; cursor: pointer;
+  }
+  .copy-btn:hover { background: #eef3fb; }
+  .copy-btn.done { border-color: #3a8a4a; color: #3a8a4a; background: #eef8f0; }
+  .bogi .copy-btn { position: absolute; top: -10px; right: 10px; margin: 0; }
+  .copy-row { margin: 4px 0 0; }
+  .copy-row .copy-btn { margin-left: 0; }
+  body.hide-copy .copy-btn, body.hide-copy .copy-row { display: none; }
+  @media (max-width: 700px) {
+    .page { padding: 24px 16px; margin: 0; }
+    .info { flex-direction: column; align-items: flex-end; gap: 6px; }
+  }
+  @media print {
+    body { background: #fff; font-size: 13.5px; }
+    .page { box-shadow: none; margin: 0; padding: 0; max-width: none; }
+    .toolbar, .note, .copy-btn, .copy-row { display: none; }
+    .answers { page-break-before: always; }
+    .src { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @page { size: A4; margin: 16mm 15mm; }
+</style>
+</head>
+<body>
+<div class="toolbar"><button type="button" id="toggleCopy">복사 버튼 숨기기</button> <button type="button" id="toggleSrc">자료 출처 칸 숨기기</button></div>
+
+<div class="page">
+  <header class="title">
+    <h1>한국지리 형성 평가</h1>
+    <p>Ⅰ. 국토 인식과 지리 정보 ~ Ⅴ. 생산과 소비의 공간 (15문항, 5지선다형)</p>
+  </header>
+  <div class="info">학번 <span></span> 이름 <span></span></div>
+
+  <div class="note">
+    <b>편집용 안내:</b> 파란 점선 칸은 교재(2027 수능특강 한국지리) 자료가 들어갈 자리입니다. 쪽수는 교재 쪽수이며, 모든 자료는 교재의 기호를 그대로 씁니다. <span style="color:#8a4b12">갈색 글씨</span>는 오려 올 범위입니다. 오른쪽 아래 버튼으로 이 칸들을 숨길 수 있고, 인쇄 시 이 안내문은 출력되지 않습니다. 정답과 해설은 마지막 쪽에 있습니다.
+  </div>
+
+  <!-- Ⅰ -->
+  <h2 class="unit">Ⅰ. 국토 인식과 지리 정보</h2>
+
+  <div class="q">
+    <p class="stem"><b>1.</b> 지도는 독도와 그 위치를 나타낸 것이다. 독도에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.9 ‘독도’ 지도 + 측주 ‘독도의 위치’ 지도</div><div class="mod">변형 없음 (본문 글은 빼고 지도 두 장만)</div></div>
+    <ol class="opts">
+      <li>① 우리나라 영토의 최북단에 위치한다.</li>
+      <li>② 주변 영해는 직선 기선으로부터 12해리까지이다.</li>
+      <li>③ 대륙성 기후가 나타나 기온의 연교차가 크다.</li>
+      <li>④ 울릉도보다 늦게 형성된 화산섬이다.</li>
+      <li>⑤ 행정 구역상 경상북도 울릉군에 속한다.</li>
+    </ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>2.</b> 자료 1, 자료 2는 조선 시대 지리지의 일부이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 고른 것은?</p>
+    <div class="src"><div class="tag">[자료] p.15 탐구 활동 ‘신증동국여지승람과 택리지의 서술 방식’ 자료 1, 자료 2</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 자료 1, 2 상자만)</div></div>
+    <div class="bogi">
+      <p>ㄱ. 자료 1은 국가가 주도하여 편찬하였다.</p>
+      <p>ㄴ. 자료 1은 지역 정보를 항목별로 나누어 서술하였다.</p>
+      <p>ㄷ. 자료 2는 국가 통치에 필요한 정보를 얻기 위해 관에서 편찬하였다.</p>
+      <p>ㄹ. 자료 2에는 지역에 대한 저자의 주관적인 생각이 드러나지 않는다.</p>
+    </div>
+    <ol class="opts inline"><li>① ㄱ, ㄴ</li><li>② ㄱ, ㄷ</li><li>③ ㄴ, ㄷ</li><li>④ ㄴ, ㄹ</li><li>⑤ ㄷ, ㄹ</li></ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>3.</b> 자료는 여러 가지 통계 지도를 나타낸 것이다. 이에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.16 자료 분석 ‘통계 지도의 종류’ 지도 5장</div><div class="mod">변형 없음 (아래 설명글은 빼고 지도 5장과 이름만)</div></div>
+    <ol class="opts">
+      <li>① 점묘도는 인구가 밀집한 정도를 파악하기에 적합하다.</li>
+      <li>② 등치선도는 지역 간 이동량과 이동 방향을 나타내는 데 적합하다.</li>
+      <li>③ 도형 표현도는 통계값을 일정한 단위의 점으로 표현한다.</li>
+      <li>④ 단계 구분도는 같은 값을 지닌 지점을 선으로 연결하여 표현한다.</li>
+      <li>⑤ 유선도는 통계값을 몇 단계로 나누어 색이나 음영으로 표현한다.</li>
+    </ol>
+  </div>
+
+  <!-- Ⅱ -->
+  <h2 class="unit">Ⅱ. 지형 환경과 인간 생활</h2>
+
+  <div class="q">
+    <p class="stem"><b>4.</b> 자료는 어느 하천 주변의 지형도와 하안 단구의 형성 과정을 나타낸 것이다. (가) 하천과 A 지형에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.30 자료 분석 ‘감입 곡류 하천’ 지도 + ‘하안 단구의 형성 과정’ 그림</div><div class="mod">변형 없음 (아래 설명글은 빼고 그림만)</div></div>
+    <ol class="opts">
+      <li>① (가)는 주로 하천 하류의 넓은 평야를 흐른다.</li>
+      <li>② (가)는 지반이 융기하면서 하방 침식이 활발해져 형성되었다.</li>
+      <li>③ A는 홍수 때 침수 위험이 매우 크다.</li>
+      <li>④ A는 현재 하천 바닥보다 해발 고도가 낮다.</li>
+      <li>⑤ A는 하천의 퇴적 작용으로 최근에 형성된 하중도이다.</li>
+    </ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>5.</b> 자료는 철원 지역 용암 대지의 모습과 지층 단면을 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 고른 것은?</p>
+    <div class="src"><div class="tag">[자료] p.40 자료 분석 ‘철원 지역 용암 대지의 토지 이용’ 사진 + ‘철원 용암 대지의 지층 단면도’</div><div class="mod">변형 없음 (아래 설명글은 빼고 사진과 단면도만)</div></div>
+    <div class="bogi">
+      <p>ㄱ. (가)에는 주상 절리가 발달해 있다.</p>
+      <p>ㄴ. (나)는 주로 밭으로 이용된다.</p>
+      <p>ㄷ. 이 용암 대지는 유동성이 큰 현무암질 용암이 열하 분출하여 형성되었다.</p>
+      <p>ㄹ. 이 지역의 현무암은 고생대에 형성되었다.</p>
+    </div>
+    <ol class="opts inline"><li>① ㄱ, ㄴ</li><li>② ㄱ, ㄷ</li><li>③ ㄴ, ㄷ</li><li>④ ㄴ, ㄹ</li><li>⑤ ㄷ, ㄹ</li></ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>6.</b> 자료는 카르스트 지형의 모식도와 석회암 분포를 나타낸 것이다. 이에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.41 자료 분석 ‘카르스트 지형의 모식도’와 사진 + ‘석회암 분포’ 지도</div><div class="mod">변형 없음 (아래 설명글은 빼고 그림, 사진, 지도만)</div></div>
+    <ol class="opts">
+      <li>① 돌리네는 화산이 폭발하여 만들어진 화구이다.</li>
+      <li>② 석회 동굴 안의 종유석과 석순은 용암이 굳어 만들어졌다.</li>
+      <li>③ 이러한 지형은 주로 신생대 화산암 지대에서 나타난다.</li>
+      <li>④ 석회암이 분포하는 지역은 시멘트 공업이 발달하기에 유리하다.</li>
+      <li>⑤ 돌리네는 배수가 잘 되지 않아 주로 논으로 이용된다.</li>
+    </ol>
+  </div>
+
+  <!-- Ⅲ -->
+  <h2 class="unit">Ⅲ. 기후 환경과 인간 생활</h2>
+
+  <div class="q">
+    <p class="stem"><b>7.</b> 자료는 리스본과 서울의 기후 그래프와 위치를 나타낸 것이다. 리스본과 비교한 서울의 기후 특성으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.45 탐구 활동 ‘비슷한 위도에 위치한 리스본과 서울의 기후 차이’ 기후 그래프 2개 + 지도</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 그래프와 지도만)</div></div>
+    <ol class="opts">
+      <li>① 기온의 연교차가 작다.</li>
+      <li>② 1월 평균 기온이 높다.</li>
+      <li>③ 여름철에 강수가 집중된다.</li>
+      <li>④ 연중 편서풍의 영향을 많이 받는다.</li>
+      <li>⑤ 겨울철 강수량이 많다.</li>
+    </ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>8.</b> 지도는 8월과 1월의 강수량 분포를 나타낸 것이다. A~D 지역에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 고른 것은?</p>
+    <div class="src"><div class="tag">[자료] p.47 탐구 활동 ‘강수 분포의 지역 차이가 나타나는 이유’ 8월 강수량, 1월 강수량 지도</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 지도만)</div></div>
+    <div class="bogi">
+      <p>ㄱ. A는 여름철 남서 기류의 비 그늘에 해당하여 8월 강수량이 적다.</p>
+      <p>ㄴ. 8월 강수량은 A가 B보다 많다.</p>
+      <p>ㄷ. C는 북서풍이 강하게 불 때 눈이 많이 내린다.</p>
+      <p>ㄹ. D는 북서 계절풍의 바람받이에 해당하여 1월 강수량이 많다.</p>
+    </div>
+    <ol class="opts inline"><li>① ㄱ, ㄴ</li><li>② ㄱ, ㄷ</li><li>③ ㄴ, ㄷ</li><li>④ ㄴ, ㄹ</li><li>⑤ ㄷ, ㄹ</li></ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>9.</b> 그래프는 우리나라의 계절 길이 변화를 나타낸 것이다. 과거 29년과 비교한 최근 30년의 변화로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.58 탐구 활동 ‘우리나라의 계절 길이 변화’ 그래프</div><div class="mod">변형 없음 (오른쪽 해수면 상승률 지도와 아래 설명글은 빼고 원 그래프만)</div></div>
+    <ol class="opts">
+      <li>① 겨울 일수가 늘어났다.</li>
+      <li>② 봄 일수가 줄어들었다.</li>
+      <li>③ 가을 일수가 늘어났다.</li>
+      <li>④ 여름의 시작이 늦어졌다.</li>
+      <li>⑤ 여름 일수가 20일 늘어났다.</li>
+    </ol>
+  </div>
+
+  <!-- Ⅳ -->
+  <h2 class="unit">Ⅳ. 거주 공간의 변화와 지역 개발</h2>
+
+  <div class="q">
+    <p class="stem"><b>10.</b> 지도는 시기별 도시 분포를 나타낸 것이다. 이에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.67 ‘시기별 도시 분포’ 지도 4장(1960년, 1980년, 2000년, 2020년)</div><div class="mod">변형 없음 (아래 시기별 표는 빼고 지도와 주석만)</div></div>
+    <ol class="opts">
+      <li>① 1960~1980년에는 울산, 창원 등 남동 임해 지역의 공업 도시가 시로 승격하였다.</li>
+      <li>② 1960년 이전에 시로 승격한 도시는 수도권에만 분포한다.</li>
+      <li>③ 1980~2000년에 새로 시가 된 도시는 모두 비수도권에 있다.</li>
+      <li>④ 2000~2020년에는 새로 시가 된 도시가 없다.</li>
+      <li>⑤ 1960년에는 서울보다 인구가 많은 도시가 있었다.</li>
+    </ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>11.</b> 지도는 부산광역시의 지역별 평균 지가와 주요 업종 분포를 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 고른 것은?</p>
+    <div class="src"><div class="tag">[자료] p.73 탐구 활동 ‘부산광역시의 지역별 지가와 주요 업종별 분포’ 지도 3장</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 지도만)</div></div>
+    <div class="bogi">
+      <p>ㄱ. 평균 지가는 기장군이 중구보다 높다.</p>
+      <p>ㄴ. 금융 및 보험업 사업체 수 비율은 부산진구가 강서구보다 높다.</p>
+      <p>ㄷ. 제조업 사업체는 주로 평균 지가가 높은 도심에 모여 있다.</p>
+      <p>ㄹ. 제조업 사업체 수 비율은 강서구가 중구보다 높다.</p>
+    </div>
+    <ol class="opts inline"><li>① ㄱ, ㄴ</li><li>② ㄱ, ㄷ</li><li>③ ㄴ, ㄷ</li><li>④ ㄴ, ㄹ</li><li>⑤ ㄷ, ㄹ</li></ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>12.</b> 자료는 두 지역의 도시 재개발 사례이다. (가), (나)에 대한 설명으로 옳은 것은?</p>
+    <div class="src"><div class="tag">[자료] p.82 탐구 활동 ‘도시 재개발의 사례’ (가), (나) 글</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 (가), (나) 상자만)</div></div>
+    <ol class="opts">
+      <li>① (가)는 철거 재개발에 해당한다.</li>
+      <li>② (나)는 기존 건물을 최대한 유지하는 수복 재개발에 해당한다.</li>
+      <li>③ (가)는 (나)보다 원거주민의 재정착률이 높다.</li>
+      <li>④ (나)는 (가)보다 기존 지역 공동체가 유지될 가능성이 크다.</li>
+      <li>⑤ (가)는 (나)보다 토지 이용의 효율성을 높이는 효과가 크다.</li>
+    </ol>
+  </div>
+
+  <!-- Ⅴ -->
+  <h2 class="unit">Ⅴ. 생산과 소비의 공간</h2>
+
+  <div class="q">
+    <p class="stem"><b>13.</b> 그래프는 시·도별 1차 에너지 공급량을 나타낸 것이다. 이에 대한 설명으로 옳은 것은? (단, (가)와 (나)는 경기와 충남 중 하나이고, A와 B는 석유와 원자력 중 하나임.)</p>
+    <div class="src"><div class="tag">[자료] p.90 탐구 활동 ‘시·도별 1차 에너지 공급량’ 그래프</div><div class="mod">변형 없음 (아래 질문과 설명글은 빼고 그래프만)</div></div>
+    <ol class="opts">
+      <li>① (가)는 경기이다.</li>
+      <li>② (나)는 천연가스 공급량이 가장 많은 시·도이다.</li>
+      <li>③ A는 원자력이다.</li>
+      <li>④ B는 주로 수송용 연료로 이용된다.</li>
+      <li>⑤ 석탄 공급량은 전남이 (가)보다 많다.</li>
+    </ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>14.</b> 그래프는 농촌 인구 구조와 경지 면적의 변화를 나타낸 것이다. 1970년과 비교한 2024년의 변화로 옳은 것만을 &lt;보기&gt;에서 고른 것은?</p>
+    <div class="src"><div class="tag">[자료] p.97 자료 분석 ‘농촌 인구 구조의 변화’ + ‘경지 면적, 경지 이용률의 변화’ 그래프</div><div class="mod">변형 없음 (아래 설명글은 빼고 그래프만)</div></div>
+    <div class="bogi">
+      <p>ㄱ. 농가 인구가 증가하였다.</p>
+      <p>ㄴ. 경지 면적이 증가하였다.</p>
+      <p>ㄷ. 65세 이상 인구 비율이 높아졌다.</p>
+      <p>ㄹ. 농가당 경지 면적이 증가하였다.</p>
+    </div>
+    <ol class="opts inline"><li>① ㄱ, ㄴ</li><li>② ㄱ, ㄷ</li><li>③ ㄴ, ㄷ</li><li>④ ㄴ, ㄹ</li><li>⑤ ㄷ, ㄹ</li></ol>
+  </div>
+
+  <div class="q">
+    <p class="stem"><b>15.</b> 그래프는 주요 소매 업태의 사업체 수, 종사자 수, 매출액을 나타낸 것이다. 이에 대한 설명으로 옳은 것은? (단, (가)~(다)는 대형 마트, 백화점, 편의점 중 하나임.)</p>
+    <div class="src"><div class="tag">[자료] p.107 자료 분석 ‘주요 소매 업태별 특성 비교’ 그래프 3개</div><div class="mod">변형 없음 (아래 설명글은 빼고 그래프만)</div></div>
+    <ol class="opts">
+      <li>① (가)는 편의점이다.</li>
+      <li>② (나)는 (다)보다 사업체 수가 많다.</li>
+      <li>③ (다)는 (가)보다 최소 요구치가 크다.</li>
+      <li>④ (가)는 (다)보다 사업체당 매출액이 많다.</li>
+      <li>⑤ (다)는 주로 대도시의 도심에 모여 입지한다.</li>
+    </ol>
+  </div>
+
+  <!-- 정답 -->
+  <section class="answers">
+    <h2>정답 및 해설</h2>
+    <table class="key">
+      <tr><th>번호</th><th>정답</th><th>해설</th><th>자료 쪽수</th></tr>
+      <tr><td>1</td><td>⑤</td><td>독도는 최동단, 통상 기선 적용, 해양성 기후. 울릉도보다 먼저 형성됨</td><td>p.9</td></tr>
+      <tr><td>2</td><td>①</td><td>자료 1 신증동국여지승람(관찬, 백과사전식), 자료 2 택리지(개인 저술, 설명식, 주관적 해설 포함)</td><td>p.15</td></tr>
+      <tr><td>3</td><td>①</td><td>이동량과 방향은 유선도, 도형 표현도는 원과 막대, 같은 값 연결은 등치선도, 단계별 색은 단계 구분도</td><td>p.16</td></tr>
+      <tr><td>4</td><td>②</td><td>(가) 감입 곡류 하천, A 하안 단구. 하안 단구는 하상보다 높아 침수 위험이 낮음</td><td>p.30</td></tr>
+      <tr><td>5</td><td>②</td><td>(가) 하곡의 주상 절리, (나) 용암 대지 위 평야로 벼농사. 신생대 용암 대지</td><td>p.40</td></tr>
+      <tr><td>6</td><td>④</td><td>돌리네는 석회암 용식 지형으로 배수가 양호해 밭으로 이용. 고생대 조선 누층군에 분포</td><td>p.41</td></tr>
+      <tr><td>7</td><td>③</td><td>서울은 대륙 동안에 위치해 연교차가 크고 여름 강수 집중. 리스본은 편서풍, 겨울 강수</td><td>p.45</td></tr>
+      <tr><td>8</td><td>③</td><td>A 지리산 부근 바람받이(8월 다우), B 영남 내륙 비 그늘, C 북서풍 때 눈, D 북동 기류 때 눈</td><td>p.47</td></tr>
+      <tr><td>9</td><td>⑤</td><td>여름 98일 → 118일, 겨울 109일 → 87일, 봄 85일 → 91일, 가을 73일 → 69일. 봄과 여름 시작은 빨라짐</td><td>p.58</td></tr>
+      <tr><td>10</td><td>①</td><td>1960~1970년대 남동 임해 공업 도시 성장. 1980~2000년 수도권 신도시 다수, 2020년 지도에 세종 등 표기</td><td>p.67</td></tr>
+      <tr><td>11</td><td>④</td><td>지가는 중구 일대가 높고 기장군이 낮음. 제조업은 지가가 낮은 강서구, 사상구, 사하구 등에 많음</td><td>p.73</td></tr>
+      <tr><td>12</td><td>③</td><td>(가) 수복 재개발(공동체 유지, 재정착률 높음), (나) 철거 재개발(토지 이용 효율 높음)</td><td>p.82</td></tr>
+      <tr><td>13</td><td>②</td><td>(가) 충남, (나) 경기, A 석유, B 원자력. 석탄은 (가) 약 27, 전남 약 11(백만 toe)</td><td>p.90</td></tr>
+      <tr><td>14</td><td>⑤</td><td>농가 인구와 경지 면적은 감소, 65세 이상 비율은 증가, 농가당 경지 면적은 약 0.9ha → 약 1.5ha</td><td>p.97</td></tr>
+      <tr><td>15</td><td>④</td><td>(가) 백화점, (나) 대형 마트, (다) 편의점. 백화점은 최소 요구치가 크고 사업체당 매출액이 많음. 편의점은 분산 입지</td><td>p.107</td></tr>
+    </table>
+  </section>
+</div>
+
+
+<script>
+  (function () {
+    var btn = document.getElementById('toggleSrc');
+    btn.addEventListener('click', function () {
+      var hidden = document.body.classList.toggle('hide-src');
+      btn.textContent = hidden ? '자료 출처 칸 보이기' : '자료 출처 칸 숨기기';
+    });
+
+    var copyToggle = document.getElementById('toggleCopy');
+    copyToggle.addEventListener('click', function () {
+      var hidden = document.body.classList.toggle('hide-copy');
+      copyToggle.textContent = hidden ? '복사 버튼 보이기' : '복사 버튼 숨기기';
+    });
+
+    // 복사 버튼: 발문 / 보기 / 선지
+    function clean(s) { return s.replace(/\s+/g, ' ').trim(); }
+
+    function fallbackCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    function copyText(text, button, label) {
+      function done(ok) {
+        button.textContent = ok ? '복사됨' : '복사 실패';
+        button.classList.toggle('done', ok);
+        setTimeout(function () { button.textContent = label; button.classList.remove('done'); }, 1200);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallbackCopy(text)); });
+      } else {
+        done(fallbackCopy(text));
+      }
+    }
+
+    function makeBtn(label, getText) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'copy-btn';
+      b.textContent = label;
+      b.addEventListener('click', function () { copyText(getText(), b, label); });
+      return b;
+    }
+
+    document.querySelectorAll('.q').forEach(function (q) {
+      var stem = q.querySelector('.stem');
+      if (stem) {
+        var getStem = function () {
+          var c = stem.cloneNode(true);
+          c.querySelectorAll('b, .copy-btn').forEach(function (n) { n.remove(); });
+          return clean(c.textContent);
+        };
+        stem.appendChild(makeBtn('발문 복사', getStem));
+      }
+
+      var bogi = q.querySelector('.bogi');
+      if (bogi) {
+        var getBogi = function () {
+          return Array.prototype.map.call(bogi.querySelectorAll('p'), function (p) { return clean(p.textContent); }).join('\n');
+        };
+        bogi.appendChild(makeBtn('보기 복사', getBogi));
+      }
+
+      var opts = q.querySelector('ol.opts, table.combo');
+      if (opts) {
+        var getOpts = opts.tagName === 'TABLE'
+          ? function () {
+              return Array.prototype.map.call(opts.rows, function (r) {
+                return Array.prototype.map.call(r.cells, function (c) { return clean(c.textContent); }).join('\t');
+              }).join('\n');
+            }
+          : function () {
+              return Array.prototype.map.call(opts.querySelectorAll('li'), function (li) { return clean(li.textContent); }).join('\n');
+            };
+        var row = document.createElement('div');
+        row.className = 'copy-row';
+        row.appendChild(makeBtn('선지 복사', getOpts));
+        opts.parentNode.insertBefore(row, opts.nextSibling);
+      }
+    });
+  })();
+</script>
+</body>
+</html>
