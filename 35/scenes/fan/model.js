@@ -155,10 +155,9 @@ export function createModel(seed = 11) {
       if (isWater) {
         const k = idx(p.x | 0, p.y | 0);
         mask[k] = Math.min(4, mask[k] + 0.22);
-        // 그림에서 물줄기를 지나온 길대로 휘어 그리도록 최근 24칸의 자리를 기억한다(계산에는 쓰지 않음).
+        // 그림에서 물줄기를 지나온 길대로 그리도록 2칸마다 자리를 기억한다(계산에는 쓰지 않음). 오래된 쪽부터 버려 약 100칸까지 둔다.
         const path = p.path || (p.path = []);
-        path.unshift(p.x, p.y);
-        if (path.length > 48) path.length = 48;
+        if (((p.age || 0) & 1) === 0) { path.push(p.x, p.y); if (path.length > 124) path.splice(0, 24); }
         p.age = (p.age || 0) + 1;
         if (p.age > 460) return 'gone';
       } else {

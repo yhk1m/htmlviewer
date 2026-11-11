@@ -190,7 +190,7 @@ async function start() {
     const phone = isPhone();
     const dockW = schemEl.hidden || phone ? 0 : schemEl.offsetWidth;
     const sheet = schemEl.hidden || !phone ? 0 : schemEl.offsetHeight;
-    const left = phone || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').offsetWidth + 20;
+    const left = phone || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').offsetWidth + 20;
     camera.setViewOffset(innerWidth, innerHeight, (dockW - left) / 2, sheet / 2, innerWidth, innerHeight);
     document.body.classList.toggle('noschem', schemEl.hidden);
     drawMapView();

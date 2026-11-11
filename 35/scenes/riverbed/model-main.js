@@ -280,7 +280,7 @@ function syncInfo() {
 
 let playing = true, speed = 1, dirty = true;
 const dock = () => (isPhone() ? 0 : document.getElementById('side').offsetWidth);
-const panelW = () => (isPhone() || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').offsetWidth + 20);
+const panelW = () => (isPhone() || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').offsetWidth + 20);
 const sheetH = () => (isPhone() ? document.getElementById('side').offsetHeight : 0);
 function fit() {
   camera.aspect = innerWidth / innerHeight;

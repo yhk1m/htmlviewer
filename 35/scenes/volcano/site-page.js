@@ -266,7 +266,7 @@ export async function startSitePage(cfg) {
     if (!labelsOn || showing !== '3d') { labelLayer.place([]); return; }
     const list = [];
     const phone = isPhone(), right = innerWidth - (schemEl.hidden || phone ? 0 : schemEl.offsetWidth + 90) - 20, bottom = phone ? document.getElementById('corner').getBoundingClientRect().top : innerHeight;
-    const left = phone || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').getBoundingClientRect().right + 4;
+    const left = phone || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').getBoundingClientRect().right + 4;
     for (const [key, l] of Object.entries(PLACES)) {
       if (cfg.hide[currentView]?.includes(key)) continue;
       if (l.kind === 'mark' && l.needsMark && !markOn) continue;
@@ -283,7 +283,7 @@ export async function startSitePage(cfg) {
     const phone = isPhone();
     const dockW = schemEl.hidden || phone ? 0 : schemEl.offsetWidth;
     const sheet = schemEl.hidden || !phone ? 0 : schemEl.offsetHeight;
-    const left = phone || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').offsetWidth + 20;
+    const left = phone || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').offsetWidth + 20;
     camera.setViewOffset(innerWidth, innerHeight, (dockW - left) / 2, sheet / 2, innerWidth, innerHeight);
     document.body.classList.toggle('noschem', schemEl.hidden);
     drawMapView();

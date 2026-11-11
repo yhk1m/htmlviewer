@@ -87,8 +87,8 @@ export function createBlock(model) {
   // 첫 화면 전에 색 버퍼를 만들어 두어야 입자 색이 적용된다.
   { const c = new THREE.Color(); for (let s = 0; s < 2400; s++) grainMesh.setColorAt(s, c.set(GRAINS[0].color)); }
   group.add(grainMesh);
-  // 물: 물 덩어리가 지나온 길을 따라 휘어지는 가늘고 긴 띠. 굵기는 거의 같고 머리 끝만 둥글게 좁히며, 꼬리로 갈수록 옅어진다.
-  const TRAIL = 24, MAXD = 1600;
+  // 물: 곡구에서 나온 물 덩어리가 지나온 길 전체를 가는 띠로 이어 물줄기를 만든다. 물 덩어리가 사라진 뒤에도 띠는 잠시 남아 서서히 옅어진다.
+  const TRAIL = 62, MAXD = 1400, FADE = 1.6;
   const wPos = new Float32Array(MAXD * TRAIL * 2 * 3), wCol = new Float32Array(MAXD * TRAIL * 2 * 4);
   const wIdx = new Uint32Array(MAXD * (TRAIL - 1) * 6);
   for (let d = 0, t = 0; d < MAXD; d++) for (let k = 0; k < TRAIL - 1; k++) {
@@ -103,6 +103,8 @@ export function createBlock(model) {
   const waterMesh = new THREE.Mesh(waterGeo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
   waterMesh.frustumCulled = false; waterMesh.renderOrder = 2;
   group.add(waterMesh);
+  const streams = new Set();
+  let pick = 0;
   const q4 = new THREE.Quaternion(), e4 = new THREE.Euler(), v4 = new THREE.Vector3(), s4 = new THREE.Vector3();
   const m4 = new THREE.Matrix4(), tmpC = new THREE.Color();
 
@@ -164,27 +166,42 @@ export function createBlock(model) {
     }
     grainMesh.instanceMatrix.needsUpdate = true;
     if (grainMesh.instanceColor) grainMesh.instanceColor.needsUpdate = true;
-    const ds = model.drops;
-    const d = Math.min(ds.length, MAXD);
-    for (let s = 0; s < d; s++) {
-      const p = ds[s], path = p.path || [p.x, p.y], n = path.length >> 1;
-      // 모형이 기억한 최근 자리(1칸 간격)를 이어 띠를 만든다. 화면 갱신 빠르기와 상관없이 같은 모양이다.
-      const tr = [];
-      for (let k = 0; k < Math.min(n, TRAIL); k++) tr.push([path[k * 2] - CENTER, model.sample(path[k * 2], path[k * 2 + 1]) + 0.4, path[k * 2 + 1] - CENTER]);
+    // 살아 있는 물 덩어리와 사라진 지 얼마 안 된 물줄기를 함께 그린다(그리기에만 쓰는 값).
+    const now = performance.now() / 1000;
+    for (const p of model.drops) {
+      // 물 덩어리 셋 중 하나만 물줄기로 그려 땅이 가려지지 않게 한다.
+      if (p.stream === undefined) p.stream = (pick++ % 3 === 0) ? { p, dead: 0 } : null;
+      if (!p.stream) continue;
+      if (!p.stream.dead) streams.add(p.stream);
+      p.stream.seen = now;
+    }
+    let d = 0;
+    for (const st of streams) {
+      if (st.seen !== now && !st.dead) st.dead = now;
+      const life = st.dead ? 1 - (now - st.dead) / FADE : 1;
+      if (life <= 0) { streams.delete(st); continue; }
+      if (d >= MAXD) continue;
+      const p = st.p, path = p.path || [], m = path.length >> 1;
+      // 머리(지금 자리)부터 지나온 길을 거꾸로 따라간다.
+      const tr = [[p.x - CENTER, model.sample(p.x, p.y) + 0.35, p.y - CENTER]];
+      for (let k = m - 1; k >= 0 && tr.length < TRAIL; k--) tr.push([path[k * 2] - CENTER, model.sample(path[k * 2], path[k * 2 + 1]) + 0.35, path[k * 2 + 1] - CENTER]);
+      const n = tr.length;
       for (let k = 0; k < TRAIL; k++) {
-        const P = tr[Math.min(k, tr.length - 1)];
-        // 띠 방향에 수직인 옆 방향(수평면)
-        const A = tr[Math.max(0, Math.min(k, tr.length - 1) - 1)], B = tr[Math.min(tr.length - 1, k + 1)];
+        const P = tr[Math.min(k, n - 1)];
+        const A = tr[Math.max(0, Math.min(k, n - 1) - 1)], B = tr[Math.min(n - 1, k + 1)];
         let dx = A[0] - B[0], dz = A[2] - B[2];
         const l = Math.hypot(dx, dz);
         if (l > 1e-6) { dx /= l; dz /= l; } else { dx = p.dx; dz = p.dy; }
-        const f = k / (TRAIL - 1), w = 0.32 * Math.min(1, 0.45 + k * 0.28) * (1 - f * 0.5) * (k < tr.length ? 1 : 0);
-        const o = ((s * TRAIL + k) * 2) * 3;
+        const w = 0.26 * Math.min(1, 0.4 + k * 0.6) * (k < n ? 1 : 0);
+        const o = ((d * TRAIL + k) * 2) * 3;
         wPos[o] = P[0] - dz * w; wPos[o + 1] = P[1]; wPos[o + 2] = P[2] + dx * w;
         wPos[o + 3] = P[0] + dz * w; wPos[o + 4] = P[1]; wPos[o + 5] = P[2] - dx * w;
-        const c = ((s * TRAIL + k) * 2) * 4, al = 0.85 * (1 - f * f);
-        for (const q of [c, c + 4]) { wCol[q] = 0.58 - 0.34 * f; wCol[q + 1] = 0.84 - 0.24 * f; wCol[q + 2] = 1; wCol[q + 3] = al; }
+        // 꼬리 끝 몇 칸만 옅게 하고, 물줄기 전체는 사라질 때 함께 옅어진다.
+        const tail = Math.min(1, (n - 1 - k) / 6), al = 0.62 * tail * life;
+        const c = ((d * TRAIL + k) * 2) * 4, f = k / (TRAIL - 1);
+        for (const q of [c, c + 4]) { wCol[q] = 0.5 - 0.2 * f; wCol[q + 1] = 0.8 - 0.15 * f; wCol[q + 2] = 1; wCol[q + 3] = al; }
       }
+      d++;
     }
     waterGeo.setDrawRange(0, d * (TRAIL - 1) * 6);
     waterGeo.attributes.position.needsUpdate = true;

@@ -27,7 +27,8 @@ export function setupSideToggle(aside, name, button) {
     } else {
       tab.style.bottom = 'auto';
       tab.style.top = '50%';
-      tab.style.right = (open ? aside.offsetWidth : 0) + 'px';
+      const box = document.body.classList.contains('merged') ? document.getElementById('col') : aside;
+      tab.style.right = (open ? box.offsetWidth : 0) + 'px';
     }
   };
 
@@ -45,7 +46,49 @@ export function setupSideToggle(aside, name, button) {
   return { tab, place };
 }
 
+// 넓은 화면에서는 왼쪽 조작 창과 오른쪽 창을 오른쪽의 한 칸(#col)에 위아래로 담는다. 오른쪽 창을 접거나 휴대폰 화면이면 둘 다 원래 자리로 돌아간다.
+// 오른쪽 창 속은 장면이 innerHTML로 다시 쓰기도 하므로, 조작 창은 오른쪽 창 안이 아니라 그 위에 둔다.
+// 합쳐지면 body에 merged가 붙고, 각 장면은 이때 왼쪽 창 너비를 0으로 보고 3D 화면 중심을 잡는다.
+export function setupMerge(aside, panel) {
+  const col = document.createElement('div');
+  col.id = 'col';
+  document.body.appendChild(col);
+  const panelHome = document.createComment('panel-home'), asideHome = document.createComment('aside-home');
+  panel.before(panelHome);
+  aside.before(asideHome);
+  // 조작 창의 작은 글씨 안내문(.cap)은 길어서, 합친 칸에서는 맨 아래로 내려 진행상황과 모식도가 먼저 보이게 한다.
+  const notes = document.createElement('div');
+  notes.id = 'colNotes';
+  const caps = [...panel.querySelectorAll(':scope > p.cap')].filter(el => el.id !== 'heightNote').map(el => {
+    const home = document.createComment('cap-home');
+    el.before(home);
+    return { el, home };
+  });
+  const apply = () => {
+    const merge = !isPhone() && !aside.hidden;
+    const was = document.body.classList.contains('merged');
+    if (merge && panel.parentNode !== col) {
+      col.append(panel, aside);
+      if (caps.length) { for (const c of caps) notes.append(c.el); col.append(notes); }
+    }
+    if (!merge && panel.parentNode === col) {
+      for (const c of caps) c.home.after(c.el);
+      notes.remove();
+      panelHome.after(panel); asideHome.after(aside);
+    }
+    document.body.classList.toggle('merged', merge);
+    // 장면이 3D 화면 중심을 다시 잡도록 알린다(상태가 바뀐 때만).
+    if (was !== merge) dispatchEvent(new Event('resize'));
+  };
+  new MutationObserver(apply).observe(aside, { attributes: true, attributeFilter: ['hidden'] });
+  addEventListener('resize', apply);
+  apply();
+  return apply;
+}
+
 const side = document.getElementById('side');
 const schem = document.getElementById('schem');
 if (side) setupSideToggle(side, '진행상황', null);
 else if (schem) setupSideToggle(schem, '모식도', document.getElementById('schemBtn'));
+const panel = document.getElementById('panel');
+if (panel && (side || schem)) setupMerge(side || schem, panel);

@@ -440,7 +440,7 @@ async function start() {
     const covers = [];
     if (!phone) {
       const panel = document.getElementById('panel');
-      if (!document.body.classList.contains('panel-closed')) covers.push(panel.getBoundingClientRect());
+      if (!document.body.matches('.panel-closed, .merged')) covers.push(panel.getBoundingClientRect());
       for (const el of document.getElementById('corner').children) if (el.offsetParent && el.textContent) covers.push(el.getBoundingClientRect());
     }
     // 숨겨진 이름표는 폭이 0으로 잡히므로, 보였을 때 잰 폭을 기억해 쓴다(숨김과 보임이 번갈아 깜박이지 않게).
@@ -459,7 +459,7 @@ async function start() {
     const phone = isPhone();
     const dockW = schemEl.hidden || phone ? 0 : schemEl.offsetWidth;
     const sheet = schemEl.hidden || !phone ? 0 : schemEl.offsetHeight;
-    const left = phone || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').offsetWidth + 20;
+    const left = phone || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').offsetWidth + 20;
     camera.setViewOffset(innerWidth, innerHeight, (dockW - left) / 2, sheet / 2, innerWidth, innerHeight);
     document.body.classList.toggle('noschem', schemEl.hidden);
     drawMapView();

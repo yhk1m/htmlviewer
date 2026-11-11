@@ -380,7 +380,7 @@ async function start() {
 
   const fitView = () => {
     const phone = isPhone();
-    const left = phone || document.body.classList.contains('panel-closed') ? 0 : document.getElementById('panel').offsetWidth + 20;
+    const left = phone || document.body.matches('.panel-closed, .merged') ? 0 : document.getElementById('panel').offsetWidth + 20;
     camera.setViewOffset(innerWidth, innerHeight, -left / 2, 0, innerWidth, innerHeight);
     drawMapView();
     placeLabels();
