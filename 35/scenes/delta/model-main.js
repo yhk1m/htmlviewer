@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, sectionMarks, noteText, compareBrief, balance, rateVerdict, N, T_END } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -148,7 +150,8 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
   const p = sectionProfile(m, samples), base = H - 44;
   const yOf = v => base - (v - SEC.floor) * ((base - 56) / (SEC.top - SEC.floor)), x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const seaNow = m.seaNow;
   for (let t = 0; t < samples; t++) {
     const top = yOf(p.top[t]), b = Math.min(p.base[t], p.top[t]);
@@ -167,27 +170,29 @@ function drawSection(canvas, m) {
     }
   }
   // 수면 선
-  ctx.strokeStyle = '#d8efff'; ctx.lineWidth = 2;
+  ctx.strokeStyle = (DK ? '#d8efff' : '#1d5f9e'); ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(0, yOf(seaNow)); ctx.lineTo(W, yOf(seaNow)); ctx.stroke();
   const say = (text, cx, cy, color, size = 28) => {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`;
     ctx.textAlign = 'center';
     const w = ctx.measureText(text).width;
     cx = Math.min(W - w / 2 - 34, Math.max(w / 2 + 34, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   // 평원과 사면과 전삼각주가 실제로 생긴 구간에만 이름을 붙인다.
   const marks = sectionMarks(p);
-  if (marks.plain) say('삼각주 평원', (x(marks.plain[0]) + x(marks.plain[1])) / 2, 46, '#e8f2c4');
-  if (marks.slope) say('삼각주 사면', (x(marks.slope[0]) + x(marks.slope[1])) / 2 + 30, 84, '#ffd36b');
-  if (marks.prodelta) say('전삼각주', (x(marks.prodelta[0]) + x(marks.prodelta[1])) / 2 + 40, 122, '#ffdca6');
-  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b'; ctx.textAlign = 'center';
+  if (marks.plain) say('삼각주 평원', (x(marks.plain[0]) + x(marks.plain[1])) / 2, 46, (DK ? '#e8f2c4' : '#4f6b1c'));
+  if (marks.slope) say('삼각주 사면', (x(marks.slope[0]) + x(marks.slope[1])) / 2 + 30, 84, P.hi);
+  if (marks.prodelta) say('전삼각주', (x(marks.prodelta[0]) + x(marks.prodelta[1])) / 2 + 40, 122, (DK ? '#ffdca6' : '#8a5a1c'));
+  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi; ctx.textAlign = 'center';
   ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 42, W - 2, 41); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 42, W - 2, 1); }
   ctx.textAlign = 'left'; ctx.font = '700 25px "Malgun Gothic",sans-serif';
   const leg = [['#55524c', '처음 땅'], ['#b7bd6f', '표면층'], ['#e6cf90', '모래'], ['#6d5a48', '진흙']];
   let lx = 14;
-  for (const [c, t] of leg) { ctx.fillStyle = c; ctx.fillRect(lx, H - 30, 18, 15); ctx.fillStyle = '#efe9d8'; ctx.fillText(t, lx + 22, H - 12); lx += 34 + ctx.measureText(t).width; }
+  for (const [c, t] of leg) { ctx.fillStyle = c; ctx.fillRect(lx, H - 30, 18, 15); ctx.fillStyle = P.ink; ctx.fillText(t, lx + 22, H - 12); lx += 34 + ctx.measureText(t).width; }
   ctx.textAlign = 'right'; ctx.font = '24px "Malgun Gothic",sans-serif';
   ctx.fillText('세로 과장. 물길을 피해 잰 단면', W - 14, H - 12);
   ctx.textAlign = 'left';

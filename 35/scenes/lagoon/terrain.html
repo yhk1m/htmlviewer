@@ -46,6 +46,7 @@
     .schem-note { font-size:14px; min-height:0; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -78,5 +79,7 @@
 <div id="corner"><div id="heightBadge"></div><div id="mapNote">붉은 점선: 단면을 잰 길(호수 서쪽에서 바다까지)</div><div id="foot"></div></div>
 <div id="load"><span id="status">준비 중</span></div>
 <script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

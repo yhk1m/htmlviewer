@@ -28,6 +28,7 @@
     .schem-note { font-size:16px; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <main>
@@ -43,5 +44,6 @@
   window.__SCHEM = createSchematic(document.getElementById('schem'), { steps: true, stage: 2 });
   window.__APP_READY = true;
 </script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

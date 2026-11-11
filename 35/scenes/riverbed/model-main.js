@@ -11,6 +11,7 @@ import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
 import { createModel, noteText, bedReport, compareBrief, N, NY, W, L, NR, FLOW, CURVE, SAND, PRESETS } from './model.js';
 import { createBlock, worldY } from './block.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -28,7 +29,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 2500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -135,13 +137,14 @@ const say = (ctx, text, cx, cy, color, size = 20, align = 'center') => {
   ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = align;
   const w = ctx.measureText(text).width;
   if (align === 'center') cx = Math.min(W2 - w / 2 - 10, Math.max(w / 2 + 10, cx));
-  ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+  ctx.lineWidth = 5; ctx.strokeStyle = figPalette().bg; ctx.strokeText(text, cx, cy);
   ctx.fillStyle = color; ctx.fillText(text, cx, cy);
 };
 const COL = { ground: '#6e5a44', ground2: '#5a4936', water: 'rgba(70,140,190,0.85)', bank: '#8fa865', line: 'rgba(30,26,22,0.9)' };
 function drawProfile(canvas, m, range) {
   const ctx = canvas.getContext('2d'), Wc = canvas.width, H = canvas.height, plotH = H - 46, top = 40;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, Wc, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, Wc, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, Wc - 1, H - 1); ctx.restore();
   const s = m.sec, st = m.current(), r = bedReport(m), n = s.qb - s.qa;
   const X = q => ((q - s.qa) / n) * Wc, Y = zm => top + ((range.yTop - zm) / (range.yTop - range.yBot)) * (plotH - top);
   // 둑 위(들판) 높이
@@ -163,10 +166,12 @@ function drawProfile(canvas, m, range) {
   ctx.setLineDash([10, 8]); ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2;
   ctx.beginPath(); for (let q = s.qa; q <= s.qb; q++) ctx.lineTo(X(q), Y(s.bed0[q])); ctx.stroke();
   ctx.setLineDash([]);
-  for (const q of r.poolQ) say(ctx, '소', X(q), (Y(s.tz[q]) + Y(st.ws[q])) / 2 + 8, '#cfe8ff', 22);
-  for (const q of r.riffleQ) say(ctx, '여울', X(q), Y(st.ws[q]) - 12, '#ffd1b8', 22);
-  say(ctx, 'A 상류', 12, 28, '#ffd36b', 20, 'left'); say(ctx, '하류 B', Wc - 12, 28, '#ffd36b', 20, 'right');
-  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  for (const q of r.poolQ) say(ctx, '소', X(q), (Y(s.tz[q]) + Y(st.ws[q])) / 2 + 8, (DK ? '#cfe8ff' : '#1d5f9e'), 22);
+  for (const q of r.riffleQ) say(ctx, '여울', X(q), Y(st.ws[q]) - 12, (DK ? '#ffd1b8' : '#b4471c'), 22);
+  say(ctx, 'A 상류', 12, 28, P.hi, 20, 'left'); say(ctx, '하류 B', Wc - 12, 28, P.hi, 20, 'right');
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, Wc - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, Wc - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('파랑: 물, 갈색: 강바닥, 흰 점선: 처음 바닥, 연두: 둑 위', 12, H - 14);
   ctx.textAlign = 'right'; ctx.font = '17px "Malgun Gothic",sans-serif';
   ctx.fillText('높이 과장', Wc - 12, H - 14);
@@ -184,7 +189,8 @@ function pickSections(m, r) {
 }
 function drawXsec(canvas, m) {
   const ctx = canvas.getContext('2d'), Wc = canvas.width, H = canvas.height, gap = 30, pw = (Wc - gap) / 2, top = 70, plotB = H - 44;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, Wc, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, Wc, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, Wc - 1, H - 1); ctx.restore();
   const s = m.sec, st = m.current(), nS = m.stage('normal'), r = bedReport(m), { pq, rq } = pickSections(m, r);
   const halfM = NR * Math.max(s.hw[pq], s.hw[rq]) * 1.05;
   let hi = -1e9, lo = 1e9;
@@ -219,24 +225,26 @@ function drawXsec(canvas, m) {
     ctx.setLineDash([9, 7]); ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2;
     ctx.beginPath(); for (const [x, z] of bed0) ctx.lineTo(x, Y(z)); ctx.stroke(); ctx.setLineDash([]);
     ctx.restore();
-    say(ctx, title, ox + pw / 2, 30, '#ffd36b', 21);
+    say(ctx, title, ox + pw / 2, 30, P.hi, 21);
     return { X, bed, bed0, side };
   };
   const a = panel(pq, 0, true, '소 자리 단면', '#e3cb8c');
   const b = panel(rq, pw + gap, false, '여울 자리 단면', '#aaa396');
-  ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(pw + gap / 2 - 1, 16, 2, H - 32);
+  ctx.fillStyle = P.frame; ctx.fillRect(pw + gap / 2 - 1, 16, 2, H - 32);
   if (m.options.curve !== 'straight' || Math.abs(s.f[pq]) > 0.2) {
-    say(ctx, m.options.curve === 'straight' ? '물이 쏠리는 쪽' : '굽이 바깥', 80, plotB - 8, '#bfe0ff', 18);
-    say(ctx, m.options.curve === 'straight' ? '반대쪽' : '굽이 안쪽', pw - 80, plotB - 8, '#ffe7a8', 18);
+    say(ctx, m.options.curve === 'straight' ? '물이 쏠리는 쪽' : '굽이 바깥', 80, plotB - 8, (DK ? '#bfe0ff' : '#1d5f9e'), 18);
+    say(ctx, m.options.curve === 'straight' ? '반대쪽' : '굽이 안쪽', pw - 80, plotB - 8, (DK ? '#ffe7a8' : '#a8780a'), 18);
   }
   // 가장 깊은 곳과 모래톱
   let dl = 0; for (let q = 0; q < a.bed.length; q++) if (a.bed[q][1] < a.bed[dl][1]) dl = q;
-  if (r.deepQ >= 0) say(ctx, '깊음', a.bed[dl][0], Y(a.bed[dl][1]) - 12, '#cfe8ff', 18);
+  if (r.deepQ >= 0) say(ctx, '깊음', a.bed[dl][0], Y(a.bed[dl][1]) - 12, (DK ? '#cfe8ff' : '#1d5f9e'), 18);
   let bl = -1;
   for (let q = 0; q < a.bed.length; q++) if (a.bed[q][1] > nS.ws[pq] + 0.05 && a.bed[q][1] - a.bed0[q][1] > 0.2 && a.bed[q][0] > a.bed[dl][0]) { if (bl < 0 || a.bed[q][1] > a.bed[bl][1]) bl = q; }
-  if (bl >= 0 && r.barM2 > 0) say(ctx, '모래톱', a.bed[bl][0], Y(a.bed[bl][1]) - 12, '#ffe7a8', 18);
-  if (r.riffleQ.length) say(ctx, '얕고 평평', pw + gap + pw / 2, Y(st.ws[rq]) - 14, '#ffd1b8', 18);
-  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  if (bl >= 0 && r.barM2 > 0) say(ctx, '모래톱', a.bed[bl][0], Y(a.bed[bl][1]) - 12, (DK ? '#ffe7a8' : '#a8780a'), 18);
+  if (r.riffleQ.length) say(ctx, '얕고 평평', pw + gap + pw / 2, Y(st.ws[rq]) - 14, (DK ? '#ffd1b8' : '#b4471c'), 18);
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, Wc - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, Wc - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('파랑: 지금 물, 노랑: 쌓인 모래, 회색: 쌓인 자갈, 흰 점선: 처음 바닥', 12, H - 14);
   ctx.textAlign = 'right'; ctx.font = '17px "Malgun Gothic",sans-serif';
   ctx.fillText('높이 과장', Wc - 12, H - 14);

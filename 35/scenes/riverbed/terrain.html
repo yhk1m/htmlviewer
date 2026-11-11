@@ -45,6 +45,7 @@
     #labels .label.small b, #labels .label.guess b { font-size:13px; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -76,5 +77,6 @@
 <div id="corner"><div id="heightBadge"></div><div id="guessNote">점선 고리: 소와 여울 자리는 굽은 모양으로 짐작한 예시입니다. 물속 깊이는 자료에 없습니다.</div><div id="mapNote"></div><div id="foot"></div></div>
 <div id="load"><span id="status">준비 중</span></div>
 <script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

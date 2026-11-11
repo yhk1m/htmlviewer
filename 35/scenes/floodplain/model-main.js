@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, compareBrief, FLOWING, N } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -141,7 +143,8 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
   const { base, top, water, sand, mud, turbid, layers } = sectionProfile(m, samples);
   const yOf = v => H - 40 - (v - SEC.floor) * SEC.px, x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   // 처음 땅: 하도 칸은 지금 땅까지만 칠한다.
   ctx.fillStyle = '#5a5249';
   for (let t = 0; t < samples; t++) { const b = Math.min(base[t], top[t]); ctx.fillRect(x(t), yOf(b), cw, H - yOf(b)); }
@@ -182,10 +185,10 @@ function drawSection(canvas, m) {
     cx = Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, cx));
     while (used.some(u => Math.abs(u.x - cx) < (u.w + w) / 2 + 6 && Math.abs(u.y - cy) < 26)) cy -= 28;
     used.push({ x: cx, y: cy, w });
-    ctx.lineWidth = 4; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 4; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
-  say('하도', x(riverT), yOf(top[riverT]) + 30, '#8fd6ff');
+  say('하도', x(riverT), yOf(top[riverT]) + 30, (DK ? '#8fd6ff' : '#1d5f9e'));
   for (const dir of [-1, 1]) {
     let crest = -1, cv = -Infinity, low = -1, lv = Infinity;
     for (let t = riverT + dir * 4; t > 0 && t < samples - 1 && Math.abs(t - riverT) < 76 * perCell; t += dir) {
@@ -194,18 +197,20 @@ function drawSection(canvas, m) {
       if (off >= 26 * perCell && top[t] < lv) { lv = top[t]; low = t; }
     }
     if (crest > 0 && low > 0 && cv - lv > LEVEE_SHOWN) {
-      say('자연 제방', x(crest) + dir * 44, yOf(cv + water[crest]) - 12, '#ffd36b');
-      say(water[low] > 0.1 && turbid[low] < 0.5 ? '배후 습지(물이 고임)' : '배후 습지', x(low), yOf(lv + water[low]) - 12, '#f3f1ea');
+      say('자연 제방', x(crest) + dir * 44, yOf(cv + water[crest]) - 12, P.hi);
+      say(water[low] > 0.1 && turbid[low] < 0.5 ? '배후 습지(물이 고임)' : '배후 습지', x(low), yOf(lv + water[low]) - 12, P.ink);
     }
   }
-  ctx.fillStyle = '#ffd36b'; ctx.font = '700 26px "Malgun Gothic",sans-serif';
+  ctx.fillStyle = P.hi; ctx.font = '700 26px "Malgun Gothic",sans-serif';
   ctx.textAlign = 'center'; ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
   ctx.textAlign = 'left'; ctx.font = '700 19px "Malgun Gothic",sans-serif';
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('처음 땅', 14, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('처음 땅', 14, H - 12);
   ctx.fillStyle = '#e6cf8f'; ctx.fillRect(110, H - 26, 16, 12);
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('모래', 132, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('모래', 132, H - 12);
   ctx.fillStyle = '#6d5a48'; ctx.fillRect(196, H - 26, 16, 12);
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('진흙', 218, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('진흙', 218, H - 12);
   ctx.textAlign = 'right'; ctx.font = '17px "Malgun Gothic",sans-serif';
   ctx.fillText('세로를 크게 과장했습니다. 층 하나가 홍수 한 번입니다.', W - 14, H - 12);
   ctx.textAlign = 'left';

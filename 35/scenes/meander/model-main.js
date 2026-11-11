@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, compareBrief, N, T_END } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 4000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -152,10 +154,11 @@ function syncLabels() {
 // 실시간 단면: 굽이를 바깥(A)에서 안쪽(B)으로 자른 계산 값을 그대로 그린다.
 function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const prof = sectionProfile(m, samples), b = prof.bend;
   ctx.textAlign = 'center';
-  if (!b) { ctx.fillStyle = '#efe9d8'; ctx.font = '700 24px "Malgun Gothic",sans-serif'; ctx.fillText('굽이가 자라면 단면이 나타납니다.', W / 2, H / 2); return; }
+  if (!b) { ctx.fillStyle = P.ink; ctx.font = '700 24px "Malgun Gothic",sans-serif'; ctx.fillText('굽이가 자라면 단면이 나타납니다.', W / 2, H / 2); return; }
   // 세로 축척은 물길 깊이가 잘 보이도록 고정한다.
   const lo = Math.min(...prof.top), hi = Math.max(...prof.top), px = Math.min(52, (H - 150) / Math.max(1, hi - lo)), base = H - 56;
   const yOf = v => base - (v - lo) * px, x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
@@ -185,16 +188,16 @@ function drawSection(canvas, m) {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`;
     const w = ctx.measureText(text).width;
     cx = Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   if (c0 >= 0 && !b.straight) {
     if (b.strength > 0.14) {
       // 글자는 땅과 겹치지 않게 위쪽 빈 곳에 둔다.
-      say('공격 사면', W * 0.2, 44, '#ffb38a');
-      say('빠르고 깊다, 깎인다', W * 0.22, 80, '#efe9d8', 25);
-      say('퇴적 사면', W * 0.8, 44, '#ffd36b');
-      say('느리고 얕다, 쌓인다', W * 0.78, 80, '#efe9d8', 25);
+      say('공격 사면', W * 0.2, 44, (DK ? '#ffb38a' : '#b4471c'));
+      say('빠르고 깊다, 깎인다', W * 0.22, 80, P.ink, 25);
+      say('퇴적 사면', W * 0.8, 44, P.hi);
+      say('느리고 얕다, 쌓인다', W * 0.78, 80, P.ink, 25);
       // 굽이에서 도는 물: 수면 가까이는 바깥으로, 바닥을 따라서는 안쪽으로. 모두 물속만 지난다.
       let wet0 = deep, wet1 = deep;
       while (wet0 > c0 && prof.top[wet0 - 1] < prof.water) wet0--;
@@ -213,16 +216,18 @@ function drawSection(canvas, m) {
           head(e[0], e[1], 1);
         }
       }
-    } else say('아직 조금만 굽어 양쪽이 비슷합니다', W / 2, 44, '#efe9d8', 28);
+    } else say('아직 조금만 굽어 양쪽이 비슷합니다', W / 2, 44, P.ink, 28);
   } else if (b.straight) {
-    say('곧은 물길: 양쪽 깊이가 비슷합니다', W / 2, 44, '#efe9d8', 28);
+    say('곧은 물길: 양쪽 깊이가 비슷합니다', W / 2, 44, P.ink, 28);
   }
-  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b';
+  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi;
   ctx.textAlign = 'center'; ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
   ctx.textAlign = 'left'; ctx.font = '700 19px "Malgun Gothic",sans-serif';
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('들판의 흙', 14, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('들판의 흙', 14, H - 12);
   ctx.fillStyle = '#e6cf90'; ctx.fillRect(116, H - 26, 16, 12);
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('쌓인 모래', 138, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('쌓인 모래', 138, H - 12);
   ctx.textAlign = 'right'; ctx.font = '22px "Malgun Gothic",sans-serif';
   ctx.fillText('세로를 크게 과장했습니다.', W - 14, H - 12);
   ctx.textAlign = 'left';

@@ -18,6 +18,7 @@
   .schem-note b { color:var(--accent); margin-right:4px; }
   .schem-cap { font-size:13px; color:#b9b8ae; margin:0; }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <main>
@@ -33,5 +34,6 @@
   window.__SCHEM = createSchematic(document.getElementById('schem'), { steps: true, stage: 3 });
   window.__APP_READY = true;
 </script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

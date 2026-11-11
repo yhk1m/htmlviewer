@@ -42,6 +42,7 @@
     #compareEnd { left:12px; bottom:calc(38vh + 12px); }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -51,7 +52,7 @@
   <h1>선상지 형성 모형</h1>
   <button id="panelToggle">접기</button>
   <div class="row" aria-label="지형 선택">
-    <a href="./terrain.html?site=gurye"><button>구례 실제 지형</button></a><a href="./terrain.html"><button>계산 지형</button></a><button class="on">형성 모형</button>
+    <button class="on">형성 모형</button><a href="./terrain.html"><button>구례 실제 지형</button></a>
   </div>
   <hr>
   <div class="row"><button id="playBtn" class="on">멈춤</button><button id="resetBtn">처음부터</button><button id="fastBtn">빠르게</button></div>
@@ -80,5 +81,7 @@
   <div id="bars"></div>
 </aside>
 <script type="module" src="./model-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

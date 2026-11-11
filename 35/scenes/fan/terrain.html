@@ -50,6 +50,7 @@
     .schem-note { font-size:14px; min-height:0; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -59,7 +60,7 @@
   <h1 id="title">선상지</h1>
   <button id="panelToggle">접기</button>
   <div class="row" aria-label="지형 선택" style="margin-bottom:6px">
-    <button data-site="gurye">구례 실제 지형</button><button data-site="synthetic">계산 지형</button><button data-site="model">형성 모형</button>
+    <button data-site="model">형성 모형</button><button data-site="gurye">구례 실제 지형</button>
   </div>
   <p id="note"></p>
   <div class="row" aria-label="시간">
@@ -86,5 +87,7 @@
 <div id="corner"><div id="heightBadge"></div><div id="foot">표면 재질: ambientCG (CC0)</div></div>
 <div id="load"><span id="status">준비 중</span></div>
 <script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

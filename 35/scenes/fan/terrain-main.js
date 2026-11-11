@@ -12,7 +12,8 @@ import { QUALITY, currentQuality, setupQualityButton } from '../../shared/qualit
 import { createFpsMeter } from '../../shared/fps.js';
 import { drawContourMap, drawProfile } from '../../shared/map-views.js';
 
-const SITE = new URLSearchParams(location.search).get('site') === 'gurye' ? 'gurye' : 'synthetic';
+// 계산 지형은 화면에서 뺐다. 검사용으로만 ?site=synthetic 으로 열 수 있다.
+const SITE = new URLSearchParams(location.search).get('site') === 'synthetic' ? 'synthetic' : 'gurye';
 const SIZE = SITES[SITE].size, CELL = SIZE / (N - 1), WATER_LEVEL = SITES[SITE].waterLevel;
 const GURYE = SITE === 'gurye';
 
@@ -287,10 +288,10 @@ const NOTES = [
 ];
 
 document.getElementById('title').textContent = GURYE ? '구례 화엄사 선상지' : '계산으로 만든 선상지';
-document.querySelector(`[data-site="${SITE}"]`).classList.add('on');
+document.querySelector(`[data-site="${SITE}"]`)?.classList.add('on');
 document.getElementById('foot').innerHTML = (GURYE
   ? ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭, 나무, 물길은 위치가 실제와 다른 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)']
   : ['표면 재질: ambientCG (CC0)']).map(t => `<span>${t}</span>`).join(' ');
-document.querySelectorAll('[data-site]').forEach(b => b.onclick = () => { location.href = b.dataset.site === 'model' ? './model.html' : b.dataset.site === 'gurye' ? './terrain.html?site=gurye' : './terrain.html'; });
+document.querySelectorAll('[data-site]').forEach(b => b.onclick = () => { location.href = b.dataset.site === 'model' ? './model.html' : './terrain.html'; });
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

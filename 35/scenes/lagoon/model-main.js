@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, budgetNote, compareBrief, N, T_END, SEA_LOW, RISE } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic, NO_RISE } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -153,7 +155,8 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
   const p = sectionProfile(m, samples), base = H - 46, lo = SEA_LOW - 1.5, hi = Math.max(...p.start) + 1.5;
   const yOf = v => base - ((v - lo) / (hi - lo)) * (base - 14), x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const seaY = yOf(m.sea);
   for (let t = 0; t < samples; t++) if (p.top[t] < m.sea) { ctx.fillStyle = p.kinds[t] === 'lagoon' ? '#4fa59a' : '#3a7fb5'; const y = yOf(p.top[t]); ctx.fillRect(x(t), seaY, cw, y - seaY); }
   for (let t = 0; t < samples; t++) {
@@ -164,29 +167,31 @@ function drawSection(canvas, m) {
     if (y < ys - 0.5) { ctx.fillStyle = KIND_COLOR[p.kinds[t]] ?? (m.fill[Math.round(p.S.ay + (p.S.by - p.S.ay) * (t / (samples - 1))) * N + p.S.ax] > 0.05 ? '#7d6f55' : '#e6cf90'); ctx.fillRect(x(t), y, cw, ys - y); }
   }
   // 오늘날 해수면(점선)과 지금의 해수면(실선)
-  ctx.strokeStyle = '#d8efff'; ctx.lineWidth = 2;
+  ctx.strokeStyle = (DK ? '#d8efff' : '#1d5f9e'); ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(0, seaY); ctx.lineTo(W, seaY); ctx.stroke();
   if (m.sea < -0.05) { ctx.setLineDash([8, 6]); const y0 = yOf(0); ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(W, y0); ctx.stroke(); ctx.setLineDash([]); }
   const say = (text, cx, cy, color, size = 26) => {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center';
     const w = ctx.measureText(text).width;
     cx = Math.min(W - w / 2 - 34, Math.max(w / 2 + 34, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   // 실제로 생긴 지형에만 이름을 붙인다.
   const span = kinds => { let a = -1, b = -1; for (let t = 0; t < samples; t++) if (kinds.includes(p.kinds[t])) { if (a < 0) a = t; b = t; } return a < 0 ? null : [a, b]; };
   // 만과 사취, 사주는 만이 있을 때만 이름을 붙인다. 해안사구는 사주가 아닌 곳에도 생기므로 사주 칸으로만 찾는다.
   const lag = span(['lagoon']), bay = m.hasBay === false ? null : span(['bay']), bar = span(['bar']), fl = span(['fill']);
-  if (lag) say('석호', x((lag[0] + lag[1]) / 2), seaY - 16, '#bff0e6');
-  else if (bay) say('만', x((bay[0] + bay[1]) / 2), seaY - 16, '#d8efff');
-  if (bar && m.hasBay && (lag || bay)) say(m.spit.closed ? '사주' : '사취', x((bar[0] + bar[1]) / 2), yOf(Math.max(...p.top.slice(bar[0], bar[1] + 1))) - 14, '#ffd36b');
-  if (fl && fl[1] - fl[0] > 4) say('메워진 땅', x((fl[0] + fl[1]) / 2), yOf(p.top[fl[0]]) - 18, '#e8e3c8', 24);
-  say('바다', W - 90, seaY + 34, '#ffffff', 24);
-  if (m.sea < -0.05) say('오늘날 해수면', 170, yOf(0) - 10, '#d8efff', 22);
-  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b'; ctx.textAlign = 'center';
+  if (lag) say('석호', x((lag[0] + lag[1]) / 2), seaY - 16, (DK ? '#bff0e6' : '#1f7a6e'));
+  else if (bay) say('만', x((bay[0] + bay[1]) / 2), seaY - 16, (DK ? '#d8efff' : '#1d5f9e'));
+  if (bar && m.hasBay && (lag || bay)) say(m.spit.closed ? '사주' : '사취', x((bar[0] + bar[1]) / 2), yOf(Math.max(...p.top.slice(bar[0], bar[1] + 1))) - 14, P.hi);
+  if (fl && fl[1] - fl[0] > 4) say('메워진 땅', x((fl[0] + fl[1]) / 2), yOf(p.top[fl[0]]) - 18, P.ink, 24);
+  say('바다', W - 90, seaY + 34, (DK ? '#ffffff' : '#1d5f9e'), 24);
+  if (m.sea < -0.05) say('오늘날 해수면', 170, yOf(0) - 10, (DK ? '#d8efff' : '#1d5f9e'), 22);
+  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi; ctx.textAlign = 'center';
   ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
-  ctx.textAlign = 'left'; ctx.font = '700 22px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 22px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('회색: 처음 땅, 모래색: 쌓인 모래, 풀빛과 갈색: 하천 토사', 14, H - 12);
   ctx.textAlign = 'right'; ctx.font = '22px "Malgun Gothic",sans-serif';
   ctx.fillText('세로 과장', W - 14, H - 12);

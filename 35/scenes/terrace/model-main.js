@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, compareBrief, rateVerdict, phaseAt, N, BOTTOM, UPLIFT, PERIOD, HIGH, YEARS_PER_PERIOD, UNIT_M, SEA_LOW } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -149,13 +151,14 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
   const p = sectionProfile(m, samples), base = H - 40, lo = -15, hi = 24;
   const yOf = v => base - ((v - lo) / (hi - lo)) * (base - 12), x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   // 높이 눈금
   ctx.font = '22px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left'; ctx.lineWidth = 1;
   for (let v = -10; v <= 20; v += 5) {
     if (v === 0) continue;
-    ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.moveTo(0, yOf(v)); ctx.lineTo(W, yOf(v)); ctx.stroke();
-    ctx.fillStyle = 'rgba(239,233,216,.75)'; ctx.fillText(`${v * UNIT_M}m`, 40, yOf(v) - 4);
+    ctx.strokeStyle = P.grid; ctx.beginPath(); ctx.moveTo(0, yOf(v)); ctx.lineTo(W, yOf(v)); ctx.stroke();
+    ctx.fillStyle = P.sub; ctx.fillText(`${v * UNIT_M}m`, 40, yOf(v) - 4);
   }
   const seaY = yOf(m.sea);
   ctx.fillStyle = '#3a7fb5';
@@ -168,21 +171,21 @@ function drawSection(canvas, m) {
     if (k === 'platform') { ctx.fillStyle = '#c7bda6'; ctx.fillRect(x(t), y, cw, 6); }
   }
   // 깎이지 않았다면 있었을 땅: 처음 땅이 솟은 자리
-  ctx.strokeStyle = '#efe9d8'; ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+  ctx.strokeStyle = (DK ? '#efe9d8' : '#333'); ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
   ctx.beginPath();
   for (let t = 0; t < samples; t++) { const y = yOf(p.start[t]); if (t) ctx.lineTo(x(t), y); else ctx.moveTo(x(t), y); }
   ctx.stroke(); ctx.setLineDash([]);
   // 해수면과 간빙기 해수면
   let firstSea = samples - 1;
   for (let t = 0; t < samples; t++) if (p.top[t] < m.sea) { firstSea = t; break; }
-  ctx.strokeStyle = '#d8efff'; ctx.lineWidth = 2;
+  ctx.strokeStyle = (DK ? '#d8efff' : '#1d5f9e'); ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(x(firstSea), seaY); ctx.lineTo(W, seaY); ctx.stroke();
   if (m.sea < -0.6) { ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.moveTo(0, yOf(0)); ctx.lineTo(W, yOf(0)); ctx.stroke(); ctx.setLineDash([]); }
   const say = (text, cx, cy, color, size = 25) => {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = 'center';
     const w = ctx.measureText(text).width;
     cx = Math.min(W - w / 2 - 34, Math.max(w / 2 + 34, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   // 실제로 남은 단구면에만 이름을 붙인다. 안쪽 끝의 작은 세모가 구정선이다.
@@ -197,20 +200,22 @@ function drawSection(canvas, m) {
   const near = t => pa >= 0 && x(pa) - x(t) < 170; // 해식애 이름과 겹칠 만큼 가까운 단구는 이름을 더 위로 올린다.
   runs.filter(a => a.b - a.a >= 4).forEach((run, n) => {
     const st = m.stands[run.no - 1], mid = (x(run.a) + x(run.b)) / 2, y = yOf(st.level + m.uplift);
-    say(`${n === 0 ? '단구면 ' : ''}약 ${m.elevM(st.level + m.uplift)}m`, mid + (near(run.b) ? -40 : 0), y - (near(run.b) ? 56 : 26), '#ffe9b0');
-    ctx.fillStyle = '#ffb38a'; const ex = x(run.a);
+    say(`${n === 0 ? '단구면 ' : ''}약 ${m.elevM(st.level + m.uplift)}m`, mid + (near(run.b) ? -40 : 0), y - (near(run.b) ? 56 : 26), (DK ? '#ffe9b0' : '#a8780a'));
+    ctx.fillStyle = (DK ? '#ffb38a' : '#b4471c'); const ex = x(run.a);
     ctx.beginPath(); ctx.moveTo(ex, y - 2); ctx.lineTo(ex - 9, y - 16); ctx.lineTo(ex + 9, y - 16); ctx.closePath(); ctx.fill();
-    if (n === 0) say('구정선', ex - 96, y - 2, '#ffb38a', 22);
+    if (n === 0) say('구정선', ex - 96, y - 2, (DK ? '#ffb38a' : '#b4471c'), 22);
     // 옛 바닷가의 둥근 자갈
     ctx.fillStyle = '#fff4cf';
     for (let q = x(run.a) + 8; q < x(run.b) - 4; q += 15) { ctx.beginPath(); ctx.ellipse(q, y + 3, 3.4, 2.4, 0, 0, 6.3); ctx.fill(); }
   });
-  if (pb - pa > 4 && m.phase.name === 'high') { say('파식대', (x(pa) + x(pb)) / 2, seaY + 44, '#efe9d8'); say('해식애', x(pa) + 62, seaY - 30, '#ffb38a'); ctx.strokeStyle = '#ffb38a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x(pa) + 26, seaY - 36); ctx.lineTo(x(pa) + 4, seaY - 14); ctx.stroke(); }
-  say('파랑', W - 120, seaY - 18, '#ffffff', 24);
-  if (m.sea < -0.6) say('오늘날 해수면 높이', W - 190, yOf(0) - 12, '#d8efff', 22);
-  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b'; ctx.textAlign = 'center';
+  if (pb - pa > 4 && m.phase.name === 'high') { say('파식대', (x(pa) + x(pb)) / 2, seaY + 44, P.ink); say('해식애', x(pa) + 62, seaY - 30, (DK ? '#ffb38a' : '#b4471c')); ctx.strokeStyle = (DK ? '#ffb38a' : '#b4471c'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x(pa) + 26, seaY - 36); ctx.lineTo(x(pa) + 4, seaY - 14); ctx.stroke(); }
+  say('파랑', W - 120, seaY - 18, (DK ? '#ffffff' : '#1d5f9e'), 24);
+  if (m.sea < -0.6) say('오늘날 해수면 높이', W - 190, yOf(0) - 12, (DK ? '#d8efff' : '#1d5f9e'), 22);
+  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi; ctx.textAlign = 'center';
   ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
-  ctx.textAlign = 'left'; ctx.font = '700 22px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 22px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('점선: 깎이지 않았다면 있었을 땅', 14, H - 10);
   ctx.textAlign = 'right'; ctx.font = '22px "Malgun Gothic",sans-serif';
   ctx.fillText('세로 과장', W - 14, H - 10);
@@ -222,31 +227,32 @@ function drawChart(m) {
   const c = document.getElementById('seaChart'), ctx = c.getContext('2d'), W = c.width, H = c.height, pad = 92, right = 24, top = 16, bottom = 44;
   const lo = SEA_LOW - 2, hi = Math.max(4, m.rate * m.tEnd + 2);
   const xOf = t => pad + (t / m.tEnd) * (W - pad - right), yOf = v => top + ((hi - v) / (hi - lo)) * (H - top - bottom);
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   ctx.font = '22px "Malgun Gothic",sans-serif'; ctx.textAlign = 'right'; ctx.lineWidth = 1;
   const stepV = hi > 8 ? 5 : 5;
   for (let v = Math.ceil(lo / stepV) * stepV; v <= hi; v += stepV) {
-    ctx.strokeStyle = v === 0 ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.moveTo(pad, yOf(v)); ctx.lineTo(W - right, yOf(v)); ctx.stroke();
-    ctx.fillStyle = '#c9c7bb'; ctx.fillText(`${v * UNIT_M}m`, pad - 8, yOf(v) + 8);
+    ctx.strokeStyle = v === 0 ? (DK ? 'rgba(255,255,255,.45)' : '#999') : P.grid; ctx.beginPath(); ctx.moveTo(pad, yOf(v)); ctx.lineTo(W - right, yOf(v)); ctx.stroke();
+    ctx.fillStyle = P.sub; ctx.fillText(`${v * UNIT_M}m`, pad - 8, yOf(v) + 8);
   }
   // 시간 눈금: 오늘에서 거꾸로 센다.
   ctx.textAlign = 'center';
   for (let a = 0; a * PERIOD <= m.tEnd; a++) {
     const t = m.tEnd - a * PERIOD;
-    ctx.fillStyle = '#c9c7bb'; ctx.fillText(a === 0 ? '오늘날' : `${a * YEARS_PER_PERIOD}만 년 전`, Math.min(W - 54, Math.max(pad + 40, xOf(t))), H - 12);
+    ctx.fillStyle = P.sub; ctx.fillText(a === 0 ? '오늘날' : `${a * YEARS_PER_PERIOD}만 년 전`, Math.min(W - 54, Math.max(pad + 40, xOf(t))), H - 12);
   }
   const line = (from, to, f, color, width) => { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); for (let t = from, n = 0; t <= to + 0.001; t += 0.5, n++) { const X = xOf(t), Y = yOf(f(t)); if (n) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } ctx.stroke(); };
-  line(0, m.tEnd, t => phaseAt(t, m.rate).sea, 'rgba(143,214,255,.3)', 3);
-  line(0, m.clock, t => phaseAt(t, m.rate).sea, '#8fd6ff', 4);
+  line(0, m.tEnd, t => phaseAt(t, m.rate).sea, (DK ? 'rgba(143,214,255,.3)' : 'rgba(29,95,158,.25)'), 3);
+  line(0, m.clock, t => phaseAt(t, m.rate).sea, (DK ? '#8fd6ff' : '#1d5f9e'), 4);
   // 옛 파식대: 간빙기가 끝난 뒤 땅과 함께 솟는다.
   for (const st of m.stands) {
     const from = (st.no - 1) * PERIOD + HIGH;
-    if (from <= m.clock && m.rate > 0) line(from, m.clock, t => st.level + m.rate * t, '#ffb34d', 3.5);
+    if (from <= m.clock && m.rate > 0) line(from, m.clock, t => st.level + m.rate * t, (DK ? '#ffb34d' : '#d07a10'), 3.5);
   }
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(xOf(m.clock), top); ctx.lineTo(xOf(m.clock), H - bottom); ctx.stroke();
+  ctx.strokeStyle = (DK ? '#fff' : '#111'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(xOf(m.clock), top); ctx.lineTo(xOf(m.clock), H - bottom); ctx.stroke();
   ctx.textAlign = 'left'; ctx.font = '700 22px "Malgun Gothic",sans-serif';
-  ctx.fillStyle = '#8fd6ff'; ctx.fillText('해수면', pad + 8, yOf(SEA_LOW + 1));
-  if (m.rate > 0) { ctx.fillStyle = '#ffb34d'; ctx.fillText('옛 파식대의 높이', pad + 8, top + 22); }
+  ctx.fillStyle = (DK ? '#8fd6ff' : '#1d5f9e'); ctx.fillText('해수면', pad + 8, yOf(SEA_LOW + 1));
+  if (m.rate > 0) { ctx.fillStyle = (DK ? '#ffb34d' : '#d07a10'); ctx.fillText('옛 파식대의 높이', pad + 8, top + 22); }
 }
 
 const PHASE_NAME = { high: '간빙기', fall: '빙기로 가는 중', low: '빙기', rise: '빙기가 끝나는 중' };

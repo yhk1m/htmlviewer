@@ -11,4 +11,5 @@ export const SCENES = [
   { area: '해안', name: '갯벌', shows: '조차와 고운 흙, 간척 뒤의 변화', href: 'scenes/tidalflat/model.html' },
   { area: '산지', name: '고위 평탄면과 저위 평탄면', shows: '한쪽으로 기울며 솟은 땅과 높은 곳에 남은 평평한 땅', href: 'scenes/plateau/model.html' },
   { area: '산지', name: '암괴원과 암괴류', shows: '절리와 땅속 풍화, 빙기에 드러나 모인 바위 덩어리', href: 'scenes/blockfield/model.html' },
+  { area: '산지', name: '카르스트 지형', shows: '석회암이 녹아 생긴 돌리네와 석회 동굴', href: 'scenes/karst/model.html' },
 ];

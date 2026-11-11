@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, flatReport, compareBrief, N, PERIOD, TIDE } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic, SMALL_RANGE, FLOOD, EBB, DIKE } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -161,10 +163,11 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 280;
   const p = sectionProfile(m, samples), base = H - 46, lo = -9, hi = 9;
   const yOf = v => base - ((Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo)) * (base - 14), x = t => (t / (samples - 1)) * W, cw = W / samples + 1;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const HT = m.amp(), LT = -m.amp(), yH = yOf(HT), yL = yOf(LT);
   // 조간대: 밀물 때 해수면과 썰물 때 해수면 사이
-  if (m.range() >= 1) { ctx.fillStyle = 'rgba(143,214,255,0.10)'; ctx.fillRect(0, yH, W, yL - yH); }
+  if (m.range() >= 1) { ctx.fillStyle = (DK ? 'rgba(143,214,255,0.10)' : 'rgba(29,95,158,0.08)'); ctx.fillRect(0, yH, W, yL - yH); }
   // 지금의 물
   for (let t = 0; t < samples; t++) if (p.top[t] < p.level[t]) { ctx.fillStyle = m.dikeAt >= 0 && p.kinds[t] === 'lake' ? '#3f8fb0' : '#3a7fb5'; const y = yOf(p.top[t]) + 2, ys = yOf(p.level[t]); ctx.fillRect(x(t) - 1, ys, cw + 1, y - ys); }
   // 땅은 표본점을 이은 매끈한 선으로 그린다. 위 선(지금 땅 높이) 아래를 겉흙 빛으로 칠하고, 그 위에 처음 바닥을 회색으로 덮는다.
@@ -181,24 +184,24 @@ function drawSection(canvas, m) {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = align;
     const w = ctx.measureText(text).width;
     if (align === 'center') cx = Math.min(W - w / 2 - 34, Math.max(w / 2 + 34, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   // 밀물 때 해수면(점선), 썰물 때 해수면(점선), 지금의 해수면(실선)
-  ctx.strokeStyle = '#d8efff'; ctx.lineWidth = 2; ctx.setLineDash([10, 7]);
+  ctx.strokeStyle = (DK ? '#d8efff' : '#1d5f9e'); ctx.lineWidth = 2; ctx.setLineDash([10, 7]);
   ctx.beginPath(); ctx.moveTo(0, yH); ctx.lineTo(W, yH); ctx.stroke();
   if (m.range() >= 1) { ctx.beginPath(); ctx.moveTo(0, yL); ctx.lineTo(W, yL); ctx.stroke(); }
   ctx.setLineDash([]);
   const seaY = yOf(m.sea);
-  ctx.strokeStyle = '#8fd6ff'; ctx.lineWidth = 3;
+  ctx.strokeStyle = (DK ? '#8fd6ff' : '#1d5f9e'); ctx.lineWidth = 3;
   const firstSea = Math.max(0, p.kinds.findIndex(k => k !== 'land' && k !== 'river'));
   ctx.beginPath(); ctx.moveTo(x(firstSea), seaY); ctx.lineTo(W, seaY); ctx.stroke();
   // 실제로 생긴 지형에만 이름을 붙인다.
   const span = kinds => { let a = -1, b = -1; for (let t = 0; t < samples; t++) if (kinds.includes(p.kinds[t])) { if (a < 0) a = t; b = t; } return a < 0 ? null : [a, b]; };
   const mid = s => x((s[0] + s[1]) / 2), topOf = s => yOf(Math.max(...p.top.slice(s[0], s[1] + 1)));
   const dk = span(['dike']), fd = span(['field', 'ditch']);
-  if (dk) say('방조제', mid(dk), topOf(dk) - 12, '#ffb38a', 22);
-  if (fd && fd[1] - fd[0] > 6) say('간척지', mid(fd), topOf(fd) - 12, '#d6e69a', 22);
+  if (dk) say('방조제', mid(dk), topOf(dk) - 12, (DK ? '#ffb38a' : '#b4471c'), 22);
+  if (fd && fd[1] - fd[0] > 6) say('간척지', mid(fd), topOf(fd) - 12, (DK ? '#d6e69a' : '#4f6b1c'), 22);
   // 단면 이름표가 겹치면 아래로 비켜 놓는다.
   const boxes = [];
   const place = (text, cx, cy, color) => {
@@ -209,7 +212,7 @@ function drawSection(canvas, m) {
     boxes.push({ x: cx, y: cy, w });
     say(text, cx, cy, color, 20);
   };
-  const zones = [['mudflat', '펄 갯벌', '#e8dcc0'], ['mixflat', '혼합', '#f0dfb5'], ['sandflat', '모래 갯벌', '#ffe6a8'], ['marsh', '염생 식물', '#d6e69a']];
+  const zones = [['mudflat', '펄 갯벌', (DK ? '#e8dcc0' : '#5d4a30')], ['mixflat', '혼합', (DK ? '#f0dfb5' : '#7a5e2a')], ['sandflat', '모래 갯벌', (DK ? '#ffe6a8' : '#a8780a')], ['marsh', '염생 식물', (DK ? '#d6e69a' : '#4f6b1c')]];
   for (const [kd, name, color] of zones) {
     // 가장 길게 이어진 구간에 이름을 붙인다.
     let best = null, a = -1;
@@ -219,14 +222,16 @@ function drawSection(canvas, m) {
   // 갯골: 가장 깊게 파인 곳 하나에만 이름을 붙인다.
   let ck = -1;
   for (let t = 0; t < samples; t++) if (p.kinds[t] === 'creek' && (ck < 0 || p.start[t] - p.top[t] < p.start[ck] - p.top[ck])) ck = t;
-  if (ck >= 0) place('갯골', x(ck), yOf(p.top[ck]) - 14, '#8fd6ff');
-  say('A', 18, 32, '#ffd36b', 26); say('B', W - 18, 32, '#ffd36b', 26);
-  say('밀물 때 해수면', W - 14, yH - 8, '#d8efff', 20, 'right');
+  if (ck >= 0) place('갯골', x(ck), yOf(p.top[ck]) - 14, (DK ? '#8fd6ff' : '#1d5f9e'));
+  say('A', 18, 32, P.hi, 26); say('B', W - 18, 32, P.hi, 26);
+  say('밀물 때 해수면', W - 14, yH - 8, (DK ? '#d8efff' : '#1d5f9e'), 20, 'right');
   if (m.range() >= 1) {
-    say('썰물 때 해수면', W - 14, yL + 24, '#d8efff', 20, 'right');
-    say('조간대', W - 14, (yH + yL) / 2 + 8, '#8fd6ff', 22, 'right');
-  } else say('조차가 작아 두 해수면이 거의 같음', W - 14, yH + 26, '#d8efff', 20, 'right');
-  ctx.textAlign = 'left'; ctx.font = '700 20px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+    say('썰물 때 해수면', W - 14, yL + 24, (DK ? '#d8efff' : '#1d5f9e'), 20, 'right');
+    say('조간대', W - 14, (yH + yL) / 2 + 8, (DK ? '#8fd6ff' : '#1d5f9e'), 22, 'right');
+  } else say('조차가 작아 두 해수면이 거의 같음', W - 14, yH + 26, (DK ? '#d8efff' : '#1d5f9e'), 20, 'right');
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 20px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('회색: 처음 바닥, 짙은 갈색: 펄, 밝은 모래색: 모래, 파랑: 지금의 물', 14, H - 12);
   ctx.textAlign = 'right'; ctx.font = '20px "Malgun Gothic",sans-serif';
   ctx.fillText('세로 과장', W - 14, H - 12);

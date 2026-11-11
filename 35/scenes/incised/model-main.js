@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, N, OPTIONS } from './model.js';
 import { createBlock } from './block.js';
 import { createSchematic } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -39,7 +40,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -216,7 +218,8 @@ function drawSection(canvas, m) {
   const VE = Math.min(6.2, (floorY - 120) / (18 + lower));
   const yOf = v => floorY - (v + 12 - m.seaLevel) * VE;
   const x = t => (t / (samples - 1)) * W;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   ctx.beginPath(); ctx.moveTo(0, H);
   for (let t = 0; t < samples; t++) ctx.lineTo(x(t), yOf(rock[t]));
   ctx.lineTo(W, H); ctx.closePath();
@@ -264,7 +267,7 @@ function drawSection(canvas, m) {
     // 강이 지나는 면은 강을 피해 더 긴 쪽 가운데에 이름을 붙인다.
     if (a <= lowT && lowT <= b) { if (lowT - a >= b - lowT) b = lowT - 3; else a = lowT + 3; if (b - a < 8) continue; }
     const mid = (a + b) >> 1;
-    say(names(r.q), x(mid), yOf(top[mid]) - 10, r.q > 0 && r.q < presentMax ? '#ffd36b' : '#f3f1ea');
+    say(names(r.q), x(mid), yOf(top[mid]) - 10, r.q > 0 && r.q < presentMax ? P.hi : P.ink);
   }
   // 가장 가파른 벽 하나에 단구애 이름을 붙인다. 단구면이 있을 때만.
   if (runs.some(r => r.q > 0 && r.q < presentMax)) {
@@ -275,15 +278,17 @@ function drawSection(canvas, m) {
     }
     if (bestT > 0) {
       const off = bestT < samples * m.section.riverAt ? -44 : 44;
-      say('단구애', x(bestT) + off, yOf(top[bestT]) + 8, '#f3a58a');
+      say('단구애', x(bestT) + off, yOf(top[bestT]) + 8, (DK ? '#f3a58a' : '#b4471c'));
     }
   }
-  ctx.fillStyle = '#ffd36b'; ctx.font = '700 26px "Malgun Gothic",sans-serif';
+  ctx.fillStyle = P.hi; ctx.font = '700 26px "Malgun Gothic",sans-serif';
   ctx.textAlign = 'center'; ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
-  ctx.fillStyle = '#efe9d8'; ctx.font = '700 19px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.fillStyle = P.ink; ctx.font = '700 19px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
   ctx.fillText('기반암', 14, H - 12);
   ctx.fillStyle = '#c9b178'; ctx.fillRect(96, H - 26, 16, 12);
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('자갈층', 118, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('자갈층', 118, H - 12);
   ctx.textAlign = 'left';
 }
 
@@ -293,7 +298,8 @@ function drawCoreSection(ctx, m, W, H, samples, top, rock) {
   const VE = Math.min(6.2, (floorY - 120) / (18 + lower));
   const yOf = v => floorY - (v + 12) * VE, x = t => (t / (samples - 1)) * W;
   const S = m.section;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   ctx.beginPath(); ctx.moveTo(0, H);
   for (let t = 0; t < samples; t++) ctx.lineTo(x(t), yOf(rock[t]));
   ctx.lineTo(W, H); ctx.closePath();
@@ -325,23 +331,25 @@ function drawCoreSection(ctx, m, W, H, samples, top, rock) {
   };
   const { ringA, core, ringB, river } = S.marks, dry = m.severed && m.phase !== 'cutoff';
   if (dry) {
-    say('미앤더 핵', core, '#ffd36b');
-    say('구하도', ringA, '#f3a58a'); say('구하도', ringB, '#f3a58a');
-    say('지금 강', river, '#8fd6ff', 22);
-    say('옛 범람원', 0.03, '#f3f1ea');
+    say('미앤더 핵', core, P.hi);
+    say('구하도', ringA, (DK ? '#f3a58a' : '#b4471c')); say('구하도', ringB, (DK ? '#f3a58a' : '#b4471c'));
+    say('지금 강', river, (DK ? '#8fd6ff' : '#1d5f9e'), 22);
+    say('옛 범람원', 0.03, P.ink);
   } else if (m.phase !== 'free') {
-    say('언덕', core, '#f3f1ea');
-    say('강', ringA, '#8fd6ff', 22); say('강', ringB, '#8fd6ff', 22); say('강', river, '#8fd6ff', 22);
-    say('옛 범람원', 0.03, '#f3f1ea');
+    say('언덕', core, P.ink);
+    say('강', ringA, (DK ? '#8fd6ff' : '#1d5f9e'), 22); say('강', ringB, (DK ? '#8fd6ff' : '#1d5f9e'), 22); say('강', river, (DK ? '#8fd6ff' : '#1d5f9e'), 22);
+    say('옛 범람원', 0.03, P.ink);
   } else {
-    say('범람원', core, '#f3f1ea');
+    say('범람원', core, P.ink);
   }
-  ctx.fillStyle = '#ffd36b'; ctx.font = '700 26px "Malgun Gothic",sans-serif';
+  ctx.fillStyle = P.hi; ctx.font = '700 26px "Malgun Gothic",sans-serif';
   ctx.textAlign = 'center'; ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
-  ctx.fillStyle = '#efe9d8'; ctx.font = '700 19px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.fillStyle = P.ink; ctx.font = '700 19px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
   ctx.fillText('기반암', 14, H - 12);
   ctx.fillStyle = '#c9b178'; ctx.fillRect(96, H - 26, 16, 12);
-  ctx.fillStyle = '#efe9d8'; ctx.fillText('자갈층', 118, H - 12);
+  ctx.fillStyle = P.ink; ctx.fillText('자갈층', 118, H - 12);
 }
 
 const noteEl = document.getElementById('now');

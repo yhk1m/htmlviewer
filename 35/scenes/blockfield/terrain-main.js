@@ -10,7 +10,7 @@ import { gridIndex, fillNormals } from '../../shared/grid.js';
 import { setupPanel } from '../../shared/panel.js';
 import { QUALITY, currentQuality, setupQualityButton } from '../../shared/quality.js';
 import { createFpsMeter } from '../../shared/fps.js';
-import { drawContourMap, drawHeightTint, wrapText } from '../../shared/map-views.js';
+import { drawContourMap, drawHeightTint, wrapText, markInk } from '../../shared/map-views.js';
 import { createHeightScale } from '../../shared/height.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
@@ -19,6 +19,7 @@ import { createRoadLayer } from '../../shared/roads.js';
 import { rng32 } from '../../shared/rng.js';
 import { buildBiseul, sampleH, blockProfile, profileMarks, profileNumbers, placesOf, N, SIZE, CELL, WATER_LEVEL } from './sim.js';
 import { createSchematic, BLOCKS } from './schematic.js';
+import { figPalette, isDark } from '../../shared/theme.js';
 
 const PHONE = isPhone();
 const QUALITY_NAME = currentQuality(PHONE), Q = QUALITY[QUALITY_NAME];
@@ -140,7 +141,8 @@ function drawProfile(canvas, { points, marks, from, to, note }) {
   canvas.width = Math.round(r.width * d); canvas.height = Math.round(r.height * d);
   const ctx = canvas.getContext('2d'), W = r.width, H = r.height;
   ctx.setTransform(d, 0, 0, d, 0, 0);
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const pad = W < 520 ? 42 : 64, side = W < 520 ? 12 : 60, usableW = W - pad - side, lengthM = points.at(-1).m;
   const noteSize = W < 520 ? 11 : 13, noteGap = noteSize + 4;
   ctx.font = `${noteSize}px "Malgun Gothic",sans-serif`;
@@ -151,7 +153,7 @@ function drawProfile(canvas, { points, marks, from, to, note }) {
   const ve = yScale / xScale;
   lines = [...lines, ve < 1.5 ? '가로와 세로를 거의 같은 비율로 그렸습니다.' : `세로를 약 ${Math.round(ve)}배 과장해 그렸습니다.`];
   const x = m => pad + m * xScale, y = z => H - foot - (z - min) * yScale;
-  ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.fillStyle = '#c9c7bb'; ctx.font = '12px "Malgun Gothic",sans-serif'; ctx.lineWidth = 1; ctx.textAlign = 'right';
+  ctx.strokeStyle = P.grid; ctx.fillStyle = P.sub; ctx.font = '12px "Malgun Gothic",sans-serif'; ctx.lineWidth = 1; ctx.textAlign = 'right';
   for (let z = min; z <= max; z += 100) { ctx.beginPath(); ctx.moveTo(pad, y(z)); ctx.lineTo(W - side, y(z)); ctx.stroke(); ctx.fillText(`${z}m`, pad - 4, y(z) + 4); }
   ctx.textAlign = 'center';
   for (let km = 0; km <= lengthM / 1000 + 1e-6; km += 0.5) ctx.fillText(`${km}km`, x(km * 1000), H - foot + 15);
@@ -176,11 +178,11 @@ function drawProfile(canvas, { points, marks, from, to, note }) {
     let ty = y(p.z) - 30;
     while (used.some(u => Math.abs(u.x - tx) < (u.w + w) / 2 + 6 && Math.abs(u.y - ty) < 18)) ty -= 18;
     used.push({ x: tx, y: ty, w });
-    ctx.strokeStyle = k.color; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x(p.m), y(p.z)); ctx.lineTo(x(p.m), ty + 5); ctx.stroke();
-    ctx.lineWidth = 3.5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(k.text, tx, ty);
-    ctx.fillStyle = k.color; ctx.fillText(k.text, tx, ty);
+    ctx.strokeStyle = markInk(k.color); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x(p.m), y(p.z)); ctx.lineTo(x(p.m), ty + 5); ctx.stroke();
+    ctx.lineWidth = 3.5; ctx.strokeStyle = P.bg; ctx.strokeText(k.text, tx, ty);
+    ctx.fillStyle = markInk(k.color); ctx.fillText(k.text, tx, ty);
   }
-  ctx.fillStyle = '#f3f1ea'; ctx.font = '700 16px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = P.ink; ctx.font = '700 16px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
   ctx.fillText(from, pad, 26);
   ctx.textAlign = 'right'; ctx.fillText(to, W - side, 26);
   ctx.textAlign = 'left'; ctx.font = `${noteSize}px "Malgun Gothic",sans-serif`;

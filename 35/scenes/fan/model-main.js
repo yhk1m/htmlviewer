@@ -12,6 +12,7 @@ import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
 import { createModel, N, MOUTH, GRAINS } from './model.js';
 import { createBlock } from './block.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -152,7 +154,8 @@ function drawSection(canvas, m) {
   const j0 = MOUTH.j - 26, j1 = N - 1, sx = W / (j1 - j0);
   const VE = 8.2, floorY = H - 28;
   const yOf = v => floorY - (v - 6) * VE;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   // 기반암
   ctx.beginPath(); ctx.moveTo(0, H);
   for (let j = j0; j <= j1; j++) ctx.lineTo((j - j0) * sx, yOf(m.base[j * N + CENTER]));
@@ -180,12 +183,12 @@ function drawSection(canvas, m) {
     for (let j = j0; j <= j1; j++) { const y = yOf(m.h[j * N + CENTER]) - 3; j === j0 ? ctx.moveTo(0, y) : ctx.lineTo((j - j0) * sx, y); }
     ctx.strokeStyle = '#59b7f0'; ctx.lineWidth = 4; ctx.stroke();
   }
-  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#ffd36b';
+  ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi;
   ctx.fillText('A', 10, 32); ctx.fillText('B', W - 30, 32);
-  ctx.fillStyle = '#f3f1ea'; ctx.font = '700 22px "Malgun Gothic",sans-serif';
+  ctx.fillStyle = P.ink; ctx.font = '700 22px "Malgun Gothic",sans-serif';
   const mx = (MOUTH.j - j0) * sx;
   ctx.fillText('곡구', mx - 22, 32);
-  ctx.strokeStyle = '#f3f1ea'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+  ctx.strokeStyle = (DK ? '#f3f1ea' : '#666'); ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
   ctx.beginPath(); ctx.moveTo(mx, 42); ctx.lineTo(mx, yOf(m.h[MOUTH.j * N + CENTER]) - 6); ctx.stroke(); ctx.setLineDash([]);
 }
 

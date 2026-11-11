@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, noteText, blockReport, compareBrief, valleyX, N, CELL_M, WD, PRESETS, SPACING, STREAM_SOME } from './model.js';
 import { createBlock, drawCut, worldY } from './block.js';
 import { createSchematic, JOINT, WEATHER, COLD, BLOCKS } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 2000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -178,7 +180,8 @@ function sectionRange() {
 }
 function drawSection(canvas, m, range) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, plotH = H - 40;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const line = sectionLineOf(m);
   ctx.save();
   const r = drawCut(ctx, W, plotH, m, line, { ...range, loose: true });
@@ -187,16 +190,16 @@ function drawSection(canvas, m, range) {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = align;
     const w = ctx.measureText(text).width;
     if (align === 'center') cx = Math.min(W - w / 2 - 10, Math.max(w / 2 + 10, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
   const ph = m.phase(), n = line.n, X = r.X;
   // 실제로 있는 것에만 이름을 단다.
   const tB = Math.round(n * 0.2);
-  say('기반암', X(tB), Math.min(plotH - 12, r.yAt(tB, r.fA[tB] - 4)), '#f1ebe0');
+  say('기반암', X(tB), Math.min(plotH - 12, r.yAt(tB, r.fA[tB] - 4)), P.ink);
   if (m.weatherFrac() > 0.25) {
     const t = Math.round(n * 0.45), mid = (r.hA[t] + Math.min(r.hA[t], r.fA[t])) / 2;
-    if (r.hA[t] - r.fA[t] > 1.5) say('풍화층(마사토)', X(t), r.yAt(t, mid) + 6, '#ffd9a0');
+    if (r.hA[t] - r.fA[t] > 1.5) say('풍화층(마사토)', X(t), r.yAt(t, mid) + 6, (DK ? '#ffd9a0' : '#8a5a1c'));
     const B = m.boulders;
     let best = -1;
     for (let b = 0; b < B.n; b++) {
@@ -205,18 +208,20 @@ function drawSection(canvas, m, range) {
       if (Math.abs(d) > 1.5 || tt < n * 0.6 || tt > n * 0.9) continue;
       if (best < 0 || B.rho[b] > B.rho[best]) best = b;
     }
-    if (best >= 0) { const [tt] = line.proj(B.x0[best], B.y0[best]); say('핵석', X(tt), r.yAt(tt, m.sampleOrig(B.x0[best], B.y0[best]) - B.zc[best]) + 7, '#ffffff', 19); }
+    if (best >= 0) { const [tt] = line.proj(B.x0[best], B.y0[best]); say('핵석', X(tt), r.yAt(tt, m.sampleOrig(B.x0[best], B.y0[best]) - B.zc[best]) + 7, (DK ? '#ffffff' : '#111'), 19); }
   }
-  if (m.jointFrac() > 0.3 && ph !== 'today' && ph !== 'done') say('절리', X(Math.round(n * 0.08)), r.yAt(Math.round(n * 0.08), r.fA[Math.round(n * 0.08)] - 6), '#ffe9b0', 19);
+  if (m.jointFrac() > 0.3 && ph !== 'today' && ph !== 'done') say('절리', X(Math.round(n * 0.08)), r.yAt(Math.round(n * 0.08), r.fA[Math.round(n * 0.08)] - 6), (DK ? '#ffe9b0' : '#a8780a'), 19);
   const rep = blockReport(m);
   if (rep.streamPct >= STREAM_SOME && rep.loose > 0 && (ph === 'gather' || ph === 'warm' || ph === 'today' || ph === 'done')) {
     // 골짜기 바닥에 바위가 가장 두껍게 쌓인 곳
     let bt = -1, bd = 0;
     for (let t = Math.round(n * 0.3); t < n - 4; t++) { const [x, y] = line.at(t), d = m.sample(x, y) - m.sampleGround(x, y); if (d > bd) { bd = d; bt = t; } }
-    if (bt >= 0 && bd > 1.5) say('암괴류', X(bt), r.yAt(bt, m.sample(...line.at(bt))) - 14, '#ffe08a', 21);
+    if (bt >= 0 && bd > 1.5) say('암괴류', X(bt), r.yAt(bt, m.sample(...line.at(bt))) - 14, (DK ? '#ffe08a' : '#a8780a'), 21);
   }
-  say('A 산꼭대기', 12, 26, '#ffd36b', 20, 'left'); say('산기슭 B', W - 12, 26, '#ffd36b', 20, 'right');
-  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  say('A 산꼭대기', 12, 26, P.hi, 20, 'left'); say('산기슭 B', W - 12, 26, P.hi, 20, 'right');
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 38, W - 2, 37); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 38, W - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 17px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('주황: 풍화층(마사토), 밝은 회색 둥근 덩어리: 핵석과 바위, 검은 줄: 절리', 12, H - 12);
   ctx.textAlign = 'right'; ctx.font = '17px "Malgun Gothic",sans-serif';
   ctx.fillText('땅 높이 과장', W - 12, H - 12);

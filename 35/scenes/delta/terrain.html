@@ -45,6 +45,7 @@
     .schem-note { font-size:14px; min-height:0; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -77,5 +78,7 @@
 <div id="corner"><div id="heightBadge"></div><div id="flowNote">흰 화살표: 물 흐르는 방향</div><div id="mapNote">남색 화살표: 물 흐르는 방향. 붉은 점선: 단면을 잰 길(평원 가운데에서 바다까지)</div><div id="foot"></div></div>
 <div id="load"><span id="status">준비 중</span></div>
 <script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

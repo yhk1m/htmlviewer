@@ -48,6 +48,7 @@
     .schem-note { font-size:14px; min-height:0; }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -83,5 +84,7 @@
 <div id="corner"><div class="badges"><div id="heightBadge"></div><div id="tideBadge"></div></div><div id="mapNote"></div><div id="foot"></div></div>
 <div id="load"><span id="status">준비 중</span></div>
 <script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

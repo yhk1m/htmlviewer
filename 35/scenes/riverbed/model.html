@@ -78,6 +78,7 @@
     body.comparing #veBadge { bottom:calc(38vh + 56px); }
   }
 </style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -129,5 +130,7 @@
   </div>
 </aside>
 <script type="module" src="./model-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
 </body>
 </html>

@@ -1,6 +1,11 @@
 import { contourSegments, contourLevels, niceInterval, profileAlong } from './contour.js';
+import { figPalette, isDark } from './theme.js';
 
 // 정해진 폭에 맞춰 띄어쓰기 자리에서 줄을 나눈다.
+// 단면 이름표 색: sim.js의 색은 어두운 바탕에 맞춘 밝은 색이라, 라이트 모드에서는 같은 뜻의 짙은 색으로 바꾼다.
+const MARK_LIGHT = {'#d9dcdf': '#111111', '#e8e6dd': '#111111', '#f3f1ea': '#111111', '#ffe9b0': '#a8780a', '#ffd36b': '#a8780a', '#f3e3b0': '#a8780a', '#f1dfaa': '#a8780a', '#e3c79a': '#8a5a1c', '#b9e0f5': '#1d5f9e', '#8fd6ff': '#1d5f9e', '#9fd3ff': '#1d5f9e', '#e8f2c4': '#4f6b1c', '#8fe0d2': '#1f7a6e', '#ffb38a': '#b4471c'};
+export const markInk = c => (isDark() ? c : MARK_LIGHT[c] ?? c);
+
 export function wrapText(ctx, text, maxW) {
   const lines = [];
   let line = '';
@@ -81,7 +86,8 @@ export function drawContourMap(canvas, { h, N, sizeM, water, north, overlay, int
 // 두 점을 잇는 실제 땅의 단면. ve는 세로 과장 배율이다.
 export function drawProfile(canvas, { h, N, from, to, lengthM, ve, note }) {
   const { ctx, W, H } = fitCanvas(canvas);
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const samples = 360, p = profileAlong(h, N, from, to, samples);
   let min = Infinity, max = -Infinity;
   for (const v of p) { if (v < min) min = v; if (v > max) max = v; }
@@ -92,7 +98,7 @@ export function drawProfile(canvas, { h, N, from, to, lengthM, ve, note }) {
   for (let s = 0; s < samples; s++) ctx.lineTo(x(s), y(p[s]));
   ctx.lineTo(x(samples - 1), H); ctx.closePath();
   ctx.fillStyle = '#8c7a5c'; ctx.fill();
-  ctx.fillStyle = '#f3f1ea'; ctx.font = '700 16px "Malgun Gothic",sans-serif';
+  ctx.fillStyle = P.ink; ctx.font = '700 16px "Malgun Gothic",sans-serif';
   ctx.fillText(`A  ${Math.round(p[0])}m`, x(0), 30);
   ctx.textAlign = 'right';
   ctx.fillText(`B  ${Math.round(p[samples - 1])}m`, x(samples - 1), 30);
@@ -145,7 +151,8 @@ export function drawHeightTint(canvas, { h, N, sizeM, lo, hi, north, overlay, wa
 // 굽은 길을 따라 잰 높이의 단면. points: [{ m, z, water }], marks: [{ at, text, color }]. water인 구간은 파란 띠로 칠한다. 글은 폭에 맞춰 줄을 나눈다.
 export function drawPathProfile(canvas, { points, marks, from, to, note }) {
   const { ctx, W, H } = fitCanvas(canvas);
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   const pad = W < 520 ? 34 : 60, side = W < 520 ? 12 : 60, usableW = W - pad - side, lengthM = points[points.length - 1].m;
   const noteSize = W < 520 ? 11 : 13, noteGap = noteSize + 4;
   ctx.font = `${noteSize}px "Malgun Gothic",sans-serif`;
@@ -156,7 +163,7 @@ export function drawPathProfile(canvas, { points, marks, from, to, note }) {
   min = Math.floor(min / 5) * 5; max = Math.ceil(max / 5) * 5;
   const xScale = usableW / lengthM, yScale = (H - foot - 86) / Math.max(1, max - min);
   const x = m => pad + m * xScale, y = z => H - foot - (z - min) * yScale;
-  ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.fillStyle = '#c9c7bb'; ctx.font = '12px "Malgun Gothic",sans-serif'; ctx.lineWidth = 1; ctx.textAlign = 'right';
+  ctx.strokeStyle = P.grid; ctx.fillStyle = P.sub; ctx.font = '12px "Malgun Gothic",sans-serif'; ctx.lineWidth = 1; ctx.textAlign = 'right';
   for (let z = min; z <= max; z += 5) { ctx.beginPath(); ctx.moveTo(pad, y(z)); ctx.lineTo(W - side, y(z)); ctx.stroke(); ctx.fillText(`${z}m`, pad - 4, y(z) + 4); }
   ctx.beginPath(); ctx.moveTo(x(0), y(min));
   for (const p of points) ctx.lineTo(x(p.m), y(p.z));
@@ -174,11 +181,11 @@ export function drawPathProfile(canvas, { points, marks, from, to, note }) {
     let ty = y(p.z) - 32;
     while (used.some(u => Math.abs(u.x - tx) < (u.w + w) / 2 + 6 && Math.abs(u.y - ty) < 18)) ty -= 18;
     used.push({ x: tx, y: ty, w });
-    ctx.strokeStyle = k.color; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x(p.m), y(p.z)); ctx.lineTo(x(p.m), ty + 5); ctx.stroke();
-    ctx.lineWidth = 3.5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(k.text, tx, ty);
-    ctx.fillStyle = k.color; ctx.fillText(k.text, tx, ty);
+    ctx.strokeStyle = markInk(k.color); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x(p.m), y(p.z)); ctx.lineTo(x(p.m), ty + 5); ctx.stroke();
+    ctx.lineWidth = 3.5; ctx.strokeStyle = P.bg; ctx.strokeText(k.text, tx, ty);
+    ctx.fillStyle = markInk(k.color); ctx.fillText(k.text, tx, ty);
   }
-  ctx.fillStyle = '#f3f1ea'; ctx.font = '700 16px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = P.ink; ctx.font = '700 16px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
   ctx.fillText(from, pad, 26);
   ctx.textAlign = 'right'; ctx.fillText(to, W - side, 26);
   ctx.textAlign = 'left'; ctx.font = `${noteSize}px "Malgun Gothic",sans-serif`;

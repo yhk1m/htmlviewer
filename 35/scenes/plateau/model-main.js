@@ -13,6 +13,7 @@ import { setupPivot } from '../../shared/pivot.js';
 import { createModel, sectionProfile, noteText, plateauReport, compareBrief, N, H_M, CELL_M, XD, PRESETS, LIFT } from './model.js';
 import { createBlock, VE } from './block.js';
 import { createSchematic, FLAT, TILT, CUT, LOW } from './schematic.js';
+import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
 const QUALITY_NAME = currentQuality(isPhone()), Q = QUALITY[QUALITY_NAME];
 const meter = createFpsMeter();
@@ -30,7 +31,8 @@ renderer.shadowMap.autoUpdate = false;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x20262a);
+scene.background = new THREE.Color(bg3d());
+addEventListener('themechange', () => { scene.background.set(bg3d()); frameSync(true); });
 const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 3500);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.maxPolarAngle = Math.PI * 0.48;
@@ -157,13 +159,14 @@ function drawSection(canvas, m) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, samples = 256;
   const p = sectionProfile(m, samples), base = H - 46, lo = -4, hi = 62;
   const yOf = v => base - ((Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo)) * (base - 30), x = t => (t / (samples - 1)) * W;
-  ctx.fillStyle = '#23302a'; ctx.fillRect(0, 0, W, H);
+  const P = figPalette(), DK = isDark();
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.strokeStyle = P.frame; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); ctx.restore();
   // 높이 눈금(m)
   ctx.font = '18px "Malgun Gothic",sans-serif'; ctx.textAlign = 'left';
   for (let mm = 400; mm <= 800; mm += 400) {
     const y = yOf(mm / H_M);
-    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(239,233,216,0.7)'; ctx.fillText(`${mm}m`, 8, y - 4);
+    ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.fillStyle = P.sub; ctx.fillText(`${mm}m`, 8, y - 4);
   }
   // 바다
   const seaY = yOf(0);
@@ -172,9 +175,11 @@ function drawSection(canvas, m) {
   const area = (line, fill) => { ctx.beginPath(); ctx.moveTo(0, H); for (let t = 0; t < samples; t++) ctx.lineTo(x(t), line(t)); ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); };
   area(t => yOf(p.top[t]), '#6f7f55');
   // 처음 땅 높이(점선)와 깎이지 않았다면의 높이(솟은 원래 땅, 옅은 선)
-  ctx.setLineDash([8, 6]); ctx.strokeStyle = 'rgba(216,239,255,0.75)'; ctx.lineWidth = 2;
-  ctx.beginPath(); for (let t = 0; t < samples; t++) { if (p.kinds[t] === 'sea') break; ctx[t ? 'lineTo' : 'moveTo'](x(t), yOf(p.start[t])); } ctx.stroke();
-  ctx.setLineDash([3, 5]); ctx.strokeStyle = 'rgba(255,236,190,0.55)';
+  ctx.setLineDash([8, 6]); ctx.lineWidth = 2;
+  ctx.beginPath(); for (let t = 0; t < samples; t++) { if (p.kinds[t] === 'sea') break; ctx[t ? 'lineTo' : 'moveTo'](x(t), yOf(p.start[t])); }
+  if (!DK) { ctx.strokeStyle = 'rgba(30,30,30,0.6)'; ctx.lineWidth = 4; ctx.stroke(); ctx.lineWidth = 2; }
+  ctx.strokeStyle = DK ? 'rgba(216,239,255,0.75)' : '#ffffff'; ctx.stroke();
+  ctx.setLineDash([3, 5]); ctx.strokeStyle = (DK ? 'rgba(255,236,190,0.55)' : 'rgba(150,105,30,0.7)');
   ctx.beginPath(); for (let t = 0; t < samples; t++) { if (p.kinds[t] === 'sea') break; ctx[t ? 'lineTo' : 'moveTo'](x(t), yOf(p.surf[t])); } ctx.stroke();
   ctx.setLineDash([]);
   // 고위, 저위 평탄면은 땅 윗면에 색 띠를 덧칠한다.
@@ -185,15 +190,15 @@ function drawSection(canvas, m) {
   }
   ctx.beginPath(); for (let t = 0; t < samples; t++) ctx[t ? 'lineTo' : 'moveTo'](x(t), yOf(p.top[t])); ctx.strokeStyle = 'rgba(20,24,22,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
   // 하천: 물이 흐르는 칸에 파란 점
-  for (let t = 0; t < samples; t++) if (p.kinds[t] === 'water') { ctx.fillStyle = '#8fd6ff'; ctx.fillRect(x(t) - 2, yOf(p.top[t]) - 3, 5, 5); }
+  for (let t = 0; t < samples; t++) if (p.kinds[t] === 'water') { ctx.fillStyle = (DK ? '#8fd6ff' : '#1d5f9e'); ctx.fillRect(x(t) - 2, yOf(p.top[t]) - 3, 5, 5); }
   const say = (text, cx, cy, color, size = 22, align = 'center') => {
     ctx.font = `700 ${size}px "Malgun Gothic",sans-serif`; ctx.textAlign = align;
     const w = ctx.measureText(text).width;
     if (align === 'center') cx = Math.min(W - w / 2 - 34, Math.max(w / 2 + 34, cx));
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1c211e'; ctx.strokeText(text, cx, cy);
+    ctx.lineWidth = 5; ctx.strokeStyle = P.bg; ctx.strokeText(text, cx, cy);
     ctx.fillStyle = color; ctx.fillText(text, cx, cy);
   };
-  ctx.strokeStyle = '#8fd6ff'; ctx.lineWidth = 2;
+  ctx.strokeStyle = (DK ? '#8fd6ff' : '#1d5f9e'); ctx.lineWidth = 2;
   const firstSea = p.kinds.indexOf('sea');
   if (firstSea >= 0) { ctx.beginPath(); ctx.moveTo(x(firstSea), seaY); ctx.lineTo(W, seaY); ctx.stroke(); }
   // 실제로 생긴 지형에만 이름을 붙인다. 가장 길게 이어진 구간에 이름을 단다.
@@ -206,7 +211,7 @@ function drawSection(canvas, m) {
     boxes.push({ x: cx, y: cy, w });
     say(text, cx, cy, color, 20);
   };
-  for (const [kd, name, color] of [['high', '고위 평탄면', '#ffe08a'], ['low', '저위 평탄면', '#bfe9a8']]) {
+  for (const [kd, name, color] of [['high', '고위 평탄면', (DK ? '#ffe08a' : '#a8780a')], ['low', '저위 평탄면', (DK ? '#bfe9a8' : '#4f6b1c')]]) {
     let best = null, a = -1;
     for (let t = 0; t <= samples; t++) { const on = t < samples && p.kinds[t] === kd; if (on && a < 0) a = t; if (!on && a >= 0) { if (!best || t - 1 - a > best[1] - best[0]) best = [a, t - 1]; a = -1; } }
     if (best && best[1] - best[0] >= 2) { let top = -99; for (let t = best[0]; t <= best[1]; t++) top = Math.max(top, p.top[t]); place(name, x((best[0] + best[1]) / 2), yOf(top) - 16, color); }
@@ -215,10 +220,12 @@ function drawSection(canvas, m) {
   // 서쪽 하천 골짜기만 본다(3D 이름표와 같게). 동쪽 급경사의 골짜기는 뺀다.
   let dk = -1;
   for (let t = 0; t < samples; t++) if (p.kinds[t] !== 'sea' && p.S.ax + ((p.S.bx - p.S.ax) * t) / (samples - 1) < XD && (dk < 0 || p.surf[t] - p.top[t] > p.surf[dk] - p.top[dk])) dk = t;
-  if (dk >= 0 && (p.surf[dk] - p.top[dk]) * H_M >= 100) place('골짜기', x(dk), Math.min(base - 4, yOf(p.top[dk]) + 30), '#8fd6ff');
-  if (m.options.mode === 'tilt' && m.liftFrac() > 0.2 && firstSea > 0) place('동쪽 급경사', x(firstSea - 18), yOf(p.surf[firstSea - 18]) - 22, '#ffb38a');
-  say('A 서쪽', 18, 30, '#ffd36b', 22, 'left'); say('동해 B', W - 18, 30, '#ffd36b', 22, 'right');
-  ctx.textAlign = 'left'; ctx.font = '700 18px "Malgun Gothic",sans-serif'; ctx.fillStyle = '#efe9d8';
+  if (dk >= 0 && (p.surf[dk] - p.top[dk]) * H_M >= 100) place('골짜기', x(dk), Math.min(base - 4, yOf(p.top[dk]) + 30), (DK ? '#8fd6ff' : '#1d5f9e'));
+  if (m.options.mode === 'tilt' && m.liftFrac() > 0.2 && firstSea > 0) place('동쪽 급경사', x(firstSea - 18), yOf(p.surf[firstSea - 18]) - 22, (DK ? '#ffb38a' : '#b4471c'));
+  say('A 서쪽', 18, 30, P.hi, 22, 'left'); say('동해 B', W - 18, 30, P.hi, 22, 'right');
+  // 라이트 모드에서는 땅 위에 깔린 설명 글이 묻히지 않게 아래에 밝은 띠를 깐다.
+  if (!DK) { ctx.fillStyle = P.bg; ctx.fillRect(1, H - 58, W - 2, 57); ctx.fillStyle = P.frame; ctx.fillRect(1, H - 58, W - 2, 1); }
+  ctx.textAlign = 'left'; ctx.font = '700 18px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.ink;
   ctx.fillText('흰 점선: 처음 땅, 옅은 점선: 깎이지 않았다면의 높이, 노랑: 고위 평탄면, 연두: 저위 평탄면', 14, H - 14);
   ctx.textAlign = 'right'; ctx.font = '18px "Malgun Gothic",sans-serif';
   ctx.fillText('세로 과장', W - 14, H - 34);
