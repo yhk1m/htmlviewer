@@ -71,14 +71,14 @@ const calProf = u => (1 - u) * 0.6 + (1 - u) * (1 - u) * 0.4;
 export const CAL_NAMES = ['화산 아래 마그마 방', '큰 분출과 꺼짐', '화구원이 생김', '중앙화구구와 칼데라호'];
 export const CAL_NOTES = [
   '화산 아래 마그마 방: 땅속 마그마 방 위에 큰 화산이 솟아 있습니다. 꼭대기에는 작은 분화구가 있습니다.',
-  '큰 분출과 꺼짐: 아주 큰 분출로 마그마가 한꺼번에 많이 빠져나갑니다. 화산재 기둥이 솟고 화쇄류가 비탈을 흘러내립니다. 받쳐 줄 것이 없어진 꼭대기는 둥근 단층을 따라 통째로 꺼져 내립니다.',
+  '큰 분출과 꺼짐: 아주 큰 분출로 마그마가 한꺼번에 많이 빠져나가, 마그마 방 위쪽에 빈 공간이 생깁니다. 화산재 기둥이 솟고 화쇄류가 비탈을 흘러내립니다. 땅속이 비어 불안정해진 꼭대기는 둥근 단층을 따라 통째로 꺼져 내리며 빈 공간을 메웁니다.',
   '화구원이 생김: 꺼진 솥 모양 분지가 칼데라이고, 둘레에 남은 산이 외륜산입니다. 무너진 비탈의 흙과 돌, 화산재가 바닥을 메워 평평한 화구원이 생깁니다. 울릉도 나리 분지가 화구원입니다.',
   '중앙화구구와 칼데라호: 칼데라 안에서 다시 분출해 작은 화산(중앙화구구)이 솟고, 바닥에 물이 고이면 칼데라호가 됩니다. 울릉도 알봉이 중앙화구구이고, 백두산 천지가 칼데라호입니다. 울릉도 칼데라에는 큰 호수가 없습니다.',
 ];
-// 단계마다: 꼭대기 높이(y), 칼데라 바닥 높이(y, 없으면 0), 마그마 방 크기 비율, 중앙화구구 높이(픽셀), 호수 수면(y, 없으면 0)
+// 단계마다: 꼭대기 높이(y), 칼데라 바닥 높이(y, 없으면 0), 마그마 방에 남은 마그마 비율(나머지 위쪽은 빈 공간이었다가 꺼진 덩어리가 메운다), 중앙화구구 높이(픽셀), 호수 수면(y, 없으면 0)
 export const CAL_STAGE = [
   { summit: 74, floor: 0, chamber: 1, cone: 0, lake: 0 },
-  { summit: 74, floor: 262, chamber: 0.45, cone: 0, lake: 0 },
+  { summit: 74, floor: 262, chamber: 0.4, cone: 0, lake: 0 },
   { summit: 74, floor: 250, chamber: 0.4, cone: 0, lake: 0 },
   { summit: 74, floor: 250, chamber: 0.4, cone: 42, lake: 239 },
 ];
@@ -264,12 +264,27 @@ function calderaPanel(stage) {
     inner += `<rect x="${cx - ring}" y="0" width="${2 * ring}" height="${H}" fill="${OLD}"/>` + b;
     if (stage >= 2) inner += `<rect data-atrio="1" x="${cx - ring}" y="${st.floor}" width="${2 * ring}" height="${f1(Math.max(0, 290 - st.floor))}" fill="${GRAVEL}"/>`;
   }
-  // 마그마 방과 화도
-  const rx = 190 * (0.45 + 0.55 * st.chamber), ry = 34 * (0.4 + 0.6 * st.chamber);
-  inner += `<ellipse data-chamber="1" cx="${cx}" cy="${H - 26}" rx="${f1(rx)}" ry="${f1(ry)}" fill="${MAGMA}"/><ellipse cx="${cx}" cy="${H - 22}" rx="${f1(rx * 0.55)}" ry="${f1(ry * 0.5)}" fill="${MAGMA_HOT}"/>`;
+  // 마그마 방과 화도. 방의 크기는 그대로이고, 마그마가 빠져나간 위쪽은 빈 공간(공동)이 된다.
+  // 단계 1(꺼지는 중)은 빈 공간 위로 덩어리가 내려앉는 중이고, 단계 2부터는 내려앉은 덩어리가 빈 공간을 메웠다.
+  const rx = 190, ry = 34, cy0 = H - 26, mTop = cy0 + ry - 2 * ry * st.chamber;
+  inner += `<ellipse data-chamber="1" cx="${cx}" cy="${cy0}" rx="${rx}" ry="${ry}" fill="${MAGMA}"/><ellipse cx="${cx}" cy="${H - 18}" rx="${f1(rx * 0.55)}" ry="${f1(ry * 0.35)}" fill="${MAGMA_HOT}"/>`;
+  if (st.chamber < 1) {
+    const voidTop = stage === 1 ? cy0 - ry + (mTop - (cy0 - ry)) * 0.45 : mTop;
+    const half = x => ry * Math.sqrt(Math.max(0, 1 - ((x - cx) / rx) ** 2));
+    const xs = range(cx - rx, cx + rx, 4);
+    // 빈 공간: 지붕(내려앉은 만큼)과 마그마 윗면 사이
+    const top = xs.map(x => [x, Math.min(mTop, Math.max(cy0 - half(x), voidTop))]);
+    const bot = xs.map(x => [x, Math.min(mTop, cy0 + half(x))]).reverse();
+    if (stage === 1) inner += `<polygon data-void="1" points="${pts([...top, ...bot])}" fill="#141010"/>`;
+    // 빈 공간으로 내려앉은 바위(단계 1은 조금, 단계 2부터는 다 메움)
+    const rock = xs.map(x => [x, cy0 - half(x)]), fillTo = xs.map(x => [x, Math.min(mTop, Math.max(cy0 - half(x), voidTop))]).reverse();
+    inner += `<polygon points="${pts([...rock, ...fillTo])}" fill="${OLD}"/>`;
+    inner += `<path d="M${cx - rx + 20} ${f1(mTop)}H${cx + rx - 20}" stroke="${MAGMA_HOT}" stroke-width="2"/>`;
+  }
   if (stage === 0 || stage === 1 || stage === 3) {
     const tx = stage === 3 ? cx - 30 : cx;
-    inner += `<path d="M${tx - 4} ${H - 30}L${tx - 3} ${f1(calSurface(tx, stage))}L${tx + 3} ${f1(calSurface(tx, stage))}L${tx + 4} ${H - 30}Z" fill="${MAGMA}"/>`;
+    const vb = Math.min(H - 30, mTop + 2);
+    inner += `<path d="M${tx - 4} ${f1(vb)}L${tx - 3} ${f1(calSurface(tx, stage))}L${tx + 3} ${f1(calSurface(tx, stage))}L${tx + 4} ${f1(vb)}Z" fill="${MAGMA}"/>`;
   }
   s += clipOf([...surf, [W, H], [0, H]], inner);
   // 둥근 단층
@@ -283,6 +298,7 @@ function calderaPanel(stage) {
   let n = '';
   n += say('chamber', '마그마 방', cx - rx - 56, H - 20, '#ffd0a0', 16);
   if (stage === 0) n += plain('분화구', cx, 50, '#e6e2d4', 13);
+  if (stage === 1) n += say('chamber', '빈 공간', cx, cy0 - 2, '#f3e6d6', 13);
   if (stage === 1) {
     n += say('pyro', '화쇄류', cx - 230, 196, LIGHT, 16) + say('pyro', '화쇄류', cx + 230, 196, LIGHT, 16);
     n += plain('화산재 기둥', cx + 70, 34, '#e6e2d4', 13);

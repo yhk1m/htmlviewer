@@ -9,7 +9,7 @@ import { QUALITY, currentQuality, setupQualityButton } from '../../shared/qualit
 import { createFpsMeter } from '../../shared/fps.js';
 import { createLabelLayer } from '../../shared/labels.js';
 import { setupPivot } from '../../shared/pivot.js';
-import { createModel, noteText, volcanoReport, compareBrief, N, NY, CX, CY, BOTTOM_M, VISC, VENT, TOP, TUBE_FLOW, COLUMN_FLOW } from './model.js';
+import { createModel, noteText, volcanoReport, compareBrief, N, NY, CX, CY, BOTTOM_M, CHAMBER, VISC, VENT, TOP, TUBE_FLOW, COLUMN_FLOW } from './model.js';
 import { createBlock, drawCut, worldY } from './block.js';
 import { figPalette, isDark, bg3d } from '../../shared/theme.js';
 
@@ -179,7 +179,7 @@ function drawSection(canvas, m) {
   };
   const ink = P.ink, hot = DK ? '#ffb27a' : '#a33a12', water = DK ? '#8fd6ff' : '#1d5f9e', rock = DK ? '#e8dcc0' : '#4a3a20';
   const ph = m.phase();
-  if (ph !== 'sea') put('마그마', g.X(CX) + 150, g.YM(-440), hot, 24);
+  if (ph !== 'sea') put('마그마 방', g.X(CX) + 250, g.YM(CHAMBER.z) + 8, hot, 24);
   if (r.island) {
     put('현무암 용암 층 (순상화산)', g.X(CX - 0.72 * m.plan.shoreR), g.YM(g.top[Math.round(CX - 0.6 * m.plan.shoreR)]) - 26, ink, 24);
   }
@@ -187,7 +187,7 @@ function drawSection(canvas, m) {
   if (m.lake) put('화구호', g.X(CX), g.YM(m.lake.level) - 40, water, 24);
   if (m.options.top === 'caldera') {
     const R = m.calderaR();
-    if (ph === 'bigEruption') put('마그마가 빠져나감', g.X(CX) - 170, g.YM(-440), hot, 24);
+    if (m.chamberFill < 0.95 && m.voidClose < 0.6) put('빈 공간 (마그마가 빠져나감)', g.X(CX), g.YM(CHAMBER.z + 0.55 * CHAMBER.h), ink, 22);
     if (m.craterGrow > 0) put('둥근 단층', g.X(CX - R) - 70, g.YM(0) - 20, ink, 22);
     if (m.craterGrow > 0.5) put('칼데라 (꼭대기가 꺼짐)', g.X(CX), g.YM(m.rimZ) - 50, ink, 24);
     if (m.atrio && m.atrio.af > 0.3) put('화구원 (메워진 바닥)', g.X(CX + 0.45 * R), g.YM(m.atrio.high) + 34, rock, 22);

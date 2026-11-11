@@ -3,7 +3,7 @@
 // 높이는 VE배로 키워 그린다(가로 1칸 = 150m를 1로 그린다).
 // 옆면 넷에는 땅속 단면을 그림으로 붙인다. 앞면은 분화구 한가운데를 지나, 용암 층, 용암원정구, 화도와 마그마, 용암 동굴, 주상절리가 보인다.
 import * as THREE from 'three';
-import { N, NY, CX, CY, CELL_M, BOTTOM_M, NF, TUBE_FLOW, COLUMN_FLOW, MAT, T_START, FLOW_GAP, FLOW_DUR, T_DOME, DOME_DUR } from './model.js';
+import { N, NY, CX, CY, CELL_M, BOTTOM_M, CHAMBER, NF, TUBE_FLOW, COLUMN_FLOW, MAT, T_START, FLOW_GAP, FLOW_DUR, T_DOME, DOME_DUR } from './model.js';
 
 const CX0 = (N - 1) / 2, CY0 = (NY - 1) / 2;
 export const VE = 3; // 그림에서 높이를 키우는 배율. 계산 값은 그대로다.
@@ -100,14 +100,20 @@ export function drawCut(ctx, W, H, model, face, opt) {
     for (let px = X(c.x0) + step / 2; px < X(c.x1); px += step) { ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px + (hash(px, 1) - 0.5) * 2, H); ctx.stroke(); }
     ctx.restore();
   }
-  // 용암원정구(조면암): 끈끈한 용암이 솟아 굳은 덩어리. 휘어진 줄은 용암이 밀려 올라온 흐름 자국이다.
+  // 용암원정구(조면암): 끈끈한 용암이 화구에서 솟아 굳은 덩어리. 화구 위에서 겹겹이 부풀어 오른 껍질 자국(안쪽일수록 나중에 밀려 올라온 용암)을 그린다.
   const domeHot = t0 > T_DOME && t0 < T_DOME + DOME_DUR + 1;
   band(t => zs[t], t => Math.max(zs[t], zd[t]), domeHot ? '#d8693a' : COL.trachyte);
   if (face.front) {
+    const dh = t => (t < 0 || t > n - 1 ? 0 : zd[Math.round(t)] - zs[Math.round(t)]);
     ctx.strokeStyle = domeHot ? COL.magmaHot : COL.trachyteLine; ctx.lineWidth = 1.2;
     for (let q = 1; q <= 4; q++) {
+      const f = q / 5;
       ctx.beginPath();
-      for (let t = 0; t < n; t++) { const h = zd[t] - zs[t]; if (h > 15) ctx.lineTo(X(t), YM(zs[t] + h * q / 5)); else ctx.moveTo(X(t), YM(zs[t])); }
+      let on = false;
+      for (let t = 0; t < n; t++) {
+        const h = f * dh(CX + (t - CX) / f);
+        if (h > 12 && dh(t) > 15) { const y = YM(zs[t] + h); if (on) ctx.lineTo(X(t), y); else ctx.moveTo(X(t), y); on = true; } else on = false;
+      }
       ctx.stroke();
     }
   }
@@ -131,21 +137,53 @@ export function drawCut(ctx, W, H, model, face, opt) {
   // 화도와 마그마가 모인 곳(앞면)
   if (face.front) {
     const left = CX - CR;
-    // 마그마가 모인 곳: 칼데라 쪽은 큰 분출로 마그마가 빠져 작아진다.
-    const fillF = model.chamberFill ?? 1;
-    const mx = X(CX), my = YM(-470), rx = sx * 15 * (0.55 + 0.45 * fillF), ry = Math.max(8, (YM(-470) - YM(-400)) * fillF);
-    ctx.beginPath(); ctx.ellipse(mx, my, rx, ry, 0, 0, 7); ctx.fillStyle = COL.magma; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(mx, my, rx * 0.6, ry * 0.5, 0, 0, 7); ctx.fillStyle = COL.magmaHot; ctx.fill();
+    // 마그마 방(책 522쪽 그림처럼): 큰 분출로 마그마가 빠져나가면 방 위쪽이 빈 공간(공동)이 된다.
+    // 꼭대기가 꺼지기 시작하면 둥근 단층 안쪽 덩어리가 그 빈 공간으로 내려앉아 공간이 메워진다.
+    const fillF = model.chamberFill ?? 1, close = model.voidClose ?? 0;
+    const mx = X(CX), my = YM(CHAMBER.z), rx = sx * CHAMBER.R, ry = YM(CHAMBER.z - CHAMBER.h) - my;
+    const mTop = my + ry - 2 * ry * fillF; // 마그마 윗면(그림 y)
+    const roofY = dx => { const e = 1 - (dx * dx) / (rx * rx); return my - ry * Math.sqrt(Math.max(0, e)); };
+    const roofNow = dx => { const r0 = roofY(dx); return r0 + (Math.max(r0, mTop) - r0) * close; }; // 내려앉은 지붕
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(mx, my, rx, ry, 0, 0, 7); ctx.clip();
+    ctx.fillStyle = COL.magma; ctx.fillRect(mx - rx, mTop, 2 * rx, 2 * ry + 4);
+    ctx.beginPath(); ctx.ellipse(mx, Math.max(my, mTop + ry * 0.5), rx * 0.6, ry * 0.35 * Math.max(0.4, fillF), 0, 0, 7); ctx.fillStyle = COL.magmaHot; ctx.fill();
+    if (fillF < 0.999) {
+      // 빈 공간: 지붕과 마그마 윗면 사이
+      ctx.beginPath();
+      for (let px = -rx; px <= rx; px += 2) ctx.lineTo(mx + px, roofNow(px));
+      ctx.lineTo(mx + rx, mTop); ctx.lineTo(mx - rx, mTop); ctx.closePath();
+      ctx.fillStyle = COL.tubeAir; ctx.fill();
+      // 내려앉는 덩어리: 지붕 위 바위가 아래로 옮겨진다.
+      if (close > 0) {
+        ctx.beginPath();
+        for (let px = -rx; px <= rx; px += 2) ctx.lineTo(mx + px, roofY(px));
+        for (let px = rx; px >= -rx; px -= 2) ctx.lineTo(mx + px, roofNow(px));
+        ctx.closePath(); ctx.fillStyle = COL.bed; ctx.fill();
+      }
+      ctx.beginPath(); ctx.moveTo(mx - rx, mTop); ctx.lineTo(mx + rx, mTop); ctx.strokeStyle = COL.magmaHot; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.restore();
+    ctx.beginPath(); ctx.ellipse(mx, my, rx, ry, 0, 0, 7); ctx.strokeStyle = 'rgba(40,20,12,0.7)'; ctx.lineWidth = 1.4; ctx.stroke();
     // 화도: 분출 중이면 뜨거운 마그마, 멈추면 굳은 암맥
     const hot = model.erupting && model.vents.some(v => Math.abs(v.x - CX) < 1);
-    const vz = top[CX], hw = Math.max(3, sx * 0.7);
-    ctx.beginPath(); ctx.moveTo(mx - hw, my - ry * 0.8); ctx.lineTo(mx - hw * 0.8, YM(vz)); ctx.lineTo(mx + hw * 0.8, YM(vz)); ctx.lineTo(mx + hw, my - ry * 0.8); ctx.closePath();
+    const vz = top[CX], hw = Math.max(3, sx * 0.7), vb = roofNow(0) + 2;
+    ctx.beginPath(); ctx.moveTo(mx - hw, vb); ctx.lineTo(mx - hw * 0.8, YM(vz)); ctx.lineTo(mx + hw * 0.8, YM(vz)); ctx.lineTo(mx + hw, vb); ctx.closePath();
     ctx.fillStyle = hot ? COL.magma : COL.dike; ctx.fill();
-    // 칼데라: 둘레의 둥근 단층을 따라 꼭대기가 내려앉는다.
+    // 칼데라: 둘레의 둥근 단층을 따라 꼭대기가 마그마 방 쪽으로 내려앉는다.
     if (cald) {
       ctx.setLineDash([10, 6]); ctx.strokeStyle = 'rgba(30,20,15,0.85)'; ctx.lineWidth = 2.4;
-      for (const xx of [left, 2 * CX - left]) { ctx.beginPath(); ctx.moveTo(X(xx), YM(top[Math.round(xx)] + 20)); ctx.lineTo(X(xx + (xx < CX ? 3 : -3)), my - ry); ctx.stroke(); }
+      for (const xx of [left, 2 * CX - left]) { const xb = xx + (xx < CX ? 2 : -2); ctx.beginPath(); ctx.moveTo(X(xx), YM(top[Math.round(xx)] + 20)); ctx.lineTo(X(xb), roofNow(X(xb) - mx)); ctx.stroke(); }
       ctx.setLineDash([]);
+      // 꺼지는 동안: 아래로 향한 화살표
+      if (close > 0 && close < 1) {
+        ctx.strokeStyle = 'rgba(25,18,14,0.9)'; ctx.fillStyle = 'rgba(25,18,14,0.9)'; ctx.lineWidth = 2.6;
+        for (const ox of [-0.5, 0, 0.5]) {
+          const ax = X(CX + ox * CR), ay0 = YM(-80), ay1 = YM(-80) + 40;
+          ctx.beginPath(); ctx.moveTo(ax, ay0); ctx.lineTo(ax, ay1); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ax - 7, ay1 - 8); ctx.lineTo(ax, ay1 + 4); ctx.lineTo(ax + 7, ay1 - 8); ctx.closePath(); ctx.fill();
+        }
+      }
     }
   }
   // 용암 동굴(앞면): 굳은 겉 아래로 용암이 흐르다가 빠져나가면 빈 굴이 남는다. 잘 보이게 높이를 키워 그린다.

@@ -21,7 +21,8 @@ export const CX = 62; // 분화구(용암이 나오는 곳) x
 export const CY = NY - 1; // 분화구 y: 앞면 위에 있어 앞면이 화산 한가운데를 자른다.
 export const ROUND = 0.25; // 계산 한 번의 때(초)
 export const SEA_D = 100; // 처음 바다 깊이(m, 대륙붕)
-export const BOTTOM_M = -500; // 블록 바닥(m)
+export const BOTTOM_M = -900; // 블록 바닥(m). 마그마 방이 단면 안에 다 보이도록 깊게 잡았다.
+export const CHAMBER = { z: -640, h: 230, R: 15 }; // 마그마 방 가운데 높이(m), 반높이(m), 반너비(칸)
 export const NF = 10; // 용암이 흐른 횟수(실제보다 훨씬 적게 줄여, 한 번에 두껍게 흐른다)
 export const T_START = 3; // 바다 밑 분출 시작
 export const FLOW_GAP = 2; // 용암이 흐르는 사이(초)
@@ -250,14 +251,15 @@ export function createModel(seed = 7) {
       zs[k] = s; mat[k] = lastT >= 0 ? MAT.BASALT : MAT.SEAFLOOR; age[k] = lastT; heat[k] = h;
     }
     // 2. 용암원정구
-    const domeOn = VISC[m.options.visc].dome, dg = domeOn ? ease(clamp((t - T_DOME) / DOME_DUR)) : 0, Rd = DOME.R * (0.6 + 0.4 * dg);
+    // 책(518쪽): 끈적한 용암이 화구를 꽉 채우며 천천히 올라와 굳는다. 그래서 화구 위의 작은 혹에서 시작해 높아지면서 옆으로 부푼다.
+    const dp = clamp((t - T_DOME) / DOME_DUR), domeOn = VISC[m.options.visc].dome, dg = domeOn ? dp * dp * (3 - 2 * dp) : 0, Rd = DOME.R * (0.25 + 0.75 * Math.sqrt(dg));
     m.domeGrow = dg;
     zd.set(zs);
     if (dg > 0) {
       for (let j = Math.max(0, CY - DOME.R - 1); j < NY; j++) for (let i = CX - DOME.R - 1; i <= CX + DOME.R + 1; i++) {
         const k = j * N + i, dx = i - CX, dy = j - CY, u = Math.sqrt(dx * dx + dy * dy) / Rd;
         if (u >= 1) continue;
-        const u2 = u * u, add = DOME.H * dg * (1 - u2 * u2) * (0.92 + 0.16 * n2(i * 1.7, j * 1.7));
+        const u2 = u * u, add = DOME.H * dg * ((1 - dg) * (1 - u2) + dg * (1 - u2 * u2)) * (0.92 + 0.16 * n2(i * 1.7, j * 1.7));
         zd[k] += add;
         if (add > 8) { mat[k] = MAT.TRACHYTE; age[k] = Math.min(t, T_DOME + DOME_DUR); }
         if (t < T_DOME + DOME_DUR + 1.5) heat[k] = Math.max(heat[k], 0.7 * clamp(add / 60) * (t <= T_DOME + DOME_DUR ? 1 : 1 - (t - T_DOME - DOME_DUR) / 1.5));
@@ -277,8 +279,9 @@ export function createModel(seed = 7) {
     zc.set(zd);
     const cg = caldera ? ease(clamp((t - T_COLLAPSE) / COLLAPSE_DUR)) : ease(clamp((t - T_CRATER) / CRATER_DUR));
     m.craterGrow = cg;
-    // 마그마 방에 남은 마그마: 칼데라 쪽은 큰 분출 동안 많이 빠져나간다.
-    m.chamberFill = caldera ? 1 - 0.65 * clamp((t - T_CRATER) / (T_ATRIO - T_CRATER)) : 1;
+    // 마그마 방(책 522쪽): 큰 분출 동안 마그마가 빠져나가 방 위쪽이 빈 공간(공동)이 된다. 그 뒤 꼭대기가 꺼지면서 내려앉은 덩어리가 빈 공간을 메운다.
+    m.chamberFill = caldera ? 1 - 0.65 * clamp((t - T_CRATER) / (T_COLLAPSE - 0.5 - T_CRATER)) : 1; // 꺼지기 0.5초 전에 다 빠져, 빈 공간을 잠시 볼 수 있다.
+    m.voidClose = caldera ? cg : 0;
     m.summitCone = null; m.atrio = null;
     if (cg > 0 && !caldera) {
       const rim = Math.min(zd[CY * N + CX - CRATER.R], zd[CY * N + CX + CRATER.R], zd[(CY - CRATER.R) * N + CX]), floor = rim - CRATER.D, rr = Math.ceil(CRATER.R) + 1;
@@ -569,8 +572,8 @@ export function noteText(m) {
   if (ph === 'summitFlow') return '늦은 시기에 꼭대기에서 다시 용암이 나옵니다. 이번 용암도 규산이 적어 유동성이 큰(묽은) 용암이므로, 꼭대기에 쌓이지 않고 산허리를 따라 멀리 흘러 퍼집니다. 그래서 꼭대기가 종 모양으로 솟지 않고, 순상화산의 완만한 꼭대기가 그대로 남습니다. 용암의 특성을 점성↑(점성이 큰, 끈끈한 용암)으로 바꾸면 한라산 정상부처럼 종 모양으로 솟는 모습을 볼 수 있습니다. 그 뒤 산허리와 바닷가에서 작은 분출이 이어집니다.';
   if (ph === 'dome') return '늦은 시기에 꼭대기에서 규산이 많은 조면암질 용암이 나옵니다. 아주 끈적해 흐르지 못하고 분화구 위에 천천히 부풀어 올라 굳으므로, 경사가 급한 종 모양 화산이 됩니다. 이것이 용암원정구(종상화산)입니다. 한라산 정상부가 이렇게 생겼고(약 16만 년 전), 제주 산방산도 용암원정구입니다. 그 뒤 산허리와 바닷가에서 작은 분출이 이어집니다.';
   if (ph === 'crater') return '마지막으로 꼭대기에서 폭발이 일어나 깔때기 모양의 분화구(화구)가 생겼습니다. 비가 오면 분화구에 물이 고여 화구호가 됩니다. 한라산 백록담은 약 2만 5천 년 전에 생긴 분화구에 물이 고인 화구호이며, 칼데라가 아닙니다.';
-  if (ph === 'bigEruption') return '마지막으로 꼭대기에서 아주 큰 분출이 일어납니다. 화산재가 높이 솟고, 뜨거운 화산재와 돌 조각이 비탈을 빠르게 흘러내립니다(화쇄류). 이때 땅속 마그마 방의 마그마가 한꺼번에 많이 빠져나갑니다. 앞면 단면에서 마그마 방이 작아지는 것을 보세요. 이 모형은 칼데라가 생기는 차례만 울릉도를 본떴습니다. 실제 울릉도는 물 위로 드러난 부분이 조면암 등으로 이루어진 경사가 급한 종 모양이고, 바닷속 부분이 순상화산과 비슷합니다.';
-  if (ph === 'collapse') return '마그마가 빠져나가 받쳐 줄 것이 없어지자, 꼭대기가 둥근 단층을 따라 덩어리째 꺼져 내립니다. 이렇게 생긴 솥 모양의 큰 분지가 칼데라입니다. 화구는 폭발로 꼭대기에 뚫린 구멍이고, 칼데라는 땅이 꺼져 생긴 것이라 화구보다 훨씬 크며 지름이 수 km에 이르기도 합니다. 꺼지지 않고 둘레에 남은 산을 외륜산이라고 하며, 울릉도 성인봉에서 북쪽으로 뻗은 능선이 외륜산입니다. 울릉도 칼데라는 약 1만 년 전에 생겼다고 봅니다.';
+  if (ph === 'bigEruption') return '마지막으로 꼭대기에서 아주 큰 분출이 일어납니다. 화산재가 높이 솟고, 뜨거운 화산재와 돌 조각이 비탈을 빠르게 흘러내립니다(화쇄류). 이때 땅속 마그마 방의 마그마가 한꺼번에 많이 빠져나가, 마그마 방 위쪽에 빈 공간이 생깁니다. 앞면 단면에서 마그마 방 위쪽이 비어 가는 것을 보세요. 땅속이 비어 화산 몸체를 받쳐 줄 것이 없어집니다. 이 모형은 칼데라가 생기는 차례만 울릉도를 본떴습니다. 실제 울릉도는 물 위로 드러난 부분이 조면암 등으로 이루어진 경사가 급한 종 모양이고, 바닷속 부분이 순상화산과 비슷합니다.';
+  if (ph === 'collapse') return '마그마 방에 생긴 빈 공간 때문에 불안정해진 꼭대기가 둥근 단층을 따라 덩어리째 꺼져 내리고, 내려앉은 덩어리가 빈 공간을 메웁니다. 이렇게 생긴 솥 모양의 큰 분지가 칼데라입니다. 화구는 폭발로 꼭대기에 뚫린 구멍이고, 칼데라는 땅이 꺼져 생긴 것이라 화구보다 훨씬 크며 지름이 수 km에 이르기도 합니다. 꺼지지 않고 둘레에 남은 산을 외륜산이라고 하며, 울릉도 성인봉에서 북쪽으로 뻗은 능선이 외륜산입니다. 울릉도 칼데라는 약 1만 년 전에 생겼다고 봅니다.';
   if (ph === 'atrio') return '칼데라 벽에서 무너져 내린 흙과 돌, 그 뒤에 쌓인 화산재가 바닥을 메워 평평한 땅이 생깁니다. 이것이 화구원입니다. 울릉도 칼데라 바닥은 북쪽의 나리 분지(약 350m)와 남쪽의 알봉 분지(약 450m)로 나뉘어 높이가 다른 계단 모양입니다. 이 모형에서도 앞쪽(남쪽) 바닥이 뒤쪽보다 높습니다.';
   if (ph === 'central') return '칼데라 안에서 다시 작은 분출이 일어나 작은 화산이 솟습니다. 이것이 중앙화구구입니다. 울릉도 알봉이 중앙화구구로, 약 6,300년 전에 생겼으며 두 화구원 사이에 있습니다. 칼데라와 그 안의 중앙화구구가 함께 있어 나리 분지 일대를 복합 화산이라고 합니다. 백두산 천지처럼 칼데라에 물이 고이면 칼데라호가 됩니다.';
   if (ph === 'cones') return '큰 화산의 산허리나 바닷가에서 작은 분출이 일어나 작은 화산이 생깁니다. 이것을 측화산(기생화산)이라고 하며, 제주에서는 오름이라고 부릅니다. 땅 위에서 터지면 구멍이 많은 붉고 검은 돌 조각(스코리아, 제주말 송이)이 화구 둘레에 쌓여 경사가 급한 분석구가 됩니다. 용암이 한쪽으로 흘러나가 화구 한쪽이 터진 말굽형 분석구도 많습니다.'
