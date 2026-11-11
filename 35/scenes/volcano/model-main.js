@@ -77,9 +77,8 @@ let compare = false, panelBeforeCompare = false, setPanel = () => {};
 const labels = createLabelLayer(document.getElementById('labels'));
 labels.add('sea', '얕은 바다', '대륙붕', 'water');
 labels.add('shield', '순상화산', '묽은 용암이 넓게 흘러 완만함', 'body');
-labels.add('body', '좁고 급한 화산체', '끈적한 용암이 가까이 쌓임', 'body');
 labels.add('flow', '용암류', '흐르는 용암', 'hot');
-labels.add('dome', '용암원정구', '끈끈한 용암이 솟아 굳음', 'body');
+labels.add('dome', '용암원정구', '점성이 큰 용암이 솟아 굳음', 'body');
 labels.add('crater', '분화구', '꼭대기 폭발로 생김', 'body');
 labels.add('craterLake', '화구호', '분화구에 물이 고임', 'water');
 labels.add('bigEruption', '큰 분출', '마그마가 한꺼번에 빠져나감', 'hot');
@@ -123,11 +122,10 @@ function syncLabels() {
     if (isPhone() && PHONE_CORE.includes(key)) priority += 10;
     if (s && s.x > left && s.x < right && s.y > 40 && s.y < bottom) list.push({ key, ...s, priority, keep });
   };
-  const thin = model.options.visc === 'thin';
   // 칼데라가 생기는 동안에는 꼭대기 이름표만 남겨 차례가 잘 보이게 한다.
   if (['bigEruption', 'collapse', 'atrio', 'central'].includes(model.phase())) for (const k of ['shield', 'scoria', 'horseshoe', 'tuffcone', 'tuffring', 'tube', 'column']) delete p[k];
   put('sea', p.sea, 0.5, 6, false);
-  put(thin ? 'shield' : 'body', p.shield, 0.5, 12);
+  put('shield', p.shield, 0.5, 12);
   put('flow', p.flow, 1, 9, false);
   put('dome', p.dome, 0.5, 12);
   put('crater', p.crater, 0.5, 11);
@@ -183,7 +181,7 @@ function drawSection(canvas, m) {
   const ph = m.phase();
   if (ph !== 'sea') put('마그마', g.X(CX) + 150, g.YM(-440), hot, 24);
   if (r.island) {
-    put(m.options.visc === 'thin' ? '현무암 용암 층 (순상화산)' : '용암 층 (좁고 급한 화산체)', g.X(CX - 0.72 * m.plan.shoreR), g.YM(g.top[Math.round(CX - 0.6 * m.plan.shoreR)]) - 26, ink, 24);
+    put('현무암 용암 층 (순상화산)', g.X(CX - 0.72 * m.plan.shoreR), g.YM(g.top[Math.round(CX - 0.6 * m.plan.shoreR)]) - 26, ink, 24);
   }
   if (m.domeGrow > 0.4 && !(m.options.top === 'caldera' && m.craterGrow > 0.5)) put('용암원정구', g.X(CX) + 120, g.YM(g.top[CX + 4]) - 30, rock, 24);
   if (m.lake) put('화구호', g.X(CX), g.YM(m.lake.level) - 40, water, 24);
@@ -216,11 +214,10 @@ function drawSection(canvas, m) {
 }
 
 const PHASE_NAME = {
-  sea: '얕은 바다 밑에 마그마가 모임', subsea: '바다 밑에서 용암이 흘러 쌓임', shield: '묽은 용암이 넓게 흘러 섬이 됨', dome: '꼭대기에 용암원정구가 솟음',
+  sea: '얕은 바다 밑에 마그마가 모임', subsea: '바다 밑에서 용암이 흘러 쌓임', shield: '묽은 용암이 넓게 흘러 섬이 됨', dome: '꼭대기에 용암원정구가 솟음', summitFlow: '꼭대기의 묽은 용암이 흘러 퍼짐',
   crater: '마지막 분출로 분화구가 생기고 물이 고임', bigEruption: '큰 분출로 마그마가 빠져나감', collapse: '꼭대기가 꺼져 칼데라가 생김',
   atrio: '칼데라 바닥이 메워져 화구원이 됨', central: '칼데라 안에 중앙화구구가 솟음', cones: '측화산(오름)이 생김', today: '오늘날', done: '완성',
 };
-const PHASE_NAME_THICK = { shield: '끈적한 용암이 가까이 쌓여 섬이 됨' };
 const noteEl = document.getElementById('now'), statsEl = document.getElementById('stats');
 function syncInfo() {
   const ph = model.phase(), r = volcanoReport(model);
@@ -231,8 +228,8 @@ function syncInfo() {
   bar('coneBar', r.cones, 6); document.getElementById('coneVal').textContent = `${r.cones}개 (막대 끝 6개)`;
   bar('topBar', r.topKm, 4); document.getElementById('topVal').textContent = r.topKm ? `약 ${r.topKm}km${r.depthM ? `, 깊이 약 ${r.depthM}m` : ''} (막대 끝 4km)` : '아직 없음';
   document.getElementById('rateNote').textContent = r.text;
-  statsEl.innerHTML = `용암의 끈끈함 <b>${VISC[model.options.visc].name}</b>, 측화산이 터진 자리 <b>${VENT[model.options.vent].name}</b>, 마지막 분출 <b>${TOP[model.options.top].name}</b>`;
-  document.getElementById('phaseBadge').textContent = (model.options.visc === 'thick' && PHASE_NAME_THICK[ph]) || PHASE_NAME[ph];
+  statsEl.innerHTML = `용암의 특성 <b>${VISC[model.options.visc].name}</b>, 측화산이 터진 자리 <b>${VENT[model.options.vent].name}</b>, 마지막 분출 <b>${TOP[model.options.top].name}</b>`;
+  document.getElementById('phaseBadge').textContent = PHASE_NAME[ph];
   if (compare) {
     const br = compareBrief(model, modelB);
     noteEl.textContent = `왼쪽 블록(화구)은 ${br.a}. 오른쪽 블록(칼데라)은 ${br.b}. ${br.extra}`;

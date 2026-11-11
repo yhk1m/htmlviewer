@@ -46,13 +46,16 @@ export const T_END = 65;
 export const TUBE_FLOW = 7; // 용암 동굴이 생기는 용암(앞면을 따라 동쪽으로 흐른다)
 export const COLUMN_FLOW = 5; // 주상절리가 잘 보이는 두꺼운 용암(앞면을 따라 서쪽 바닷가로 흐른다)
 
+// 몸체(순상화산): 어느 조건이든 묽은 현무암질 용암이 넓게 흘러 쌓인다(책: 한라산 정상부를 뺀 제주도 몸체가 순상화산).
+export const BODY = { H: 680, R: 50, cone: false };
+// 용암의 특성: 늦은 시기 꼭대기에 나온 용암이 점성이 큰지(끈끈함) 유동성이 큰지(묽음). 끈적하면 용암원정구가 솟고(한라산 정상부), 묽으면 멀리 흘러 퍼져 종 모양으로 쌓이지 않는다.
 export const VISC = {
-  thin: { name: '묽음', H: 680, R: 50, cone: false },
-  thick: { name: '끈적', H: 1150, R: 28, cone: true },
+  thick: { name: '점성↑', dome: true },
+  thin: { name: '유동성↑', dome: false },
 };
 export const VENT = { land: { name: '땅 위' }, shore: { name: '얕은 바다' } };
 export const TOP = { crater: { name: '화구' }, caldera: { name: '칼데라' } };
-export const DEFAULTS = { visc: 'thin', vent: 'land', top: 'crater' };
+export const DEFAULTS = { visc: 'thick', vent: 'land', top: 'crater' };
 
 // 용암이 흐른 방향(앞면 쪽 y+는 블록 밖이라 뒤쪽과 옆쪽으로 흐른다). TUBE_FLOW는 동쪽(x+), COLUMN_FLOW는 서쪽(x-)
 const DIRS = [[0.3, -1], [-1, -0.5], [1, -0.4], [-0.35, -1], [0.75, -0.8], [-1, 0], [-0.7, -0.8], [1, 0], [0, -1], [-1, -0.2]];
@@ -117,7 +120,7 @@ export function createModel(seed = 7) {
   const plan = { cones: [], shoreR: 0, tube: null, column: null };
   m.plan = plan;
 
-  const V = () => VISC[m.options.visc];
+  const V = () => BODY;
   const flowStart = f => T_START + f * FLOW_GAP;
   let lastU = 0, lastAdv = 0; // 마지막으로 계산한 칸이 용암 앞머리에서 얼마나 떨어졌는지(불빛용)
   m.flowStart = flowStart;
@@ -139,7 +142,7 @@ export function createModel(seed = 7) {
     }
   }
   function lobe(f, i, j, t, full = false) {
-    if (lobeKey !== m.options.visc) { lobeKey = m.options.visc; buildLobes(); }
+    if (!lobeKey) { lobeKey = 'body'; buildLobes(); }
     const ts = flowStart(f);
     if (!full && t <= ts) return 0;
     const k = f * size + j * N + i, amp = lobeAmp[k];
@@ -247,7 +250,7 @@ export function createModel(seed = 7) {
       zs[k] = s; mat[k] = lastT >= 0 ? MAT.BASALT : MAT.SEAFLOOR; age[k] = lastT; heat[k] = h;
     }
     // 2. 용암원정구
-    const dg = ease(clamp((t - T_DOME) / DOME_DUR)), Rd = DOME.R * (0.6 + 0.4 * dg);
+    const domeOn = VISC[m.options.visc].dome, dg = domeOn ? ease(clamp((t - T_DOME) / DOME_DUR)) : 0, Rd = DOME.R * (0.6 + 0.4 * dg);
     m.domeGrow = dg;
     zd.set(zs);
     if (dg > 0) {
@@ -258,6 +261,16 @@ export function createModel(seed = 7) {
         zd[k] += add;
         if (add > 8) { mat[k] = MAT.TRACHYTE; age[k] = Math.min(t, T_DOME + DOME_DUR); }
         if (t < T_DOME + DOME_DUR + 1.5) heat[k] = Math.max(heat[k], 0.7 * clamp(add / 60) * (t <= T_DOME + DOME_DUR ? 1 : 1 - (t - T_DOME - DOME_DUR) / 1.5));
+      }
+    }
+    // 묽은 용암이 꼭대기에서 나오면 쌓이지 않고 산허리를 따라 멀리 흘러 내려간다(불빛만 보인다).
+    if (!domeOn && t > T_DOME && t < T_DOME + DOME_DUR + 1) {
+      const p = clamp((t - T_DOME) / DOME_DUR), front = 4 + 34 * p, cool = t <= T_DOME + DOME_DUR ? 1 : 1 - (t - T_DOME - DOME_DUR);
+      for (let j = 0; j < NY; j++) for (let i = 0; i < N; i++) {
+        const dx = i - CX, dy = j - CY, r = Math.sqrt(dx * dx + dy * dy);
+        // 앞쪽 오른편(x+)과 뒤쪽 두 갈래로 흐른다.
+        const lane = Math.min(Math.abs(dy + 0.25 * dx * (dx < 0 ? -1 : 0)), Math.abs(dx + 0.15 * dy));
+        if (r < front && lane < 1.6 + 0.04 * r) heat[j * N + i] = Math.max(heat[j * N + i], 0.55 * cool * clamp(1 - (front - r) / 12) + 0.15 * cool);
       }
     }
     // 3. 꼭대기: 분화구(화구) 또는 칼데라
@@ -280,7 +293,7 @@ export function createModel(seed = 7) {
     }
     zk.set(zc);
     if (caldera && t > T_CRATER) {
-      const R = calderaR(), rimZ = zd[CY * N + Math.round(CX + R)], floor = rimZ - 280 - 40 * (V().cone ? 1 : 0);
+      const R = calderaR(), rimZ = zd[CY * N + Math.round(CX + R)], floor = rimZ - 280;
       m.craterFloor = floor; m.rimZ = rimZ;
       const rr = Math.ceil(R) + 1, af = ease(clamp((t - T_ATRIO) / ATRIO_DUR));
       for (let j = Math.max(0, CY - rr); j < NY; j++) for (let i = Math.max(0, CX - rr); i <= Math.min(N - 1, CX + rr); i++) {
@@ -368,7 +381,7 @@ export function createModel(seed = 7) {
       const ts = flowStart(f);
       if (t > ts && t < ts + FLOW_DUR) vents.push({ x: CX, y: CY, z: zs[CY * N + CX], kind: zs[CY * N + CX] < 0 ? 'steam' : 'lava', s: 0.7 });
     }
-    if (dg > 0 && t < T_DOME + DOME_DUR) vents.push({ x: CX, y: CY, z: zd[CY * N + CX], kind: 'lava', s: 0.45 });
+    if (t > T_DOME && t < T_DOME + DOME_DUR) vents.push({ x: CX, y: CY, z: zd[CY * N + CX], kind: 'lava', s: domeOn ? 0.45 : 0.7 });
     if (!caldera && cg > 0 && t < T_CRATER + CRATER_DUR + 0.8) vents.push({ x: CX, y: CY, z: zc[CY * N + CX], kind: 'ash', s: 0.6 });
     if (caldera && t > T_CRATER && t < T_COLLAPSE + 1.2) vents.push({ x: CX, y: CY, z: zc[CY * N + CX], kind: 'ash', s: t < T_COLLAPSE ? 1 : 0.5 });
     for (const c of m.cones) if (!c.done) vents.push({ x: c.x, y: c.y, z: c.top, kind: c.kind === 'tuffcone' || c.kind === 'tuffring' ? 'steam' : 'lava', s: 0.6 });
@@ -381,7 +394,7 @@ export function createModel(seed = 7) {
     if (m.finished) return 'done';
     if (t < T_START) return 'sea';
     if (t < T_DOME) return m.maxZ < 0 ? 'subsea' : 'shield';
-    if (t < T_CONES) return 'dome';
+    if (t < T_CONES) return VISC[m.options.visc].dome ? 'dome' : 'summitFlow';
     if (t < T_CRATER) return 'cones';
     if (t < T_TODAY) {
       if (m.options.top !== 'caldera') return 'crater';
@@ -513,7 +526,8 @@ export function volcanoReport(m) {
   else {
     parts.push(`산 높이는 약 ${summitM}m, 섬 지름(동서)은 약 ${widthKm}km입니다.`);
     parts.push(`산허리는 1km를 가면 약 ${slope}m 높아집니다.`);
-    if (m.clock >= T_DOME) parts.push(thin ? '묽은 현무암질 용암이 멀리 퍼져 경사가 완만한 순상화산이 되었습니다.' : '끈적한 용암이 멀리 가지 못해 좁고 경사가 급한 화산체가 되었습니다.');
+    if (m.clock >= T_DOME) parts.push('묽은 현무암질 용암이 멀리 퍼져 경사가 완만한 순상화산이 되었습니다.');
+    if (thin && m.clock >= T_DOME + 1) parts.push('꼭대기에 나온 용암도 묽어 멀리 흘러 퍼졌으므로, 꼭대기가 종 모양으로 쌓이지 않고 완만한 그대로입니다.');
   }
   if (domeUp) parts.push('꼭대기에 경사가 급한 용암원정구가 솟았습니다.');
   if (m.lake && !caldera) parts.push('분화구에 물이 고여 화구호가 되었습니다.');
@@ -543,27 +557,25 @@ export function volcanoReport(m) {
   if (m.tube && m.tube.drained) parts.push('앞면 단면에 용암 동굴이 남았습니다.');
   else if (m.tube) parts.push('앞면 단면의 굳은 용암 속으로 뜨거운 용암이 흐르고 있습니다.');
   if (m.column) parts.push('두꺼운 용암이 식어 주상절리가 생겼습니다.');
-  if (done && !thin) parts.push('끈적한 용암에서는 용암 동굴이 잘 생기지 않습니다.');
   return { summitM, widthKm, slope, island, cones: nCones, scoria, horseshoe, tuffcone, tuffring, central, dome: domeUp, tube: !!(m.tube && m.tube.drained), column: !!m.column, lake: !!m.lake, topKm, depthM, atrio, flowsDone, text: parts.join(' ') };
 }
 
 export function noteText(m) {
   const ph = m.phase(), thin = m.options.visc === 'thin', caldera = m.options.top === 'caldera', shore = m.options.vent === 'shore';
   if (ph === 'sea') return '얕은 바다(대륙붕) 밑 깊은 땅속에서 마그마가 만들어져 위로 올라와 모입니다. 제주도는 이렇게 얕은 바다 위에서 생긴 화산섬입니다. 책은 우리나라 화산이 판의 경계가 아닌 열점에서 생긴 것으로 해석합니다. 다른 해석도 있습니다.';
-  if (ph === 'subsea') return (thin ? '바다 밑에서 묽은 현무암질 용암이 흘러나옵니다. 현무암질 용암은 규산(실리카)이 적어 온도가 높고 잘 흘러, 얇고 넓게 퍼집니다.' : '바다 밑에서 끈적한 용암이 흘러나옵니다. 규산(실리카)이 많은 용암일수록 온도가 낮고 끈적해 멀리 흐르지 못하고 분화구 가까이에 쌓입니다.')
+  if (ph === 'subsea') return '바다 밑에서 묽은 현무암질 용암이 흘러나옵니다. 현무암질 용암은 규산(실리카)이 적어 온도가 높고 잘 흘러, 얇고 넓게 퍼집니다.'
     + ' 물속으로 흘러나온 용암은 급히 식어 굳으며, 베개 모양으로 굳기도 합니다(베개 용암). 여러 번 흘러 쌓이면 화산이 점점 높아집니다.';
-  if (ph === 'shield') return thin
-    ? '용암이 바다 위로 나와 섬이 되었습니다. 묽은 현무암질 용암이 여러 번 사방으로 넓게 흘러 겹겹이 쌓이면, 너비가 높이보다 훨씬 크고 경사가 완만한 방패 모양 화산이 됩니다. 이것이 순상화산입니다. 흐르는 용암은 겉이 먼저 식어 굳고, 속의 뜨거운 용암은 계속 흘러 빠져나가 빈 굴(용암 동굴)이 남기도 합니다.'
-    : '용암이 바다 위로 나와 섬이 되었습니다. 끈적한 용암은 멀리 퍼지지 못해 분화구 둘레에 높게 쌓이므로, 묽은 용암보다 좁고 경사가 급한 화산체가 됩니다. 이런 몸체는 방패처럼 완만한 순상화산이라고 하기 어렵습니다.';
-  if (ph === 'dome') return '꼭대기에서 규산이 많은 조면암질 용암이 나옵니다. 아주 끈적해 흐르지 못하고 분화구 위에 천천히 부풀어 올라 굳으므로, 경사가 급한 종 모양 화산이 됩니다. 이것이 용암원정구(종상화산)입니다. 한라산 정상부가 이렇게 생겼고(약 16만 년 전), 제주 산방산도 용암원정구입니다. 그 뒤 산허리와 바닷가에서 작은 분출이 이어집니다.';
+  if (ph === 'shield') return '용암이 바다 위로 나와 섬이 되었습니다. 묽은 현무암질 용암이 여러 번 사방으로 넓게 흘러 겹겹이 쌓이면, 너비가 높이보다 훨씬 크고 경사가 완만한 방패 모양 화산이 됩니다. 이것이 순상화산입니다. 몸체는 조건과 상관없이 이렇게 생깁니다. 흐르는 용암은 겉이 먼저 식어 굳고, 속의 뜨거운 용암은 계속 흘러 빠져나가 빈 굴(용암 동굴)이 남기도 합니다.';
+  if (ph === 'summitFlow') return '늦은 시기에 꼭대기에서 다시 용암이 나옵니다. 이번 용암도 규산이 적어 유동성이 큰(묽은) 용암이므로, 꼭대기에 쌓이지 않고 산허리를 따라 멀리 흘러 퍼집니다. 그래서 꼭대기가 종 모양으로 솟지 않고, 순상화산의 완만한 꼭대기가 그대로 남습니다. 용암의 특성을 점성↑(점성이 큰, 끈끈한 용암)으로 바꾸면 한라산 정상부처럼 종 모양으로 솟는 모습을 볼 수 있습니다. 그 뒤 산허리와 바닷가에서 작은 분출이 이어집니다.';
+  if (ph === 'dome') return '늦은 시기에 꼭대기에서 규산이 많은 조면암질 용암이 나옵니다. 아주 끈적해 흐르지 못하고 분화구 위에 천천히 부풀어 올라 굳으므로, 경사가 급한 종 모양 화산이 됩니다. 이것이 용암원정구(종상화산)입니다. 한라산 정상부가 이렇게 생겼고(약 16만 년 전), 제주 산방산도 용암원정구입니다. 그 뒤 산허리와 바닷가에서 작은 분출이 이어집니다.';
   if (ph === 'crater') return '마지막으로 꼭대기에서 폭발이 일어나 깔때기 모양의 분화구(화구)가 생겼습니다. 비가 오면 분화구에 물이 고여 화구호가 됩니다. 한라산 백록담은 약 2만 5천 년 전에 생긴 분화구에 물이 고인 화구호이며, 칼데라가 아닙니다.';
-  if (ph === 'bigEruption') return '마지막으로 꼭대기에서 아주 큰 분출이 일어납니다. 화산재가 높이 솟고, 뜨거운 화산재와 돌 조각이 비탈을 빠르게 흘러내립니다(화쇄류). 이때 땅속 마그마 방의 마그마가 한꺼번에 많이 빠져나갑니다. 앞면 단면에서 마그마 방이 작아지는 것을 보세요. 이 꼭대기 모양은 울릉도를 본뜬 것입니다.';
+  if (ph === 'bigEruption') return '마지막으로 꼭대기에서 아주 큰 분출이 일어납니다. 화산재가 높이 솟고, 뜨거운 화산재와 돌 조각이 비탈을 빠르게 흘러내립니다(화쇄류). 이때 땅속 마그마 방의 마그마가 한꺼번에 많이 빠져나갑니다. 앞면 단면에서 마그마 방이 작아지는 것을 보세요. 이 모형은 칼데라가 생기는 차례만 울릉도를 본떴습니다. 실제 울릉도는 물 위로 드러난 부분이 조면암 등으로 이루어진 경사가 급한 종 모양이고, 바닷속 부분이 순상화산과 비슷합니다.';
   if (ph === 'collapse') return '마그마가 빠져나가 받쳐 줄 것이 없어지자, 꼭대기가 둥근 단층을 따라 덩어리째 꺼져 내립니다. 이렇게 생긴 솥 모양의 큰 분지가 칼데라입니다. 화구는 폭발로 꼭대기에 뚫린 구멍이고, 칼데라는 땅이 꺼져 생긴 것이라 화구보다 훨씬 크며 지름이 수 km에 이르기도 합니다. 꺼지지 않고 둘레에 남은 산을 외륜산이라고 하며, 울릉도 성인봉에서 북쪽으로 뻗은 능선이 외륜산입니다. 울릉도 칼데라는 약 1만 년 전에 생겼다고 봅니다.';
   if (ph === 'atrio') return '칼데라 벽에서 무너져 내린 흙과 돌, 그 뒤에 쌓인 화산재가 바닥을 메워 평평한 땅이 생깁니다. 이것이 화구원입니다. 울릉도 칼데라 바닥은 북쪽의 나리 분지(약 350m)와 남쪽의 알봉 분지(약 450m)로 나뉘어 높이가 다른 계단 모양입니다. 이 모형에서도 앞쪽(남쪽) 바닥이 뒤쪽보다 높습니다.';
   if (ph === 'central') return '칼데라 안에서 다시 작은 분출이 일어나 작은 화산이 솟습니다. 이것이 중앙화구구입니다. 울릉도 알봉이 중앙화구구로, 약 6,300년 전에 생겼으며 두 화구원 사이에 있습니다. 칼데라와 그 안의 중앙화구구가 함께 있어 나리 분지 일대를 복합 화산이라고 합니다. 백두산 천지처럼 칼데라에 물이 고이면 칼데라호가 됩니다.';
   if (ph === 'cones') return '큰 화산의 산허리나 바닷가에서 작은 분출이 일어나 작은 화산이 생깁니다. 이것을 측화산(기생화산)이라고 하며, 제주에서는 오름이라고 부릅니다. 땅 위에서 터지면 구멍이 많은 붉고 검은 돌 조각(스코리아, 제주말 송이)이 화구 둘레에 쌓여 경사가 급한 분석구가 됩니다. 용암이 한쪽으로 흘러나가 화구 한쪽이 터진 말굽형 분석구도 많습니다.'
     + (shore ? ' 얕은 바다에서 마그마가 바닷물과 만나면 물이 순식간에 수증기가 되며 크게 터집니다. 고운 화산재가 쌓여 굳은 응회암으로 화구가 큰 응회구(성산 일출봉)나, 더 낮고 넓게 퍼진 응회환(송악산, 수월봉)이 생깁니다.' : ' 측화산이 터진 자리를 얕은 바다로 바꾸면 물과 만나 터진 응회구와 응회환을 볼 수 있습니다.');
-  const tail = thin ? ' 앞면 단면에 보이는 용암 동굴은 흐르던 용암의 겉이 먼저 굳고 속이 빠져나가 생긴 굴입니다(제주 만장굴, 김녕굴). 석회 동굴과 달리 대체로 길고 모양이 단순합니다.' : ' 끈적한 용암은 겉과 속이 함께 천천히 멈춰 용암 동굴이 잘 생기지 않습니다.';
+  const tail = ' 앞면 단면에 보이는 용암 동굴은 흐르던 용암의 겉이 먼저 굳고 속이 빠져나가 생긴 굴입니다(제주 만장굴, 김녕굴). 석회 동굴과 달리 대체로 길고 모양이 단순합니다.';
   return '오늘날의 화산섬입니다. 오래된 용암 위는 흙과 풀, 숲이 덮었습니다. 두꺼운 용암이 식으며 부피가 줄면 갈라진 틈이 바위를 다각형 기둥 모양으로 나누는데, 이것이 주상절리입니다(서귀포 대포 해안). 기둥은 식는 면에 수직으로 생겨 대개 위아래로 길지만, 경주 양남처럼 누운 것도 있습니다. 현무암 땅은 틈이 많아 빗물이 땅속으로 잘 스며들어, 제주의 하천은 비가 올 때만 물이 흐르는 건천이 많고, 바닷가에서 지하수가 솟는 용천을 중심으로 마을이 생겼습니다.'
     + tail + (caldera ? ' 꼭대기가 크게 꺼진 칼데라는 울릉도와 백두산에서 볼 수 있습니다. 울릉도 나리 분지는 칼데라 바닥의 화구원이고, 백두산 천지는 칼데라에 물이 고인 칼데라호입니다. 한라산 꼭대기에는 칼데라가 없습니다.' : ' 제주도에는 오름이 360개가 넘습니다. 실제 제주도는 백만 년이 넘는 긴 시간에 걸쳐 여러 번의 분출로 생겼고, 그동안 해수면도 오르내렸습니다. 제주도가 생긴 차례에는 다른 해석도 있습니다.');
 }
