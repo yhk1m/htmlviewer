@@ -683,12 +683,12 @@ export function noteText(m) {
   if (m.lakes.some(l => l.fill >= MARSH_FROM && m.clock - l.born < FILL_SECONDS * MARSH_FROM + 8)) return MARSH_NOTE;
   if (m.neck && m.neck.gap < m.W() * 2.2) return '이웃한 두 굽이의 바깥쪽 강둑이 서로를 향해 깎이면서 그 사이 땅(곡류의 목)이 좁아지고 있습니다.';
   if (m.lakes.some(l => l.fill >= MARSH_FROM)) return MARSH_NOTE;
-  if (m.clock < 7) return `거의 곧은 강에서 시작합니다. 조금만 휘어도 물은 바깥쪽으로 쏠려 빨라지고 안쪽에서는 느려집니다. 지금 유량은 ${flow.name}입니다.${size}`;
-  if (m.sinuosity() < 1.6) return '굽이 바깥쪽은 물이 빠르고 깊어 강둑이 옆으로 깎입니다(측방 침식, 공격 사면). 안쪽은 물이 느려 깎인 모래가 쌓입니다(퇴적 사면). 그래서 물길이 조금씩 옆으로 옮겨 갑니다.';
-  return '굽이가 옆으로 커지면서 하류 쪽으로도 옮겨 갑니다. 물길이 지나간 안쪽 자리에는 그때마다의 강둑 자리가 줄무늬 모양의 낮은 모래 능선으로 남습니다.';
+  if (m.clock < 7) return `거의 곧은 강에서 시작합니다. 조금만 휘어도 물은 원심력 때문에 바깥쪽으로 쏠려 빨라지고 안쪽에서는 느려집니다. 지금 유량은 ${flow.name}입니다.${size}`;
+  if (m.sinuosity() < 1.6) return '굽이 바깥쪽은 수면의 물이 몰려 바닥으로 내려가므로 물이 빠르고 깊어 강둑이 옆으로 깎입니다(측방 침식, 공격 사면). 바닥을 따라 안쪽으로 돌아온 물은 느려 깎인 모래를 내려놓습니다(활주 사면, 퇴적 사면). 그래서 물길이 조금씩 옆으로 옮겨 갑니다.';
+  return '굽이가 옆으로 커지면서(측방 확대) 하류 쪽으로도 옮겨 갑니다(곡류의 이동). 물길이 지나간 안쪽 자리에는 그때마다의 물길 가장자리가 낮은 모래 능선으로, 그 사이가 낮은 땅으로 남습니다(곡류 흔적).';
 }
 
 export function compareBrief(a, b) {
-  const t = m => `물길이 곧은 거리의 ${m.sinuosity().toFixed(2)}배, 우각호 ${m.lakes.filter(l => l.fill < MARSH_FROM).length}개`;
+  const t = m => `곡률도 ${m.sinuosity().toFixed(2)}(물길이 곧은 거리의 ${m.sinuosity().toFixed(2)}배), 우각호 ${m.lakes.filter(l => l.fill < MARSH_FROM).length}개`;
   return { a: t(a), b: t(b) };
 }

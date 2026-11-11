@@ -167,11 +167,11 @@ export function placesOf(sim) {
   return {
     main: { name: '낙동강', grid: on(main, 0.5) },
     seo: { name: '서낙동강', sub: '갈라져 나온 물길', grid: on(seo, 0.5) },
-    plain: { name: '김해 평야', sub: '삼각주 평원', grid: PLAIN_SPOT },
+    plain: { name: '김해 평야', sub: '상부 삼각주의 평원', grid: PLAIN_SPOT },
     eulsuk: { name: '을숙도', sub: '하구의 하중도', grid: EULSUK },
     dam: { name: '낙동강 하굿둑', grid: DAM },
     myeongji: { name: '명지', sub: '하구의 낮은 땅', grid: MYEONGJI },
-    bars: { name: '모래섬', sub: '파랑이 쌓은 사주', grid: BARS },
+    bars: { name: '연안 사주', sub: '파랑이 쌓은 모래섬(등)', grid: BARS },
     sea: { name: '남해', grid: SEA_SPOT },
   };
 }

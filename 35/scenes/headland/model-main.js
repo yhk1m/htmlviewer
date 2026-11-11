@@ -49,7 +49,7 @@ const VIEWS = {
   arch: { p: [ARCH.cx - CENTER - 92, 13, (ARCH.j0 + ARCH.j1) / 2 - CENTER + 44], t: [ARCH.cx - CENTER, 4, (ARCH.j0 + ARCH.j1) / 2 - CENTER] },
 };
 let currentView = 'oblique';
-// 곶의 해식 동굴을 바다에서 낮게 본다. 해식애가 물러나므로 누를 때 자리를 정한다.
+// 곶의 해식동을 바다에서 낮게 본다. 해식애가 물러나므로 누를 때 자리를 정한다.
 const caveView = () => { const c = model.cliffCaves[0], t = [c.x - CENTER, 3, model.front[c.x] - CENTER]; return { p: [t[0] - 26, 20, t[2] + 72], t }; };
 function setView(name) {
   currentView = name;
@@ -105,13 +105,13 @@ labels.add('bay', '만', '파랑이 퍼짐', 'water');
 labels.add('cliff', '해식애', '깎이는 절벽', 'hot');
 labels.add('platform', '파식대', '절벽이 물러난 자리', 'key');
 labels.add('beach', '모래 해안', '만에 쌓인 모래', 'sand');
-labels.add('stack', '시 스택', '단단한 바위', 'key');
+labels.add('stack', '시스택', '단단한 바위', 'key');
 labels.add('sea', '파랑이 오는 쪽', '', 'water');
 labels.add('cape', '좁은 곶', '검은 줄이 약한 절리', 'key');
-labels.add('stackArch', '시 스택', '천장이 무너져 남은 바위', 'key');
-labels.add('cliffCave', '해식 동굴', '해식애 안쪽으로 파인 굴', 'hot');
-labels.add('cave', '해식 동굴', '반대쪽으로 파고드는 중', 'hot');
-labels.add('arch', '시 아치', '곶이 뚫려 생긴 구름다리', 'key');
+labels.add('stackArch', '시스택', '천장이 무너져 남은 바위', 'key');
+labels.add('cliffCave', '해식동', '해식애 안쪽으로 파인 굴', 'hot');
+labels.add('cave', '해식동', '반대쪽으로 파고드는 중', 'hot');
+labels.add('arch', '시아치', '곶이 뚫려 생긴 구름다리', 'key');
 labels.add('shallow', '곶 앞 바다', '얕음', 'water');
 labels.add('deep', '만 앞 바다', '깊음', 'water');
 labels.add('left', '무른 암석', '', 'cmp');
@@ -150,7 +150,7 @@ function syncLabels() {
   put('sea', p.sea, 0.3, 3);
   // 천장이 있는 자리는 바닥이 아니라 바위 윗면에 이름표를 붙인다.
   for (const key of ['cape', 'arch']) if (p[key]) { const s = toScreen(p[key].x, ARCH.top + 0.6, p[key].y); if (s) list.push({ key, ...s, priority: 11, keep: true }); }
-  // 해식 동굴은 해식애 면의 입구를 가리킨다.
+  // 해식동은 해식애 면의 입구를 가리킨다.
   if (p.cliffCave) { const s = toScreen(p.cliffCave.x, SEA + p.cliffCave.height * 0.6, p.cliffCave.y); if (s) list.push({ key: 'cliffCave', ...s, priority: 12, keep: true }); }
   if (p.cave) { const s = toScreen(p.cave.x, SEA + 1.2, p.cave.y); if (s) list.push({ key: 'cave', ...s, priority: 11, keep: true }); }
   const row = model.depthRow();
@@ -202,12 +202,12 @@ function drawSection(canvas, m) {
   for (let t = 0; t < samples; t++) if (p.kinds[t] === 'platform') { if (pStart < 0) pStart = t; pEnd = t; }
   if (pEnd - pStart > 4) say('파식대', (x(pStart) + x(pEnd)) / 2 + 20, seaY - 22, P.ink);
   say('파랑', W - 130, seaY - 22, (DK ? '#ffffff' : '#1d5f9e'), 26);
-  // 해식 동굴: 해식애 안쪽으로 파인 굴을 잘라 본 모습. 안쪽으로 갈수록 천장이 낮아진다.
+  // 해식동: 해식애 안쪽으로 파인 굴을 잘라 본 모습. 안쪽으로 갈수록 천장이 낮아진다.
   if (p.cave) {
     const back = firstSea - p.cave.depth / p.cave.cellsPerSample;
     ctx.fillStyle = '#0e1112';
     ctx.beginPath(); ctx.moveTo(x(firstSea), seaY); ctx.lineTo(x(firstSea), yOf(p.cave.height)); ctx.quadraticCurveTo(x((firstSea + back) / 2), yOf(p.cave.height * 0.95), x(back), seaY); ctx.closePath(); ctx.fill();
-    say('해식 동굴', x(back) - 90, yOf(p.cave.height) - 6, P.hi);
+    say('해식동', x(back) - 90, yOf(p.cave.height) - 6, P.hi);
   }
   ctx.font = '700 26px "Malgun Gothic",sans-serif'; ctx.fillStyle = P.hi; ctx.textAlign = 'center';
   ctx.fillText('A', 18, 32); ctx.fillText('B', W - 18, 32);
@@ -222,7 +222,7 @@ function drawSection(canvas, m) {
 
 const noteEl = document.getElementById('now'), statsEl = document.getElementById('stats');
 function syncInfo() {
-  statsEl.innerHTML = `곶이 물러난 거리 <b>평균 ${Math.round(model.retreat())}칸</b>, 파식대 폭 <b>${model.platformWidth()}칸</b>, 시 스택 <b>${model.stacks.length}개</b>`;
+  statsEl.innerHTML = `곶이 물러난 거리 <b>평균 ${Math.round(model.retreat())}칸</b>, 파식대 폭 <b>${model.platformWidth()}칸</b>, 시스택 <b>${model.stacks.length}개</b>`;
   const he = model.headEnergy(), be = model.bayEnergy(), top = Math.max(he, be, 0.01);
   document.getElementById('depBar').style.width = `${(he / top) * 100}%`;
   document.getElementById('eroBar').style.width = `${(be / top) * 100}%`;
@@ -240,7 +240,7 @@ function syncInfo() {
     document.getElementById('steps').textContent = '두 조건 비교';
     return;
   }
-  // 시 아치 보기에서는 눈앞의 단계를 설명한다.
+  // 시아치 보기에서는 눈앞의 단계를 설명한다.
   const closeStage = currentView === 'arch' && !model.finished && (stage === 'cave' || stage === 'arch' || stage === 'stack');
   noteEl.textContent = currentView === 'cave' && !model.finished ? caveViewNote(model) : closeStage ? archNote(stage) : noteText(model);
   document.getElementById('steps').textContent = model.finished ? '완성' : `진행 ${Math.floor((model.clock / T_END) * 100)}%`;

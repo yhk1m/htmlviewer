@@ -297,7 +297,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '전남 순천 순천만 일대입니다. 동천과 이사천이 합쳐져 흘러드는 만 안쪽에 넓은 갯벌이 펼쳐지고, 하구 가까운 곳에는 갈대밭이 있습니다. 남해안 서쪽은 동해안보다 밀물과 썰물의 높이 차이(조차)가 훨씬 커서, 썰물 때는 바닷물이 빠지며 갯벌이 드러나고 밀물 때는 다시 잠깁니다. 갯벌 위에 나뭇가지처럼 갈라진 물길은 썰물 때 빠지는 물이 모여 흐르는 갯골입니다.';
+document.getElementById('note').textContent = '전남 순천 순천만 일대입니다. 동천과 이사천이 합쳐져 흘러드는 만 안쪽에 넓은 갯벌이 펼쳐지고, 하구 가까운 곳에는 갈대밭이 있습니다. 남해안 서쪽은 동해안보다 밀물과 썰물의 높이 차이(조차)가 훨씬 커서, 썰물 때는 바닷물이 빠지며 갯벌이 드러나고 밀물 때는 다시 잠깁니다. 갯벌 위에 나뭇가지처럼 갈라진 물길은 썰물 때 빠지는 물이 모여 흐르는 갯골입니다. 반도와 섬에 둘러싸인 남해안의 만 안쪽은 파랑이 약해, 모래 해안보다 갯벌이 넓게 발달합니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '갯벌, 갈대밭, 하천, 해안선, 도로, 지명 위치: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '갯벌의 범위 대부분과 작은 갯골, 논밭과 숲은 규칙으로 만든 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

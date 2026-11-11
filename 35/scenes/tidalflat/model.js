@@ -597,7 +597,7 @@ export function noteText(m) {
   const small = m.range() < 1;
   const diked = m.dikeAt >= 0 && m.clock >= m.dikeAt;
   const creekDone = ' 밀물과 썰물이 드나드는 길, 특히 썰물 때 빠지는 물이 모이는 길이 파여 나뭇가지 모양의 갯골이 되었습니다.';
-  const loss = ' 간척으로 농경지나 산업 단지를 얻지만, 안쪽의 갯벌과 그 기능(생물이 사는 곳, 오염 물질을 걸러 냄, 홍수 때 물을 받아 줌)은 사라집니다.';
+  const loss = ' 간척으로 농경지나 산업 단지를 얻지만, 안쪽의 갯벌과 그 기능(생물이 사는 곳, 오염 물질을 걸러 냄, 홍수 때 물을 받아 줌, 태풍과 해일 피해를 줄임)은 사라집니다.';
   if (diked) {
     if (m.finished) {
       const r = flatReport(m);
@@ -616,7 +616,7 @@ export function noteText(m) {
     else if (m.range() < 5) t += ' 조차가 보통이라 갯벌이 염생 식물이 자랄 만큼 높아지지 않았습니다.';
     if (m.options.supply === 'low') t += ` 토사가 적어 흙이 얇게(평균 약 ${r.thickM}m) 쌓였습니다.`;
     if (m.options.supply === 'high') t += ` 토사가 많아 흙이 두껍게(평균 약 ${r.thickM}m) 쌓였고, 갯벌이 높아져 염생 식물이 자라는 곳이 넓어졌습니다.`;
-    t += ' 갯벌은 많은 생물이 사는 곳이고, 오염 물질을 걸러 내며, 홍수 때 물을 받아 줍니다.';
+    t += ' 갯벌은 많은 생물이 사는 곳이고, 오염 물질을 걸러 내며, 홍수 때 물을 받아 주고 태풍과 해일 피해를 줄여 줍니다.';
     return t;
   }
   if (small) return '조차가 작아 밀물과 썰물 때의 바닷물 높이가 거의 같습니다. 드나드는 바닷물이 적어 고운 흙이 잘 들어오지 않고, 썰물 때 물 밖으로 드러나는 땅도 거의 없습니다.';

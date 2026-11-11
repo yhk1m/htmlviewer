@@ -3,9 +3,9 @@
 // 위에서 본 평면과 A-B를 자른 단면이 같은 구역(선정, 선앙, 선단)을 공유한다.
 
 export const ZONE_TEXT = {
-  apex: { name: '선정', text: '곡구 바로 앞입니다. 굵은 자갈이 많고 계곡물을 쓰기 쉬워 마을이 들어서기도 합니다.' },
-  mid: { name: '선앙', text: '자갈과 모래 틈으로 물이 스며들어 땅 위에 물이 부족합니다. 그래서 밭과 과수원으로 많이 씁니다.' },
-  toe: { name: '선단', text: '스며든 물이 다시 솟아납니다. 물을 얻기 쉬워 마을과 논이 들어섭니다.' },
+  apex: { name: '선정', text: '곡구 바로 앞입니다. 굵은 자갈이 많고, 계곡물과 비교적 얕은 지하수를 쓰기 쉬워 마을이 들어서기도 합니다.' },
+  mid: { name: '선앙', text: '자갈과 모래 틈으로 물이 스며들어(복류) 땅 위에 물이 부족하고 지하수면도 깊습니다. 그래서 예로부터 밭과 과수원으로 많이 썼습니다.' },
+  toe: { name: '선단', text: '스며든 물이 다시 솟아나고(용천) 지하수면이 얕습니다. 물을 얻기 쉬워 마을과 논이 들어섭니다.' },
 };
 
 const STAGES = [{ t: 0.34 }, { t: 0.68 }, { t: 1 }];
@@ -249,7 +249,7 @@ export function createSchematic(root, onZone = () => {}) {
       <h2>A에서 B로 자른 단면</h2>
       <figure id="secFig">${section(stage)}</figure>
       <p class="schem-note">${zone ? `<b>${ZONE_TEXT[zone].name}</b> ${ZONE_TEXT[zone].text}` : '선정, 선앙, 선단을 누르면 설명이 나오고 3D 화면에도 표시됩니다.'}</p>
-      <p class="schem-cap">이 그림은 높이를 크게 과장했습니다. 실제 경사는 3~4%로 완만합니다.</p>`;
+      <p class="schem-cap">이 그림은 높이를 크게 과장했습니다. 실제 경사는 3에서 4%로 완만합니다. 선상지의 퇴적층은 자갈과 모래가 뒤섞인 사력층입니다.</p>`;
     root.querySelectorAll(`.zone[data-zone="${zone}"] .zone-band`).forEach(b => b.setAttribute('fill-opacity', '0.2'));
   };
   root.addEventListener('click', e => {

@@ -392,7 +392,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '강원 평창 대관령면 횡계리 일대와 대관령 고개, 그 동쪽의 강릉 쪽 비탈입니다. 해발 약 750~850m의 높은 곳에 넓고 완만한 땅이 펼쳐지는데, 이것이 고위 평탄면입니다(고기 삭박면이라고도 부릅니다). 오랫동안 깎여 평탄해진 땅이 경동성 요곡 운동으로 동쪽이 크게 솟으면서 높은 곳에 남은 것으로 설명합니다. 높고 여름에도 서늘해 고랭지 배추를 기르는 밭과 목장이 많고, 바람이 센 능선에는 풍력 발전기가 섭니다. 대관령을 넘어 조금 더 가면 동쪽은 강릉 쪽으로 급하게 낮아집니다.';
+document.getElementById('note').textContent = '강원 평창 대관령면 횡계리 일대와 대관령 고개, 그 동쪽의 강릉 쪽 비탈입니다. 해발 약 750m에서 850m의 높은 곳에 넓고 완만한 땅이 펼쳐지고, 둘레의 해발 1,000m가 넘는 산꼭대기와 능선(곤신봉과 북쪽 황병산으로 이어지는 능선 등)도 기복이 작고 완만합니다. 이런 높고 완만한 땅을 고위 평탄면이라고 합니다(고위 침식면, 고기 삭박면이라고도 부릅니다). 오랫동안 깎여 평탄해진 땅이 동해 쪽이 크게 솟는 경동성 요곡 융기로 높이 들린 뒤, 하천에 깎이고도 일부 남은 것으로 설명합니다. 높고 여름에도 서늘해 고랭지 배추를 기르는 밭과 목장이 많고, 바람이 센 능선에는 풍력 발전기가 섭니다. 대관령을 넘어 조금 더 가면 동쪽은 강릉 쪽으로 급하게 낮아집니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '밭과 풀밭, 풍력 발전기, 하천, 도로, 지명 위치: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '숲과 바위는 규칙으로 만든 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

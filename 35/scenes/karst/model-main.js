@@ -76,7 +76,7 @@ let compare = false, panelBeforeCompare = false, setPanel = () => {};
 // 이름표
 const labels = createLabelLayer(document.getElementById('labels'));
 labels.add('doline', '돌리네', '절리가 만나는 곳이 녹아 우묵함', 'hollow');
-labels.add('uvala', '우발레', '돌리네가 이어짐', 'hollow');
+labels.add('uvala', '우발라', '돌리네가 이어짐', 'hollow');
 labels.add('sink', '하천이 스며듦', '돌리네 바닥으로 빠짐', 'water');
 labels.add('stream', '땅 위 하천', '', 'water');
 labels.add('wt', '지하수면', '', 'water');
@@ -172,7 +172,7 @@ function drawSection(canvas, m) {
   // 앞면에 걸린 돌리네
   for (const d of r.list) {
     if (d.y + d.R * 0.6 < NY - 1) continue;
-    put(r.inUvala.has(d) ? '우발레' : '돌리네', g.X(d.x), g.YM(m.z[(NY - 1) * N + d.x]) - 30, DK ? '#f3a58a' : '#8a3a1c');
+    put(r.inUvala.has(d) ? '우발라' : '돌리네', g.X(d.x), g.YM(m.z[(NY - 1) * N + d.x]) - 30, DK ? '#f3a58a' : '#8a3a1c');
   }
   // 동굴
   m.caves.forEach(c => {
@@ -199,7 +199,7 @@ function drawSection(canvas, m) {
 }
 
 const PHASE_NAME = {
-  start: '빗물이 절리를 따라 스밈', solution: '용식: 빗물이 석회암을 녹임', doline: '돌리네가 생김', uvala: '돌리네가 이어져 우발레',
+  start: '빗물이 절리를 따라 스밈', solution: '용식: 빗물이 석회암을 녹임', doline: '돌리네가 생김', uvala: '돌리네가 이어져 우발라',
   cave: '지하수면 근처에 석회 동굴', dry: '동굴에 물이 빠지고 종유석, 석순이 자람', today: '오늘날', done: '완성',
 };
 const noteEl = document.getElementById('now'), statsEl = document.getElementById('stats');

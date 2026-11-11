@@ -106,8 +106,8 @@ labels.add('mouth', '곡구');
 labels.add('apex', '선정');
 labels.add('mid', '선앙');
 labels.add('toe', '선단');
-labels.add('sink', '스며듦', '', 'water');
-labels.add('spring', '다시 솟아남', '', 'water');
+labels.add('sink', '스며듦 (복류)', '', 'water');
+labels.add('spring', '다시 솟아남 (용천)', '', 'water');
 labels.add('left', '물이 적은 곳', '', 'cmp');
 labels.add('right', '물이 많은 곳', '', 'cmp');
 
@@ -196,9 +196,9 @@ const barsEl = document.getElementById('bars');
 barsEl.innerHTML = GRAINS.map(g => `<div class="bar"><span class="name" style="color:${g.color}">${g.name}</span><div class="track"><i id="bar-${g.key}" style="background:${g.color}"></i></div></div>`).join('');
 const noteEl = document.getElementById('now');
 const NOTES = {
-  empty: '빈 평지에서 시작합니다. 홍수가 나면 물과 토사가 좁은 골짜기를 따라 내려와 곡구로 나옵니다.',
-  flood: '홍수입니다. 곡구를 벗어난 물은 넓게 퍼지며 힘이 약해집니다. 그래서 자갈이 먼저 멈추고, 모래는 더 가고, 진흙은 가장 멀리 갑니다. 쌓인 곳은 높아져 다음 물길은 낮은 쪽으로 옮겨 갑니다.',
-  done: '선상지가 완성되었습니다. 곡구에 산지와 붙은 선정부터 선앙, 선단까지 입자가 작아지는 것을 단면에서 확인해 보세요. 평소의 물은 선앙에서 스며들었다가 선단에서 다시 솟아납니다.',
+  empty: '빈 평지에서 시작합니다. 홍수가 나면 산지에서 떨어져 나온 자갈과 모래가 물과 함께 좁은 골짜기를 따라 내려와 곡구로 나옵니다.',
+  flood: '홍수입니다. 좁은 골짜기를 벗어난 물은 곡구에서 넓게 퍼지고 여러 갈래로 나뉘며(망류), 일부는 땅속으로 스며듭니다(복류). 그래서 물의 힘이 갑자기 약해져 자갈이 먼저 멈추고, 모래는 더 가고, 진흙은 가장 멀리 갑니다. 쌓인 곳은 높아져 다음 물길은 낮은 쪽으로 옮겨 갑니다.',
+  done: '선상지가 완성되었습니다. 곡구에 산지와 붙은 선정에서 선앙, 선단으로 갈수록 대체로 입자가 작아지는 것을 단면에서 확인해 보세요. 다만 홍수 때 한꺼번에 쌓여 자갈과 모래가 뒤섞인 층(분급이 나쁜 사력층)이 많습니다. 평소의 물은 선앙에서 스며들었다가 선단에서 다시 솟아납니다.',
   calm: '홍수가 끝났습니다. 평소의 물은 선앙의 자갈과 모래 틈으로 스며들어 땅 위에서 사라졌다가 선단에서 다시 솟아납니다.',
 };
 function syncInfo() {

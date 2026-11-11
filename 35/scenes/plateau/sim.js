@@ -12,7 +12,8 @@ export const WATER_LEVEL = -100;
 // 고도 자료에서 고원이 가장 길게 평평하고 동쪽 급경사가 가장 뚜렷한 줄을 골랐다.
 export const PROFILE = { a: [8, 250], b: [476, 250] };
 // 고위 평탄면으로 칠하고 넓이를 셀 높이 범위(m)와 기울기 한계. 동쪽 급경사가 시작되기 전(가로 410칸 서쪽)만 센다.
-export const PLATEAU_LO = 700, PLATEAU_HI = 950, PLATEAU_SLOPE = 0.12, PLATEAU_EAST = 410;
+// 횡계 둘레의 넓고 완만한 땅(약 750m에서 850m)과 함께, 해발 1,000m가 넘는 산꼭대기와 능선의 완만한 땅도 고위 평탄면(고위 침식면)에 넣는다.
+export const PLATEAU_LO = 700, PLATEAU_HI = 1200, PLATEAU_SLOPE = 0.12, PLATEAU_EAST = 410;
 export const TURBINES = WIND;
 export { PASS };
 

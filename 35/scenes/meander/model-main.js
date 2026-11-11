@@ -92,8 +92,8 @@ document.querySelectorAll('[data-show]').forEach(b => b.onclick = () => setShowi
 // 이름표
 const labels = createLabelLayer(document.getElementById('labels'));
 labels.add('river', '물길', '', 'water');
-labels.add('outer', '공격 사면', '깎임', 'hot');
-labels.add('inner', '퇴적 사면', '쌓임', 'sand');
+labels.add('outer', '공격 사면', '침식 하안, 깎임', 'hot');
+labels.add('inner', '활주 사면', '퇴적 사면, 포인트바가 쌓임', 'sand');
 labels.add('scroll', '곡류 흔적', '옛 강둑 자리', 'sand');
 labels.add('neck', '곡류의 목', '', 'key');
 labels.add('cut', '끊긴 자리', '새 물길', 'key');
@@ -196,7 +196,7 @@ function drawSection(canvas, m) {
       // 글자는 땅과 겹치지 않게 위쪽 빈 곳에 둔다.
       say('공격 사면', W * 0.2, 44, (DK ? '#ffb38a' : '#b4471c'));
       say('빠르고 깊다, 깎인다', W * 0.22, 80, P.ink, 25);
-      say('퇴적 사면', W * 0.8, 44, P.hi);
+      say('활주 사면', W * 0.8, 44, P.hi);
       say('느리고 얕다, 쌓인다', W * 0.78, 80, P.ink, 25);
       // 굽이에서 도는 물: 수면 가까이는 바깥으로, 바닥을 따라서는 안쪽으로. 모두 물속만 지난다.
       let wet0 = deep, wet1 = deep;
@@ -237,7 +237,7 @@ const noteEl = document.getElementById('now'), statsEl = document.getElementById
 const STAGE_STRAIGHT = 3, STAGE_CUT = 2, STAGE_GROW = 1;
 const liveLakes = m => m.lakes.filter(l => l.fill < 0.6).length;
 function syncInfo() {
-  statsEl.innerHTML = `물길 길이 <b>곧은 거리의 ${model.sinuosity().toFixed(2)}배</b>${model.peak > model.sinuosity() + 0.05 ? ` (가장 길 때 ${model.peak.toFixed(2)}배)` : ''}, 목 절단 <b>${model.cutoffs}번</b>, 우각호 <b>${liveLakes(model)}개</b>`;
+  statsEl.innerHTML = `곡률도(물길 길이를 곧은 거리로 나눈 값) <b>${model.sinuosity().toFixed(2)}</b>${model.peak > model.sinuosity() + 0.05 ? ` (가장 길 때 ${model.peak.toFixed(2)}배)` : ''}, 목 절단 <b>${model.cutoffs}번</b>, 우각호 <b>${liveLakes(model)}개</b>`;
   if (compare) {
     const br = compareBrief(model, modelB);
     noteEl.textContent = `왼쪽 블록은 ${br.a}. 오른쪽 블록은 ${br.b}.${modelB.works.state === 'done' ? ' 곧게 편 강은 짧아서 경사가 급하고 물이 빠르며, 둑에 막혀 더는 옮겨 가지 않습니다.' : ' 공사 전까지는 두 강이 똑같이 자랍니다.'}`;

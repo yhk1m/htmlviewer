@@ -104,7 +104,7 @@ function drawSchematic(el, sim) {
   <ellipse cx="425" cy="110" rx="26" ry="22" fill="none" stroke="#f3c98b"/><ellipse cx="515" cy="110" rx="26" ry="22" fill="none" stroke="#f3c98b"/>
   <g font-size="15" fill="#f3f1ea">
     <text x="70" y="200">돌리네</text>
-    <text x="400" y="200">이어지면 우발레</text>
+    <text x="400" y="200">이어지면 우발라</text>
     <text x="300" y="30" fill="#c9c7bb" font-size="13">위에서 본 모습(등고선 고리)</text>
   </g>
 </svg>`;
@@ -112,8 +112,8 @@ function drawSchematic(el, sim) {
 <figure>${svg1}</figure>
 <p class="schem-cap">예시 그림입니다. 웅덩이 깊이와 땅속 틈은 크게 과장했습니다.</p>
 <figure>${svg2}</figure>
-<p class="schem-cap">예시 그림입니다. 이웃한 돌리네가 넓어져 이어지면 더 큰 우묵한 땅(우발레)이 됩니다.</p>
-<p class="schem-note">석회암은 이산화 탄소가 녹은 빗물에 조금씩 녹습니다(용식). 빗물이 땅의 틈으로 모여 스며드는 자리가 먼저 녹아 내려앉으면서 둥글고 우묵한 웅덩이, 돌리네가 생깁니다. 웅덩이 바닥에는 석회암이 녹고 남은 붉은 흙이 쌓여 밭으로 쓰기도 합니다. 물이 잘 빠져 논농사보다 밭농사를 합니다.</p>
+<p class="schem-cap">예시 그림입니다. 이웃한 돌리네가 넓어져 이어지면 더 크고 모양이 불규칙한 우묵한 땅인 우발라가 됩니다.</p>
+<p class="schem-note">석회암은 이산화 탄소가 녹은 빗물에 조금씩 녹습니다(용식). 빗물이 땅의 틈(절리)으로 모여 스며드는 자리가 먼저 천천히 녹아 낮아지면서 둥글고 우묵한 웅덩이, 돌리네가 생깁니다(용식 돌리네). 웅덩이 바닥에는 석회암이 녹고 남은 붉은 흙(테라로사)이 쌓여 밭으로 쓰기도 합니다. 물이 잘 빠져 논농사보다 밭농사를 합니다.</p>
 <p class="schem-note">이 화면의 큰 돌리네 다섯 개는 고도 자료로 재면 같은 넓이 원의 지름이 약 ${lo}m에서 ${hi}m, 깊이가 약 ${dlo}m에서 ${dhi}m입니다.</p>`;
 }
 
@@ -439,7 +439,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '강원 정선군 남면 민둥산(해발 약 1,119m)과 그 동쪽 기슭 발구덕 마을입니다. 민둥산은 꼭대기 둘레에 나무가 거의 없고 억새가 넓게 자라 가을 억새로 이름난 산입니다. 이 둘레는 석회암 지대라, 빗물이 석회암을 녹여 생긴 둥글고 우묵한 웅덩이인 돌리네가 많습니다. 발구덕 마을에는 큰 돌리네 여러 개가 모여 있고, 그 안의 평평한 바닥을 밭으로 씁니다(돌리네 밭). 발구덕이라는 이름은 큰 구덩이가 여덟 개 있다는 뜻으로 풀이됩니다.';
+document.getElementById('note').textContent = '강원 정선군 남면 민둥산(해발 약 1,119m)과 그 동쪽 기슭 발구덕 마을입니다. 민둥산은 꼭대기 둘레에 나무가 거의 없고 억새가 넓게 자라 가을 억새로 이름난 산입니다. 이 둘레는 석회암 지대라, 빗물이 석회암을 녹여 생긴 둥글고 우묵한 웅덩이인 돌리네가 많습니다. 발구덕 마을에는 큰 돌리네 여러 개가 모여 있고, 그 안의 평평한 바닥을 밭으로 씁니다(돌리네 밭). 발구덕이라는 이름은 큰 구덩이가 여덟 개 있다는 뜻으로 풀이됩니다. 우리나라에서 돌리네가 무리 지어 있는 곳은 대개 산꼭대기와 능선 가까이의 완만한 땅이나, 하천보다 높이 있는 하안 단구면입니다. 이런 곳은 넓고 완만하며 하천보다 높아 지하수면이 깊기 때문에, 빗물이 고이지 않고 땅속으로 잘 빠져 돌리네가 생기기 좋습니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '밭과 풀밭 윤곽, 산봉우리, 마을과 약수터 위치: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '돌리네 자리는 고도 자료에서 계산으로 찾은 것이고, 발구덕 마을 이름표 자리는 짐작이며, 숲과 웅덩이 안 밭은 규칙으로 칠한 예시입니다.', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

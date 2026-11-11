@@ -246,7 +246,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '정선, 평창, 영월이 만나는 곳의 동강입니다. 강이 깊은 골짜기 속에서 크게 굽이칩니다. 위에서 보거나 등고선 지형도로 보면 굽이가 또렷합니다.';
+document.getElementById('note').textContent = '정선, 평창, 영월이 만나는 곳의 동강입니다. 땅이 솟은 태백산맥 일대의 산지 하천이라, 강이 깊이 파고든 골짜기 속에서 크게 굽이칩니다. 굽이 바깥쪽은 가파른 벼랑이고 안쪽은 비교적 완만한 생육 곡류입니다. 위에서 보거나 등고선 지형도로 보면 굽이가 또렷합니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물길, 논밭, 숲, 암벽은 땅 높이에서 규칙으로 만든 예시입니다.', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

@@ -254,7 +254,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '창녕 우포늪 일대입니다. 낙동강 바로 옆 땅은 약 16m로 높고, 그 뒤 토평천 옆 들판은 8~14m로 낮으며, 우포늪 앞 들판은 약 8m, 늪은 약 5m입니다. 낮은 땅 지도와 단면에서 또렷합니다.';
+document.getElementById('note').textContent = '창녕 우포늪 일대입니다. 낙동강이 실어 온 퇴적물이 두껍게 쌓여 낙동강 옆, 토평천이 낙동강과 만나는 하구 쪽은 높은 자연 제방이 되었습니다. 지류인 토평천 하류는 퇴적물이 적게 와서 낮은 배후 습지가 되었고 그 안에 우포늪이 있습니다. 이 고도 자료로 재면 낙동강 바로 옆 땅은 약 16m, 그 뒤 토평천 옆 들판은 8에서 14m, 우포늪 앞 들판은 약 8m, 늪은 약 5m입니다. 이 자료는 해상도가 약 30m라 실제와 차이가 있으며, 정밀하게 잰 높이로는 자연 제방이 약 14m에서 16m, 배후 습지가 약 10m에서 12m로 알려져 있습니다. 높은 곳에서 낮은 곳으로 가는 차례는 같습니다. 낮은 땅 지도와 단면에서 또렷합니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '낙동강 물길, 물, 논밭, 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

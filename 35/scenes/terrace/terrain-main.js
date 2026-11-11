@@ -230,7 +230,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '강릉 정동진 남쪽 심곡리 일대입니다. 바닷가 절벽 바로 위에 높이 약 60~85m의 평평한 땅이 펼쳐집니다. 오늘날 파랑이 닿지 못하는 높이의 옛 해안 지형, 곧 해안 단구입니다. 정동진 해안 단구는 천연기념물입니다.';
+document.getElementById('note').textContent = '강릉 정동진 남쪽 심곡리 일대입니다. 바닷가 절벽 바로 위에 높이 약 60m에서 85m의 평평한 땅이 펼쳐집니다. 오늘날 파랑이 닿지 못하는 높이의 옛 해안 지형, 곧 해안 단구입니다. 정동진 해안 단구는 천연기념물(제437호)입니다. 지반 융기가 활발한 동해안에는 해안 단구가 3단 이상 이어지고, 정동진이 있는 강릉에서 동해에 이르는 해안에는 최대 약 200m까지 여러 높이에 단구가 나타난다고 알려져 있습니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '논밭과 숲은 땅 높이에서 규칙으로 만든 예시입니다.', '지명 위치와 건물 윤곽: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료.', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

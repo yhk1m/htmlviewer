@@ -249,7 +249,7 @@ async function start() {
   window.__APP_READY = true;
 }
 
-document.getElementById('note').textContent = '김해 낙동강 하구입니다. 낙동강과 서낙동강 사이의 김해 평야는 높이가 대부분 약 1~4m로 낮고 평평합니다. 낙동강이 쌓는 퇴적 속도가 조차가 작은 남해의 침식 속도보다 빨라 생긴 땅입니다. 낮은 땅 지도와 단면에서 또렷합니다.';
+document.getElementById('note').textContent = '김해 낙동강 하구입니다. 낙동강과 서낙동강 사이의 김해 평야는 높이가 대부분 약 1m에서 4m로 낮고 평평합니다. 예전에 구포 근처까지 깊이 들어와 있던 만(하구역)을 낙동강이 실어 온 흙이 메워 생긴 땅입니다. 물길이 여러 갈래로 갈라지며 대저도, 을숙도 같은 하중도가 생긴 안쪽을 상부 삼각주, 바다 쪽에서 파랑이 모래를 쌓아 진우도, 신자도, 도요등 같은 연안 사주가 동서로 늘어선 곳을 하부 삼각주라고 합니다. 강이 쌓는 퇴적 속도가 조차가 작은 남해의 침식 속도보다 빨라 이런 땅이 자랐습니다. 낮은 땅 지도와 단면에서 또렷합니다.';
 document.getElementById('foot').innerHTML = ['고도 자료: Terrain Tiles on AWS (Mapzen). SRTM, GMTED2010 data courtesy of the U.S. Geological Survey. ETOPO1: U.S. NOAA.', '물, 논밭, 숲은 땅 높이와 물길 선에서 규칙으로 만든 예시입니다.', '물길 참고: OpenStreetMap contributors (ODbL).', '건물: 브이월드(국토교통부) 건물 자료(작은 건물은 뺐습니다).', '도로: OpenStreetMap contributors (ODbL).', '표면 재질: ambientCG (CC0)'].map(t => `<span>${t}</span>`).join(' ');
 
 start().catch(e => { say('오류: ' + e.message); console.error(e); });

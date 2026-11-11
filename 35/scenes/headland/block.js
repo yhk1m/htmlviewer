@@ -139,7 +139,7 @@ export function createBlock(model) {
   grains.frustumCulled = false;
   group.add(grains);
 
-  // 굴러떨어진 바위: 해식애와 시 아치, 시 스택 발치의 얕은 물에 흩어 놓는다. 그림 꾸밈이고 계산에는 들어가지 않는다.
+  // 굴러떨어진 바위: 해식애와 시아치, 시스택 발치의 얕은 물에 흩어 놓는다. 그림 꾸밈이고 계산에는 들어가지 않는다.
   const boulderGeo = new THREE.IcosahedronGeometry(1, 0);
   {
     const p = boulderGeo.attributes.position;
@@ -175,7 +175,7 @@ export function createBlock(model) {
       const i = k % N, j = (k / N) | 0;
       // 벽에 가까울수록 많고 크다.
       if (hash(i, j) > (d === 2 ? 0.5 : 0.34 - d * 0.05)) continue;
-      // 시 아치 아래는 뚫린 구멍이 보이도록 비워 둔다.
+      // 시아치 아래는 뚫린 구멍이 보이도록 비워 둔다.
       if (j >= ARCH.j0 - 1 && j <= ARCH.j1 + 1 && i >= ARCH.x0 - 2 && i <= ARCH.x1 + 2) continue;
       // 벽 바로 옆에는 큰 돌이 벽에 기대어 쌓인다.
       let size = (0.35 + 0.75 * hash(i + 11, j) ** 2) * (d === 2 ? 1.7 : d === 3 ? 1 : 0.7);
@@ -282,7 +282,7 @@ export function createBlock(model) {
     }
   }
 
-  // 곶의 해식애에 난 해식 동굴. 높이 격자는 그대로 두고, 절벽 면을 따라 어두운 입구를 그린다. 안쪽은 빛이 닿지 않아 어둡다.
+  // 곶의 해식애에 난 해식동. 높이 격자는 그대로 두고, 절벽 면을 따라 어두운 입구를 그린다. 안쪽은 빛이 닿지 않아 어둡다.
   const cliffCaveGeo = new THREE.BufferGeometry();
   const cliffCaveMesh = new THREE.Mesh(cliffCaveGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
   cliffCaveMesh.frustumCulled = false;
@@ -349,7 +349,7 @@ export function createBlock(model) {
     const rocky = isRocky(k);
     pos[k * 3 + 1] = visH(k);
     // 바위 벽의 위 모서리는 옆으로 들쭉날쭉하게 옮기고, 벽 발치의 물속 칸은 무너진 돌이 쌓여 조금 높게 그린다.
-    // 시 아치 천장과 이어지는 줄은 천장과 틈이 생기지 않게 옮기지 않는다.
+    // 시아치 천장과 이어지는 줄은 천장과 틈이 생기지 않게 옮기지 않는다.
     let ox = 0, oz = 0;
     const edge = rocky && ((i > 0 && h[k - 1] < SEA) || (i < N - 1 && h[k + 1] < SEA) || (j > 0 && h[k - N] < SEA) || (j < N - 1 && h[k + N] < SEA));
     const archRows = j >= ARCH.j0 - 1 && j <= ARCH.j1 + 1 && i >= ARCH.x0 - 1 && i <= ARCH.x1 + 1;
@@ -380,11 +380,11 @@ export function createBlock(model) {
           v += ((patch[k] > 0.5 ? FOREST2 : FOREST)[q] - v) * cap * 0.85;
         }
         if (sand[k] > 0.02) v = SAND[q];
-        // 절리: 둘레 바위에 난 검은 줄. 해식 동굴이 이 줄을 따라 파인다.
+        // 절리: 둘레 바위에 난 검은 줄. 해식동이 이 줄을 따라 파인다.
         if (model.fin[k] && !model.arch.collapsed && j === ((ARCH.j0 + ARCH.j1) >> 1)) v = JOINT[q];
       } else if (sand[k] > 0.02) v = SAND[q] * 0.85 + BED[q] * 0.15;
       else if (model.caved[k] && !model.arch.through) v = DARK[q];
-      // 좁은 곶의 발치: 옆면이 물속 바닥색으로 번지지 않아 시 아치와 둘레 절벽의 색이 같아진다.
+      // 좁은 곶의 발치: 옆면이 물속 바닥색으로 번지지 않아 시아치와 둘레 절벽의 색이 같아진다.
       else if (i >= ARCH.x0 - 2 && i <= ARCH.x1 + 2 && j >= ARCH.base && j <= ARCH.tip + 2 && !(i >= ARCH.x0 && i <= ARCH.x1 && j >= ARCH.j0 && j <= ARCH.j1)) v = HARD[q];
       else if (cutAt[k] > 0) v = PLATFORM[q];
       else v = BED[q] + (DEEP[q] - BED[q]) * smooth(0.3, 4, -h[k]);

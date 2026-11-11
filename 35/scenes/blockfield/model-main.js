@@ -113,7 +113,7 @@ labels.add('joint', '절리', '화강암의 가로세로 틈', 'rock');
 labels.add('corestone', '핵석', '모서리부터 깎여 둥글어진 덩어리', 'rock');
 labels.add('saprolite', '풍화층(마사토)', '썩어 부서진 바위', 'under');
 labels.add('bedrock', '기반암', '아직 단단한 화강암', 'rock');
-labels.add('freeze', '얼었다 녹기', '흙이 흘러내리고 씻겨 나감', 'cold');
+labels.add('freeze', '얼었다 녹기', '흙이 흘러내림(솔리플럭션)', 'cold');
 labels.add('stream', '암괴류', '골짜기를 따라 길게 모인 바위', 'key');
 labels.add('field', '암괴원', '완만한 곳에 넓게 깔린 바위', 'key');
 labels.add('forest', '숲', '바위 둘레에 다시 자람', 'plant');
