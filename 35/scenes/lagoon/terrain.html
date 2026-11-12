@@ -33,6 +33,7 @@
   .zone-link { font:inherit; color:var(--accent); background:none; border:0; padding:0; text-decoration:underline; cursor:pointer; }
   body { --ml:calc(min(360px,100vw - 40px) + 40px); --mr:min(600px,42vw); --mt:0px; --foot:112px; }
   body.noschem { --mr:0px; }
+  body.merged { --ml:0px; }
   body.panel-closed { --ml:0px; --mt:76px; }
   #mapView { position:fixed; left:var(--ml); top:var(--mt); width:calc(100vw - var(--ml) - var(--mr)); height:calc(100vh - var(--mt) - var(--foot)); z-index:2; }
   #mapView[hidden] { display:none; }

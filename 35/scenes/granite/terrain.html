@@ -1,0 +1,104 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>북한산 실제 지형</title>
+<script type="importmap">{"imports":{"three":"../../shared/vendor/three.module.js"}}</script>
+<link rel="stylesheet" href="../../shared/ui.css">
+<style>
+  html,body { background:#1b1f1d; }
+  #note { font-size:16px; line-height:1.5; margin:8px 0 12px; color:var(--ink); min-height:48px; }
+  #load { position:fixed; inset:0; display:grid; place-items:center; background:#1b1f1d; font-size:20px; z-index:9; }
+  #load[hidden] { display:none; }
+  #corner { position:fixed; left:20px; bottom:14px; z-index:4; max-width:520px; display:flex; flex-direction:column; align-items:flex-start; gap:5px; pointer-events:none; }
+  #heightBadge { font-size:13px; padding:3px 9px; background:var(--glass); border:1px solid var(--line); border-radius:4px; }
+  #guessNote { font-size:13px; padding:4px 9px; background:#fff; border:1px solid var(--line); border-radius:4px; color:var(--ink); }
+  #guessNote i { display:inline-block; width:12px; height:12px; margin:0 4px -1px 0; border:1px solid rgba(0,0,0,.35); }
+  #foot { font-size:12px; line-height:1.4; color:#eee; padding:5px 9px; background:rgba(22,26,24,.82); border-radius:4px; }
+  #mapNote { display:none; font-size:12px; padding:3px 9px; background:rgba(22,26,24,.92); border:1px solid var(--line); border-radius:4px; color:#f0eee6; }
+  body.show-map #mapNote { display:block; }
+  body.show-map #heightBadge, body.show-map #guessNote { display:none; }
+  body.show-map #corner { left:var(--ml); right:var(--mr); bottom:8px; max-width:none; }
+  body.show-map #foot { color:#f0eee6; text-shadow:none; font-size:11px; padding:5px 9px; background:rgba(22,26,24,.92); border:1px solid var(--line); border-radius:4px; }
+  #schem { position:fixed; right:0; top:0; bottom:0; width:min(600px,42vw); padding:16px 20px; overflow:auto; background:rgba(22,26,24,.9); border-left:1px solid var(--line); color:var(--ink); }
+  #schem[hidden] { display:none; }
+  /* 왼쪽 아래 출처 칸과 겹치지 않게 패널 높이를 줄인다. 넘치는 글은 패널 안에서 내려 본다. */
+  @media (min-width:821px) { #panel { max-height:calc(100vh - 40px - var(--foot) - 64px); } }
+  #schem h2 { font-size:18px; margin:4px 0 6px; font-weight:700; }
+  #schem h3 { font-size:15px; margin:12px 0 4px; font-weight:700; }
+  #schem figure { margin:0 0 10px; }
+  #schem svg { display:block; width:100%; height:auto; border-radius:3px; background:none; font-family:inherit; }
+  .schem-note { font-size:16px; line-height:1.5; margin:8px 0 4px; }
+  .schem-cap { font-size:13px; color:var(--sub); margin:0 0 6px; }
+  .stage-list { list-style:none; margin:6px 0 8px; padding:0; }
+  .stage-list li { font-size:15px; line-height:1.45; margin:0 0 8px; padding:0 0 8px; border-bottom:1px solid var(--line); }
+  .stage-list b { margin-right:4px; }
+  .stage-list a { display:inline-block; margin-top:3px; font-size:13px; color:var(--accent); }
+  /* 산과 마을 이름표는 작게 */
+  #labels .label.small b { font-size:16px; }
+  #labels .label.small span { font-size:12px; }
+  /* 어림한 자리는 점선 줄로 실제 자료와 구분한다. */
+  #labels .label.guess b { font-size:16px; font-weight:600; }
+  #labels .label.guess span { font-size:12px; }
+  #labels .label.guess::after { width:0; background:none; border-left:2px dashed currentColor; }
+  body { --ml:calc(min(360px,100vw - 40px) + 40px); --mr:min(600px,42vw); --mt:0px; --foot:150px; }
+  body.noschem { --mr:0px; }
+  /* 넓은 화면에서 조작 창이 오른쪽 칸으로 합쳐지면 왼쪽은 비어 있으므로 지도도 왼쪽 끝부터 그린다. */
+  body.merged { --ml:0px; }
+  body.panel-closed { --ml:0px; --mt:76px; }
+  #mapView { position:fixed; left:var(--ml); top:var(--mt); width:calc(100vw - var(--ml) - var(--mr)); height:calc(100vh - var(--mt) - var(--foot)); z-index:2; }
+  #mapView[hidden] { display:none; }
+  @media (max-width:820px) { body, body.panel-closed, body.noschem { --ml:0px; --mr:0px; --mt:68px; --foot:130px; } #mapView { height:calc(62vh - var(--mt) - var(--foot)); } }
+  @media (max-width:820px) {
+    #note { font-size:14px; min-height:0; }
+    #schem { left:0; right:0; top:auto; bottom:0; width:100%; height:38vh; padding:10px 14px; border-left:0; border-top:1px solid var(--line); }
+    #corner, body.show-map #corner { left:8px; right:8px; bottom:calc(38vh + 4px); max-width:none; }
+    body.noschem #corner, body.noschem.show-map #corner { bottom:6px; }
+    #foot, body.show-map #foot { font-size:10px; }
+    #guessNote { font-size:11px; }
+    .schem-note { font-size:14px; }
+    .stage-list li { font-size:14px; }
+    #labels .label.small b, #labels .label.guess b { font-size:13px; }
+  }
+  /* 다크 모드에서는 어두운 바탕에 밝은 글자로 */
+  html[data-theme="dark"] #guessNote { background:rgba(22,26,24,.88); color:#f0eee6; }
+</style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<section id="panel">
+  <a id="backToList" href="../../index.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>목록으로</a>
+  <h1>화강암 풍화 지형</h1>
+  <button id="panelToggle">접기</button>
+  <div class="row" aria-label="화면 선택" style="margin-bottom:6px">
+    <a href="./model.html"><button>형성 모형</button></a><button class="on">북한산</button><a href="./schematic.html"><button>모식도</button></a>
+  </div>
+  <p id="note"></p>
+  <div class="row" aria-label="높이 과장">
+    <button data-height="1">실제 높이</button><button data-height="2" class="on">높이 2배</button><button data-height="3">높이 3배</button>
+  </div>
+  <div class="row" aria-label="보기">
+    <button data-show="3d" class="on">3D</button><button data-show="map">등고선 지형도</button><button data-show="low">높이 색 지도</button><button data-show="profile">단면</button>
+  </div>
+  <div class="row" aria-label="시점">
+    <button data-view="oblique" class="on">전체</button><button data-view="above">위에서</button><button data-view="peaks">인수봉 가까이</button><button data-view="ridge">노적봉 쪽에서</button>
+  </div>
+  <div class="row">
+    <button id="labelsBtn" class="on">이름표</button><button id="rockBtn" class="on">맨바위 어림</button><button id="osmBtn">지도 자료 맨바위</button><button id="buildingsBtn" class="on">건물</button><button id="roadsBtn" class="on">도로</button><button id="schemBtn" class="on">모식도</button><button id="qualityBtn"></button>
+  </div>
+  <p class="cap" id="heightNote"></p>
+  <p class="cap" style="margin-top:4px">두 번 누르면 그 자리를 중심으로 돕니다. 실제 자료는 오늘날의 땅 높이뿐이며, 화강암이 언제 어떻게 드러났는지나 땅속의 절리와 풍화층은 이 자료로 알 수 없습니다. 원자료 간격이 약 30m, 화면 격자가 약 13.7m라 바위 벽과 뾰족한 봉우리는 뭉개지고, 꼭대기는 알려진 높이보다 20m에서 50m쯤 낮게 나옵니다. 밝은 회색으로 칠한 맨바위는 지도 자료가 아니라 땅의 기울기로 어림한 것입니다. 기울기가 약 33도보다 가파르면 바위가 드러나기 시작하고 약 40도에서 다 드러난 것으로 쳤습니다. 그래서 가파른 바위 벽은 잘 잡지만, 완만하게 드러난 넓은 바위 비탈은 놓치고, 흙이 덮인 가파른 비탈을 바위로 칠하기도 합니다. '지도 자료 맨바위'를 누르면 OpenStreetMap 사용자들이 그린 맨바위 윤곽(주황)을 겹쳐 견주어 볼 수 있습니다. 숲과 마을 바닥 색은 높이와 기울기로 칠한 예시입니다. 건물은 브이월드 건물 자료의 바닥 윤곽을 지상 층수에 3m를 곱한 높이로 올린 덩어리이며, 국립공원 동쪽의 빽빽한 시가지는 바닥 넓이 200제곱미터 이상이거나 5층 이상인 건물만 남겼습니다. 도로는 OpenStreetMap의 도로 선을 등급별 대표 폭으로 얹은 띠라 실제 폭과 다를 수 있습니다. 건물 높이는 과장하지 않으므로 땅과 비교할 때는 실제 높이를 누르세요. 나마는 이 화면의 칸보다 훨씬 작아 보이지 않으며, 나마 이름표는 생기기 쉬운 곳(평평한 바위 윗면)에 붙인 예시 자리입니다.</p>
+</section>
+<canvas id="mapView" hidden></canvas>
+<aside id="schem" aria-label="북한산 모식도"></aside>
+<div id="corner"><div id="heightBadge"></div><div id="guessNote"><span id="gRock"><i style="background:#c9c3b6"></i>밝은 회색: 기울기로 어림한 맨바위</span> <span id="gOsm" hidden><i style="background:#e0782a;margin-left:8px"></i>주황: 지도 자료의 맨바위 윤곽</span></div><div id="mapNote"></div><div id="foot"></div></div>
+<div id="load"><span id="status">준비 중</span></div>
+<script type="module" src="./terrain-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
+</body>
+</html>

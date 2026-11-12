@@ -43,6 +43,7 @@
   #labels .label.guess::after { width:0; background:none; border-left:2px dashed currentColor; }
   body { --ml:calc(min(360px,100vw - 40px) + 40px); --mr:min(560px,40vw); --mt:0px; --foot:150px; }
   body.noschem { --mr:0px; }
+  body.merged { --ml:0px; }
   body.panel-closed { --ml:0px; --mt:76px; }
   #mapView { position:fixed; left:var(--ml); top:var(--mt); width:calc(100vw - var(--ml) - var(--mr)); height:calc(100vh - var(--mt) - var(--foot)); z-index:2; }
   #mapView[hidden] { display:none; }
