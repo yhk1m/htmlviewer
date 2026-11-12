@@ -127,7 +127,7 @@ export const CANYON = { x: 232, half: 16 };
 export const FALLS_M = 350;
 export const PIGEON_M = 150;
 
-export const CAPTION = '이름을 누르면 설명이 나옵니다. 모든 그림은 크기와 높이를 크게 과장한 예시이며, 아주 오랜 시간을 몇 단계로 줄여 보여 줍니다. 화산체 모양은 용암의 끈끈함과, 용암과 화산 쇄설물의 비율에 따라 달라집니다. 응회구와 응회환, 마르를 나누는 기준과 몇몇 지형이 어디에 드는지에는 다른 해석도 있습니다. 철원 용암대지는 협곡 너비가 고도 자료 한 칸과 비슷해, 실제 지형 화면 대신 모식도로만 다룹니다.';
+export const CAPTION = '이름을 누르면 설명이 나옵니다. 모든 그림은 크기와 높이를 크게 과장한 예시이며, 아주 오랜 시간을 몇 단계로 줄여 보여 줍니다. 화산체 모양은 용암의 끈끈함과, 용암과 화산 쇄설물의 비율에 따라 달라집니다. 응회구와 응회환, 마르를 나누는 기준과 몇몇 지형이 어디에 드는지에는 다른 해석도 있습니다. 철원 용암대지의 실제 지형과 형성 과정은 "용암대지와 한탄강 협곡" 장면에서 더 자세히 볼 수 있습니다.';
 
 const BASALT = '#3f3c3b', BASALT2 = '#4d4a48', TEPHRA = '#b59a72', TRACHYTE = '#a99a8c', SCORIA = '#8a3a24', SCORIA2 = '#a4492c', TUFF = '#cbab6d', TUFF_LINE = '#9c8048';
 const MAGMA = '#e8642a', MAGMA_HOT = '#ffb347', SEA = '#3f8fd0', SEA_LIGHT = '#9fd0f2', OLD = '#8f8070', OLD_LINE = '#6f6254', GRAVEL = '#c9b48a', GRASS = '#7e9a5c', ASH = '#8a857e', SKY = '#22313a', INK = '#16201f', DARK_TEXT = '#22261f', LIGHT = '#f3f1ea';

@@ -1,0 +1,128 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>용암대지와 한탄강 협곡 형성 모형</title>
+<script type="importmap">{"imports":{"three":"../../shared/vendor/three.module.js"}}</script>
+<link rel="stylesheet" href="../../shared/ui.css">
+<style>
+  .row .lab { width:132px; font-size:14px; color:#d6d4ca; }
+  hr { border:0; border-top:1px solid var(--line); margin:12px 0 8px; }
+  #side { position:fixed; right:0; top:0; bottom:0; width:min(600px,42vw); padding:16px 20px; overflow:auto; background:rgba(22,26,24,.92); border-left:1px solid var(--line); }
+  #side h2 { font-size:18px; margin:2px 0 8px; display:flex; justify-content:space-between; align-items:baseline; }
+  #steps { font-size:14px; color:var(--accent); font-weight:600; }
+  #now { font-size:17px; line-height:1.55; min-height:108px; margin:0 0 8px; }
+  #stats { font-size:15px; margin:0 0 12px; color:var(--ink); }
+  #stats b { color:var(--accent); }
+  #rates { margin:0 0 12px; padding:8px 10px; border:1px solid var(--line); border-radius:4px; }
+  .rate { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .rate span { width:196px; flex:none; font-size:15px; font-weight:700; }
+  .rate small { display:block; font-size:12px; font-weight:400; color:var(--sub); }
+  .rate i { flex:1; height:12px; background:#2b322e; border-radius:2px; overflow:hidden; display:flex; }
+  .rate b { display:block; height:100%; width:0; }
+  #lavaBar { background:#5a5550; }
+  #flatBar { background:#8fae54; }
+  #canyonBar { background:#b0775a; }
+  #fallBar { background:#4f8fc0; }
+  #rateNote { margin:4px 0 0; font-size:15px; font-weight:700; color:var(--accent); }
+  body.comparing #rates { display:none; }
+  #section { width:100%; height:auto; display:block; border:1px solid var(--line); }
+  /* 이름표 글자는 다른 화면처럼 흰 글자에 어두운 그림자. 종류 색은 이름표 줄에만 쓴다. */
+  .label.rock b, .label.under b, .label.water b, .label.plant b, .label.hot b { font-size:18px; }
+  .label.key b { font-size:20px; }
+  .label.rock::after { background:#d8d0c4; }
+  .label.under::after { background:#d9a85c; }
+  .label.water::after { background:#5ba8e6; }
+  .label.hot::after { background:#ff7a2a; }
+  .label.key::after { background:#ffd36b; }
+  .label.plant::after { background:#9fd38a; }
+  .label.cmp b { font-size:18px; color:#ffd36b; }
+  #labels .label { z-index:2; }
+  #labels .label.pin b { width:26px; height:26px; line-height:26px; border-radius:50%; font-weight:800; font-size:16px; color:#1c211e; background:#ffd36b; text-shadow:none; margin:0 auto; }
+  #labels .label.pin::after { background:#ffd36b; }
+  #phaseBadge { position:fixed; left:calc(min(360px,100vw - 40px) + 40px); top:16px; z-index:4; font-size:18px; font-weight:800; padding:5px 12px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; color:var(--accent); }
+  body.panel-closed #phaseBadge { left:20px; top:76px; }
+  body.merged #phaseBadge { left:20px; top:16px; }
+  body.comparing #phaseBadge { display:none; }
+  #faceLegend { position:fixed; right:calc(min(600px,42vw) + 16px); bottom:16px; z-index:4; font-size:14px; padding:4px 10px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  #faceLegend i { display:inline-block; width:16px; height:9px; border-radius:1px; }
+  #veBadge { position:fixed; left:calc(min(360px,100vw - 40px) + 40px); bottom:14px; z-index:4; font-size:13px; padding:3px 9px; background:var(--glass); border:1px solid var(--line); border-radius:4px; pointer-events:none; }
+  body.panel-closed #veBadge, body.merged #veBadge { left:20px; }
+  body.comparing #veBadge { bottom:64px; }
+  #compareEnd { display:none; position:fixed; left:20px; bottom:20px; z-index:4; }
+  body.comparing #compareEnd { display:block; }
+  body.comparing #now { min-height:0; }
+  body.comparing #section, body.comparing #sectionB { width:84% !important; }
+  #sectionB[hidden] { display:none; }
+  body.comparing .cond, body.comparing .nocmp { display:none; }
+  @media (max-width:820px) {
+    #side { left:0; right:0; top:auto; bottom:0; width:100%; height:38vh; padding:10px 14px; border-left:0; border-top:1px solid var(--line); }
+    #side h2 { font-size:15px; }
+    #now { font-size:14px; min-height:0; }
+    #stats { font-size:13px; margin-bottom:8px; }
+    .rate span { width:140px; font-size:13px; }
+    .rate small { font-size:10px; }
+    #rateNote { font-size:13px; }
+    .row .lab { width:112px; }
+    .label.rock b, .label.under b, .label.water b, .label.plant b, .label.hot b, .label.key b { font-size:14px; }
+    .cmprow { display:none; }
+    #phaseBadge, body.panel-closed #phaseBadge { left:12px; top:auto; bottom:calc(38vh + 38px); font-size:14px; }
+    #faceLegend { display:none; }
+    #compareEnd { left:12px; bottom:calc(38vh + 12px); }
+    #veBadge, body.panel-closed #veBadge { left:12px; bottom:calc(38vh + 8px); }
+    body.comparing #veBadge { bottom:calc(38vh + 56px); }
+  }
+</style>
+<script>try{if(localStorage.getItem('landform-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<section id="panel">
+  <a id="backToList" href="../../index.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>목록으로</a>
+  <h1>용암대지와 한탄강 협곡</h1>
+  <button id="panelToggle">접기</button>
+  <div class="row" aria-label="화면 선택">
+    <button class="on">형성 모형</button><a href="./terrain.html"><button>철원 용암대지</button></a><a href="./schematic.html"><button>모식도</button></a>
+  </div>
+  <hr>
+  <div class="row"><button id="playBtn" class="on">멈춤</button><button id="resetBtn">처음부터</button><button id="fastBtn">빠르게</button></div>
+  <div class="row cond"><span class="lab">조건</span><button data-preset="textbook" class="on">철원처럼</button><button data-preset="small">용암이 적게</button><button data-preset="young">깎인 지 얼마 안 됨</button><button data-preset="sticky">끈적한 용암</button></div>
+  <div class="row cond"><span class="lab">용암의 끈끈함</span><button data-opt="visc:fluid" class="on">묽음</button><button data-opt="visc:sticky">끈적</button></div>
+  <div class="row cond"><span class="lab">흘러나온 용암의 양</span><button data-opt="volume:small">적음</button><button data-opt="volume:big" class="on">많음</button></div>
+  <div class="row cond"><span class="lab">강이 깎은 시간</span><button data-opt="erode:short">짧음</button><button data-opt="erode:long" class="on">김</button></div>
+  <div class="row cmprow"><button id="compareBtn">비교: 묽은 용암과 끈적한 용암</button></div>
+  <hr>
+  <div class="row"><button data-view="oblique" class="on">비스듬히</button><button data-view="above" class="nocmp">위에서</button><button data-view="low" class="nocmp">협곡 안에서</button><button id="labelsBtn" class="on">이름표</button><button id="qualityBtn"></button></div>
+  <p class="cap">두 번 누르면 그 자리를 중심으로 돕니다. 조건을 바꾸면 처음부터 다시 만듭니다. 블록의 뒤쪽이 골짜기 상류, 앞쪽이 하류입니다. 블록 앞면은 골짜기를 가로질러 자른 단면으로, 진행상황 칸의 단면과 같은 자리입니다(A에서 B). 협곡 절벽에도 땅속 모습을 그렸습니다.</p>
+  <p class="cap">실제 지역이 아닌 설명용 모형으로, 철원 일대를 본떠 훨씬 작게 줄였습니다. 블록 한 변은 약 3.8km입니다. 수십만 년에 걸친 일을 몇십 초로 압축했고, 땅의 높이는 4배로 과장했습니다. 철원에서는 용암이 10번 안팎 흘렀지만 6번으로 줄였습니다. 용암 두께, 협곡의 깊이와 너비, 폭포가 물러난 거리는 교육용으로 정한 값이며 실측값이 아닙니다. 주상절리 기둥과 옛 하천 자갈층은 잘 보이게 크게 그렸습니다. 협곡이 용암과 옛 땅의 경계를 따라 생긴 까닭과 막힌 호수가 생긴 것과 메워지는 차례는 단순하게 정한 짐작이며, 다른 해석도 있습니다. 실제로 용암이 나온 곳(북쪽의 평강)은 협곡이 있는 철원에서 멀리 떨어져 있지만, 한 블록에 함께 넣었습니다. 끈적한 용암은 비교를 위해 넣은 조건으로, 철원 용암대지는 묽은 현무암질 용암으로 생겼습니다. 논과 숲의 무늬는 예시 그림입니다.</p>
+</section>
+<button id="compareEnd">비교 끝내기</button>
+
+<div id="phaseBadge"></div>
+<div id="faceLegend" aria-label="단면 색 설명"><i style="background:#46423f"></i>현무암 <i style="background:#c7a873"></i>옛 하천 자갈층 <i style="background:#cdbfb2"></i>화강암 <i style="background:#8f8a83"></i>편마암 <i style="background:#b9ae93"></i>호수 퇴적층 <i style="background:#7a3322"></i>스코리아</div>
+<div id="veBadge">땅 높이 4배 과장</div>
+<aside id="side">
+  <h2>진행상황 <span id="steps"></span></h2>
+  <div id="progHost"></div>
+  <p id="now"></p>
+  <p id="stats"></p>
+  <div id="rates" aria-label="용암 두께, 평평한 땅 넓이, 협곡 깊이, 폭포가 물러난 거리">
+    <div class="rate"><span>용암 두께<small id="lavaVal"></small></span><i><b id="lavaBar"></b></i></div>
+    <div class="rate"><span>평평한 땅 넓이<small id="flatVal"></small></span><i><b id="flatBar"></b></i></div>
+    <div class="rate"><span>협곡 깊이<small id="canyonVal"></small></span><i><b id="canyonBar"></b></i></div>
+    <div class="rate"><span>폭포가 물러난 거리<small id="fallVal"></small></span><i><b id="fallBar"></b></i></div>
+    <p id="rateNote"></p>
+  </div>
+  <h2 id="sectionTitle">블록 앞면 단면, 골짜기를 가로질러 (계산 결과)</h2>
+  <canvas id="section" width="1120" height="600" role="img" aria-label="골짜기를 가로지른 단면. 화강암과 편마암 산지 사이 골짜기 바닥에 옛 하천 자갈층이 있고, 그 위를 용암층이 여러 장 덮는다. 본류가 용암층을 깎아 협곡을 만든다."></canvas>
+  <p id="compareCap" class="cap" hidden>위 단면은 왼쪽 블록(묽은 용암), 아래 단면은 오른쪽 블록(끈적한 용암)입니다. 축척은 같습니다.</p>
+  <canvas id="sectionB" width="1120" height="600" hidden style="width:100%;height:auto;margin-top:8px" role="img" aria-label="오른쪽 블록(끈적한 용암)의 단면"></canvas>
+</aside>
+<script type="module" src="./model-main.js"></script>
+<script type="module" src="../../shared/side-toggle.js"></script>
+<script type="module" src="../../shared/theme.js"></script>
+</body>
+</html>

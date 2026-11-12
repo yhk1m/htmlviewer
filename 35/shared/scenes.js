@@ -14,4 +14,5 @@ export const SCENES = [
   { area: '산지', name: '화강암 풍화 지형', shows: '땅속 풍화로 생긴 토르와 돔, 돌산과 흙산', href: 'scenes/granite/model.html' },
   { area: '카르스트', name: '카르스트 지형', shows: '석회암이 녹아 생긴 돌리네와 석회 동굴', href: 'scenes/karst/model.html' },
   { area: '화산', name: '화산 지형', shows: '순상화산과 용암원정구, 오름, 응회구, 칼데라', href: 'scenes/volcano/model.html' },
+  { area: '화산', name: '용암대지와 한탄강 협곡', shows: '골짜기를 메운 용암과 다시 깎인 협곡, 주상절리와 폭포', href: 'scenes/lavaplateau/model.html' },
 ];
