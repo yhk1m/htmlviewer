@@ -368,7 +368,7 @@ function frameSync(all) {
     syncInfo();
   }
   if (all) { blockA.syncFlow(0); if (compare) blockB.syncFlow(0); }
-  if (all || frame % 3 === 0) syncLabels();
+  if (all) syncLabels();
 }
 // 재생 중에는 늘 그린다(다 만들어진 뒤에도 물은 흐른다). 멈추면 시점을 돌릴 때만 다시 그린다.
 let last = performance.now();
@@ -390,7 +390,8 @@ function loop(now) {
   progress.update();
   if (!dirty) return;
   dirty = false;
-  if (!playing) syncLabels();
+  // 이름표는 그릴 때마다 맞춘다(재생 중이거나 끝난 뒤 시점을 돌려도 따라가게).
+  syncLabels();
   renderer.render(scene, camera);
   meter();
 }

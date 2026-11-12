@@ -356,7 +356,7 @@ function frameSync(all) {
   if (all || changed) renderer.shadowMap.needsUpdate = true;
   if (all || frame % 6 === 0) { drawSection(document.getElementById('section'), model); if (compare) drawSection(document.getElementById('sectionB'), modelB); syncInfo(); }
   if (all || (changed && frame % 30 === 0)) drawMap();
-  if (all || frame % 3 === 0) syncLabels();
+  if (all) syncLabels();
 }
 // 재생 중에는 늘 그린다(땅이 바뀌고 풍력 발전기 날개가 돈다). 멈추면 시점을 돌릴 때만 다시 그린다.
 let last = performance.now();
@@ -375,7 +375,8 @@ function loop(now) {
   progress.update();
   if (!dirty) return;
   dirty = false;
-  if (!playing) syncLabels();
+  // 이름표는 그릴 때마다 맞춘다(재생 중이거나 끝난 뒤 시점을 돌려도 따라가게).
+  syncLabels();
   renderer.render(scene, camera);
   meter();
 }
