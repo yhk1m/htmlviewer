@@ -478,7 +478,7 @@
       if (stem) {
         var getStem = function () {
           var c = stem.cloneNode(true);
-          c.querySelectorAll('b, .pt, .copy-btn').forEach(function (n) { n.remove(); });
+          c.querySelectorAll('b, .copy-btn').forEach(function (n) { n.remove(); });
           return clean(c.textContent);
         };
         stem.appendChild(makeBtn('발문 복사', getStem));
