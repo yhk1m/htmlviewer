@@ -1,0 +1,861 @@
+<!doctype html>
+<!-- © 2026 김용현 -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 동네 기후 Wrapped</title>
+<meta name="description" content="올해 우리 동네 날씨 결산부터 2050년 닮은꼴 도시, 나의 재난 대응 유형까지">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<style>
+:root {
+  --navy: #1B2A4A;
+  --ink: #FFFFFF;
+  --ink-soft: rgba(255,255,255,.72);
+  --line: rgba(255,255,255,.22);
+  --c0: #1B2A4A; --c1: #24406E; --c2: #1F5C8F; --c3: #2E3F8F;
+  --c4: #B4472F; --c5: #183A5A; --c6: #2F6B4F; --c7: #5B3F8C;
+  --c8: #3B2F6B; --c9: #1B2A4A; --c10: #222833;
+  --accent: #FFD166;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: #0E1628; color: var(--ink);
+  font-family: Pretendard, "Pretendard Variable", "Noto Sans KR", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+button, input { font: inherit; color: inherit; }
+#phone {
+  position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: var(--navy);
+  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+@media (min-width: 600px) {
+  #phone { width: min(440px, calc(100dvh * 9 / 16)); height: min(100dvh, 860px); border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+}
+#bars { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; gap: 4px; z-index: 20; }
+#bars i { flex: 1; height: 3px; background: rgba(255,255,255,.28); border-radius: 2px; overflow: hidden; }
+#bars i b { display: block; height: 100%; width: 0; background: #fff; }
+#mode { position: absolute; top: 20px; right: 14px; z-index: 21; font-size: 11px; color: var(--ink-soft); }
+.card {
+  position: absolute; inset: 0; padding: 40px 24px 20px; display: none; flex-direction: column;
+  transition: background-color .4s;
+}
+.card.on { display: flex; animation: fade .35s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; min-height: 0; }
+.kicker { font-size: 14px; font-weight: 600; color: var(--accent); letter-spacing: .02em; }
+h1 { font-size: 30px; line-height: 1.25; margin: 0; font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: 22px; line-height: 1.35; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+.big { font-size: 88px; line-height: 1; font-weight: 900; letter-spacing: -.04em; }
+.big small { font-size: 32px; font-weight: 700; margin-left: 4px; }
+.mid { font-size: 40px; font-weight: 800; letter-spacing: -.03em; }
+.sub { font-size: 17px; line-height: 1.5; color: var(--ink-soft); }
+.sub strong { color: #fff; }
+.read { font-size: 12px; line-height: 1.5; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.read b { color: #fff; font-weight: 600; }
+.warn { font-size: 13px; color: var(--accent); }
+.btn {
+  border: 0; border-radius: 12px; padding: 13px 16px; background: #fff; color: var(--navy);
+  font-weight: 700; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn.ghost { background: transparent; color: #fff; border: 1px solid var(--line); }
+.btn svg { width: 18px; height: 18px; }
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: rgba(255,255,255,.08); border-radius: 999px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+.chip:hover { background: rgba(255,255,255,.16); }
+.search { display: flex; gap: 6px; }
+.search input { flex: 1; min-width: 0; border: 1px solid var(--line); background: rgba(255,255,255,.1); border-radius: 12px; padding: 11px 12px; outline: none; }
+.search input::placeholder { color: rgba(255,255,255,.5); }
+.search button { flex: 0 0 auto; }
+#results { display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow: auto; }
+#results button { text-align: left; border: 0; background: rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; cursor: pointer; font-size: 14px; }
+#results button span { color: var(--ink-soft); font-size: 12px; margin-left: 6px; }
+.map { height: 190px; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.06); }
+.map.tall { height: 230px; }
+.picked { font-size: 15px; color: var(--ink-soft); min-height: 22px; }
+.picked strong { color: #fff; }
+.stat { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 15px; }
+.stat dt { color: var(--ink-soft); }
+.stat dd { margin: 0; font-weight: 700; text-align: right; }
+.prob { background: rgba(255,255,255,.08); border-radius: 14px; padding: 12px 14px; }
+.prob .top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.prob .pct { font-size: 34px; font-weight: 900; letter-spacing: -.03em; }
+.prob label { font-size: 14px; color: var(--ink-soft); }
+.prob input[type=range] { width: 100%; accent-color: var(--accent); }
+canvas.spag { width: 100%; height: 140px; display: block; }
+.legend { font-size: 11px; color: var(--ink-soft); display: flex; gap: 12px; }
+.legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 4px; background: #fff; }
+.legend i.m { background: rgba(140,200,255,.6); }
+.legend i.t { background: var(--accent); }
+.loading { color: var(--ink-soft); font-size: 15px; display: flex; align-items: center; gap: 10px; }
+.spin { width: 18px; height: 18px; border: 2px solid var(--line); border-top-color: #fff; border-radius: 50%; animation: sp 1s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.cmp th, table.cmp td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+table.cmp th:first-child, table.cmp td:first-child { text-align: left; color: var(--ink-soft); font-weight: 400; }
+table.cmp th { font-weight: 600; font-size: 12px; color: var(--ink-soft); }
+/* 유형 테스트 */
+.deck { position: relative; height: 300px; }
+.q {
+  position: absolute; inset: 0; background: #fff; color: var(--navy); border-radius: 22px; padding: 22px;
+  display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  touch-action: none; cursor: grab;
+}
+.q .n { font-size: 13px; font-weight: 700; color: #7A6AA8; }
+.q h3 { font-size: 22px; line-height: 1.4; margin: 8px 0 0; }
+.q .opts { display: flex; gap: 8px; }
+.q .opts button { flex: 1; border: 1.5px solid #D9D3EA; background: #F6F3FC; border-radius: 14px; padding: 12px 10px; font-size: 14px; line-height: 1.4; font-weight: 600; color: var(--navy); cursor: pointer; text-align: center; }
+.q .opts button:hover { border-color: #7A6AA8; }
+.q .hint { font-size: 12px; color: #8A8FA3; text-align: center; }
+.jelly { display: flex; justify-content: center; }
+.jelly svg { width: 180px; height: auto; }
+.tagline { display: flex; flex-direction: column; gap: 8px; }
+.tagline div { background: rgba(255,255,255,.1); border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.45; }
+.tagline span { display: block; font-size: 12px; color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+ol.acts { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: a; }
+ol.acts li { counter-increment: a; background: rgba(255,255,255,.1); border-radius: 12px; padding: 11px 12px 11px 44px; position: relative; font-size: 15px; line-height: 1.45; }
+ol.acts li::before { content: counter(a); position: absolute; left: 12px; top: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--navy); font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+ul.src { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 10px; }
+ul.src b { display: block; font-size: 14px; }
+ul.src span { color: var(--ink-soft); }
+a { color: var(--accent); }
+.toast { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); background: #fff; color: var(--navy); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; z-index: 30; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.on { opacity: 1; }
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.leaflet-container { font: inherit; }
+.leaflet-control-attribution { font-size: 9px; }
+/* 공유 이미지 (1080 × 1920) */
+#share { position: fixed; left: -10000px; top: 0; width: 1080px; height: 1920px; background: var(--navy); color: #fff; padding: 110px 96px 90px; display: flex; flex-direction: column; gap: 44px; font-family: Pretendard, "Noto Sans KR", sans-serif; }
+#share .k { font-size: 36px; color: var(--accent); font-weight: 700; }
+#share .t { font-size: 76px; font-weight: 900; line-height: 1.2; letter-spacing: -.02em; }
+#share .nums { display: flex; gap: 32px; }
+#share .nums div { flex: 1; background: rgba(255,255,255,.1); border-radius: 36px; padding: 40px; }
+#share .nums b { display: block; white-space: nowrap; font-size: 104px; line-height: 1; font-weight: 900; letter-spacing: -.04em; }
+#share .nums span { font-size: 32px; color: rgba(255,255,255,.75); }
+#share .an { font-size: 44px; line-height: 1.4; }
+#share .an strong { color: var(--accent); }
+#share .ty { display: flex; align-items: center; gap: 36px; background: rgba(255,255,255,.1); border-radius: 36px; padding: 30px 40px; }
+#share .ty svg { width: 220px; height: auto; flex: 0 0 auto; }
+#share .ty b { font-size: 50px; line-height: 1.3; }
+#share ol { margin: 0; padding-left: 52px; font-size: 36px; line-height: 1.5; display: flex; flex-direction: column; gap: 14px; }
+#share .foot { margin-top: auto; font-size: 24px; line-height: 1.5; color: rgba(255,255,255,.6); }
+/* QR 화면 */
+#qr { position: fixed; inset: 0; background: #fff; color: var(--navy); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 24px; z-index: 50; }
+#qr.on { display: flex; }
+#qr .code { width: min(70vh, 80vw); }
+#qr .code svg, #qr .code img { width: 100%; height: auto; display: block; }
+#qr h1 { color: var(--navy); font-size: 44px; }
+#qr p { font-size: 22px; margin: 0; }
+</style>
+</head>
+<body>
+<div id="phone">
+  <div id="bars"></div>
+  <div id="mode"></div>
+  <div id="cards"></div>
+  <div class="toast" id="toast"></div>
+</div>
+<div id="share"></div>
+<div id="qr"><h1>우리 동네 기후 Wrapped</h1><div class="code" id="qrcode"></div><p id="qrurl"></p></div>
+
+<script id="baked-data" type="application/json">{"cities":[{"name":"서울","country":"한국","lat":37.57,"lon":126.98,"jjaTmax":28.4,"djfTmin":-5.7,"annRain":1236},{"name":"인천","country":"한국","lat":37.46,"lon":126.71,"jjaTmax":27.1,"djfTmin":-4.5,"annRain":1161},{"name":"수원","country":"한국","lat":37.26,"lon":127.03,"jjaTmax":28.4,"djfTmin":-5.2,"annRain":1220},{"name":"춘천","country":"한국","lat":37.88,"lon":127.73,"jjaTmax":28.7,"djfTmin":-5.4,"annRain":1201},{"name":"강릉","country":"한국","lat":37.75,"lon":128.9,"jjaTmax":26.6,"djfTmin":-2.3,"annRain":1367},{"name":"대전","country":"한국","lat":36.35,"lon":127.38,"jjaTmax":29.9,"djfTmin":-3.6,"annRain":1155},{"name":"청주","country":"한국","lat":36.64,"lon":127.49,"jjaTmax":29.9,"djfTmin":-4.2,"annRain":1192},{"name":"전주","country":"한국","lat":35.82,"lon":127.15,"jjaTmax":29.5,"djfTmin":-2.8,"annRain":1313},{"name":"광주","country":"한국","lat":35.16,"lon":126.85,"jjaTmax":29.2,"djfTmin":-2.6,"annRain":1307},{"name":"대구","country":"한국","lat":35.87,"lon":128.6,"jjaTmax":30.4,"djfTmin":-2.8,"annRain":1215},{"name":"포항","country":"한국","lat":36.02,"lon":129.34,"jjaTmax":28.8,"djfTmin":-2.4,"annRain":1234},{"name":"울산","country":"한국","lat":35.54,"lon":129.31,"jjaTmax":28.3,"djfTmin":-2.1,"annRain":1417},{"name":"부산","country":"한국","lat":35.18,"lon":129.08,"jjaTmax":27.6,"djfTmin":-1.6,"annRain":1567},{"name":"창원","country":"한국","lat":35.23,"lon":128.68,"jjaTmax":28,"djfTmin":-1,"annRain":1515},{"name":"목포","country":"한국","lat":34.81,"lon":126.39,"jjaTmax":27.2,"djfTmin":0.3,"annRain":1281},{"name":"여수","country":"한국","lat":34.76,"lon":127.66,"jjaTmax":27.5,"djfTmin":0.2,"annRain":1491},{"name":"제주","country":"한국","lat":33.5,"lon":126.53,"jjaTmax":27.6,"djfTmin":3.8,"annRain":2030},{"name":"서귀포","country":"한국","lat":33.25,"lon":126.56,"jjaTmax":27.4,"djfTmin":3.8,"annRain":2711},{"name":"삿포로","country":"일본","lat":43.06,"lon":141.35,"jjaTmax":23.6,"djfTmin":-8.6,"annRain":1238},{"name":"센다이","country":"일본","lat":38.27,"lon":140.87,"jjaTmax":26.2,"djfTmin":-1.8,"annRain":1401},{"name":"도쿄","country":"일본","lat":35.68,"lon":139.69,"jjaTmax":29.1,"djfTmin":1,"annRain":1615},{"name":"나고야","country":"일본","lat":35.18,"lon":136.91,"jjaTmax":29.7,"djfTmin":0.6,"annRain":1892},{"name":"오사카","country":"일본","lat":34.69,"lon":135.5,"jjaTmax":29.7,"djfTmin":1.8,"annRain":1758},{"name":"후쿠오카","country":"일본","lat":33.59,"lon":130.4,"jjaTmax":28.9,"djfTmin":4,"annRain":1885},{"name":"가고시마","country":"일본","lat":31.6,"lon":130.56,"jjaTmax":28.9,"djfTmin":5.1,"annRain":2695},{"name":"나하","country":"일본","lat":26.21,"lon":127.68,"jjaTmax":29.6,"djfTmin":16.6,"annRain":2054},{"name":"하얼빈","country":"중국","lat":45.8,"lon":126.53,"jjaTmax":26.4,"djfTmin":-19.1,"annRain":666},{"name":"선양","country":"중국","lat":41.81,"lon":123.43,"jjaTmax":28.7,"djfTmin":-11.8,"annRain":779},{"name":"베이징","country":"중국","lat":39.9,"lon":116.41,"jjaTmax":31.5,"djfTmin":-6,"annRain":628},{"name":"톈진","country":"중국","lat":39.13,"lon":117.2,"jjaTmax":31,"djfTmin":-5.6,"annRain":598},{"name":"다롄","country":"중국","lat":38.91,"lon":121.61,"jjaTmax":26,"djfTmin":-3.9,"annRain":636},{"name":"칭다오","country":"중국","lat":36.07,"lon":120.38,"jjaTmax":26.8,"djfTmin":-1.3,"annRain":726},{"name":"상하이","country":"중국","lat":31.23,"lon":121.47,"jjaTmax":30.7,"djfTmin":2.5,"annRain":1439},{"name":"난징","country":"중국","lat":32.06,"lon":118.8,"jjaTmax":30.8,"djfTmin":0.7,"annRain":1275},{"name":"우한","country":"중국","lat":30.59,"lon":114.31,"jjaTmax":31.8,"djfTmin":2.6,"annRain":1374},{"name":"항저우","country":"중국","lat":30.27,"lon":120.16,"jjaTmax":31.6,"djfTmin":2.3,"annRain":1642},{"name":"충칭","country":"중국","lat":29.56,"lon":106.55,"jjaTmax":31.6,"djfTmin":6.5,"annRain":1351},{"name":"샤먼","country":"중국","lat":24.48,"lon":118.09,"jjaTmax":31.7,"djfTmin":11.6,"annRain":1335},{"name":"광저우","country":"중국","lat":23.13,"lon":113.26,"jjaTmax":31.9,"djfTmin":11.9,"annRain":2255},{"name":"홍콩","country":"중국","lat":22.32,"lon":114.17,"jjaTmax":29.4,"djfTmin":13.6,"annRain":2254},{"name":"타이베이","country":"대만","lat":25.03,"lon":121.57,"jjaTmax":32.1,"djfTmin":14.4,"annRain":1803},{"name":"가오슝","country":"대만","lat":22.63,"lon":120.3,"jjaTmax":30.8,"djfTmin":16.6,"annRain":1931},{"name":"하노이","country":"베트남","lat":21.03,"lon":105.85,"jjaTmax":32.7,"djfTmin":14.7,"annRain":2078},{"name":"다낭","country":"베트남","lat":16.05,"lon":108.2,"jjaTmax":33.1,"djfTmin":20.5,"annRain":2149},{"name":"호찌민","country":"베트남","lat":10.82,"lon":106.63,"jjaTmax":31.2,"djfTmin":23,"annRain":2093},{"name":"방콕","country":"태국","lat":13.76,"lon":100.5,"jjaTmax":32,"djfTmin":22.6,"annRain":1492},{"name":"마닐라","country":"필리핀","lat":14.6,"lon":120.98,"jjaTmax":30.3,"djfTmin":23.2,"annRain":2177},{"name":"쿠알라룸푸르","country":"말레이시아","lat":3.14,"lon":101.69,"jjaTmax":30.7,"djfTmin":23.4,"annRain":2939},{"name":"싱가포르","country":"싱가포르","lat":1.35,"lon":103.82,"jjaTmax":29.3,"djfTmin":23.7,"annRain":3140},{"name":"자카르타","country":"인도네시아","lat":-6.21,"lon":106.85,"jjaTmax":31.8,"djfTmin":23.8,"annRain":2271}],"demo":{"ewha":{"lat":37.5622,"lon":126.9468,"wn2":{"generated":"2026-11-12T03:17:39.275Z","times":["2026-11-12T00:00","2026-11-12T06:00","2026-11-12T12:00","2026-11-12T18:00","2026-11-13T00:00","2026-11-13T06:00","2026-11-13T12:00","2026-11-13T18:00","2026-11-14T00:00","2026-11-14T06:00","2026-11-14T12:00","2026-11-14T18:00","2026-11-15T00:00","2026-11-15T06:00","2026-11-15T12:00","2026-11-15T18:00","2026-11-16T00:00","2026-11-16T06:00","2026-11-16T12:00","2026-11-16T18:00","2026-11-17T00:00","2026-11-17T06:00","2026-11-17T12:00","2026-11-17T18:00","2026-11-18T00:00","2026-11-18T06:00","2026-11-18T12:00","2026-11-18T18:00","2026-11-19T00:00","2026-11-19T06:00","2026-11-19T12:00","2026-11-19T18:00","2026-11-20T00:00","2026-11-20T06:00","2026-11-20T12:00","2026-11-20T18:00","2026-11-21T00:00","2026-11-21T06:00","2026-11-21T12:00","2026-11-21T18:00","2026-11-22T00:00","2026-11-22T06:00","2026-11-22T12:00","2026-11-22T18:00","2026-11-23T00:00","2026-11-23T06:00","2026-11-23T12:00","2026-11-23T18:00","2026-11-24T00:00","2026-11-24T06:00","2026-11-24T12:00","2026-11-24T18:00","2026-11-25T00:00","2026-11-25T06:00","2026-11-25T12:00","2026-11-25T18:00","2026-11-26T00:00","2026-11-26T06:00","2026-11-26T12:00","2026-11-26T18:00"],"temp":[[5,4.7,11.5,13.2,9.2,9.1,13.8,12.5,7.3,8.4,11.2,11.7,10.5,9.7,11.9,10.3,5,5.8,12,13.3,9.8,9.7,11.1,8.8,5.8,3.5,1.8,1,-2.2,-2.8,2,3,-1.4,-0.3,5.4,4.7,-0.7,-1.9,3.4,5.4,2.7,2.7,6.9,8.3,4.6,2.5,3.9,2.3,-4.4,-4.1,-2.3,null,null,null,null,null,null,null,null,null],[5.4,4.7,10.9,12.2,8.3,8.4,13.3,14.7,10.9,9.9,12.5,12.4,10.6,10.7,13.5,12.5,6.4,6.3,13.1,14.3,9.9,8.6,9.1,7.6,2.9,3.6,7.4,4.8,0.5,-0.1,1.3,0.2,-3.8,-5.3,-2.3,-2,-5.7,-6.9,-2.5,-1,-4.8,-4.3,2.4,2,-3.3,-2.2,4,6.2,2.1,1.3,1.4,null,null,null,null,null,null,null,null,null],[4.5,3.3,10.5,11.1,6.4,7.6,13,12.8,7.1,7.1,9.1,9.5,9.7,9.4,12.5,11.9,6.9,6.7,10.8,10.4,6.5,6.4,8.6,7.7,4.3,4.9,7,4.8,-0.5,-2.3,1.6,2.7,-1.6,-1.4,3.5,6.1,3.4,3.9,9.3,8.7,3.4,3.1,7.8,8.5,4.6,3.2,8,9.1,4.1,3.4,3.3,null,null,null,null,null,null,null,null,null],[5.1,4,10.5,12.7,8.9,9.2,13.8,13.9,10.7,10.5,10.8,11.1,10.7,10.1,13.2,12,4.9,4.1,10.6,12.1,8.8,8.9,10.3,9.4,6.4,3.9,4.1,2.7,-1.7,-1.5,3.7,6,4.6,5.8,9.9,11.1,6.6,2,1.9,2.3,0,-0.2,4.3,4.5,1.7,3,7.7,8,2.3,1.8,2.4,null,null,null,null,null,null,null,null,null],[3,4.4,10.9,11.9,7.9,8.4,14.6,13,6.8,8.3,10.4,11.1,11.1,10.7,12.2,11,6.1,5,10.5,13.2,9.9,8.4,10.7,10.4,6.4,4.7,6.1,5.3,0.7,0.3,5.2,5.7,1.8,1.7,6.4,8.2,5.9,5.6,9.3,10.1,7.1,7.7,8.3,6.4,1.9,0.1,3.4,3.4,1.3,1.6,1.5,null,null,null,null,null,null,null,null,null],[4.5,3.3,10.2,11.4,7,6.7,11.7,12.5,8.9,10.4,10.6,9.6,9.4,9.9,12.2,11.1,6.3,4.7,9,11.2,8.7,8.7,12.1,12.4,8.2,7,5.8,2.1,-1.5,-2.7,0.5,0.4,-3.2,-4.4,1,2.2,-1.5,1.5,7.6,7.3,3.9,5.1,5.8,5.7,4.3,3.8,7.5,7.7,3.1,2,2.2,null,null,null,null,null,null,null,null,null],[2.8,2.9,9.7,12.1,8.1,9.9,14.9,12.7,9,9.7,10.8,11.2,10.2,9.5,13.4,12.8,6,5.8,11.7,14.1,11.4,10.2,11.9,11,8.1,7.5,7.6,6.4,2.6,-0.2,1.7,1.5,-1.2,0.3,3.6,5.3,4.7,5.4,7.8,7.8,3.5,2.2,5.2,5.1,0.4,-1.7,3.9,5,0.1,2.6,5.5,null,null,null,null,null,null,null,null,null],[5.7,5.3,11.5,12,8,8.6,13.3,12,7.7,8.2,9.7,10.8,10.3,10.8,14.2,12.8,6.3,5.2,11.4,12.6,8,8.6,12.5,12.7,8.3,5.1,6.1,4.5,-0.7,-1.9,2.9,4.6,2,2.9,6.8,7,4.7,5.7,6.7,5.3,3.3,3.5,7.6,7.1,2.4,3.4,9.2,10.6,7,6.7,6.8,null,null,null,null,null,null,null,null,null],[4.1,4.8,11.8,11.8,7.6,8.4,13.2,14.5,9.4,8.5,10.7,10.5,9.5,10.1,12.7,12.8,8.8,7.5,12.4,13.6,9.9,8.8,9.7,9.3,6.6,5.5,4.8,1.8,-1.7,-2.5,1.5,2,-2.6,-1.4,6.9,9.4,4.9,4.7,9.1,8.5,3.3,2.7,7.6,8.7,3.8,2.6,8.8,8.9,6.3,10.7,11.9,null,null,null,null,null,null,null,null,null],[4.5,4.1,11.3,12.3,7.3,8.2,13.8,13,6.1,6.7,10,10.3,11,10.7,12.9,12.6,6.4,4.7,10.8,12.5,9.1,9.6,10.8,8.1,2.5,0.2,4,3.8,-0.2,0.9,4.7,5.9,3,2.2,4.9,3.9,-0.4,-0.3,4.2,6.3,5.4,5.8,8.7,8.4,7,8.1,13,13.3,9.3,11,11.4,null,null,null,null,null,null,null,null,null],[4.8,5.4,11,11.4,6.6,7.3,13.1,12.2,6.9,7.5,8.8,9.8,9.9,8.3,12.3,13.2,6,5.6,11.9,13.4,9.5,8.5,9.4,10,8.8,7.3,6.3,3.3,-1.5,-2.9,1.5,2.5,0.2,1.5,6.3,5.6,0,-0.1,2.2,2,-1.4,-2.7,2.5,3.5,0.1,1,5.7,6.1,1.6,2.3,3.6,null,null,null,null,null,null,null,null,null],[4.8,4.6,10.8,10.7,6.2,6.7,12.7,14.3,10.9,9.6,10.9,12.2,12,11.8,13.2,11.6,6.6,3.8,7,8.3,6,6.1,7.6,7.7,4.2,1.4,4.7,5.7,0.1,-0.5,3.8,4.9,1.9,2.3,6.5,7.3,3.9,2.4,5.8,4.3,-0.8,-0.9,5.3,5.4,1.5,4.3,7.7,6.1,1.1,-0.5,-0.6,null,null,null,null,null,null,null,null,null],[5.9,5.6,12.4,13.5,8.2,7.6,12.1,12.6,9.6,9.7,10.7,11.4,8.7,6.5,11.4,11.6,5.3,6,12.8,13.8,10.5,10.3,11,9.4,5.1,4.5,5.8,2.5,-2.4,-2.6,1.6,3.2,0.7,0.8,5.7,7.2,3,1.5,6.4,6.9,3.1,5.3,11.2,10.6,5,3.7,6.8,5.3,-0.6,-1.1,-0.5,null,null,null,null,null,null,null,null,null],[2.7,3.3,10.3,11.5,5.8,6.4,11.7,11.6,8.6,8.4,8.9,9.9,9.7,8.4,11.8,11.7,6.3,6.2,11.6,12.9,9.3,8.6,9.7,9.2,6.3,5.3,6.5,4.9,0.9,1.5,5.2,4.1,0.6,2.4,3.5,2.9,3.1,2.6,4.3,4.4,2.8,3.5,6.6,5.5,-1.4,-1.4,5.3,6.1,3.9,6,6.6,null,null,null,null,null,null,null,null,null],[3.9,3.3,11.1,12.7,7.8,7.4,12.4,11.4,6.8,8.1,10,10.5,10.9,12.5,11.3,9.2,7,5.6,8.8,9.1,7.2,7.2,9.5,8.6,5.5,3.4,2.6,1.7,-2.4,-2.9,1.5,3.4,1.6,3.3,8.2,9,5.2,2.9,7,6.7,3.7,4.4,6.7,8,5.6,6,11.1,10.5,6.1,8.5,9.7,null,null,null,null,null,null,null,null,null],[4.5,3.2,9.7,12.1,9,9.2,13,13,8.2,7.6,9.1,9.5,9.8,9.8,13.8,12.6,4.3,3.3,10.2,12,8.9,9.8,11.3,10.6,8,5.6,6.4,4.7,-0.4,-2.2,1.6,1.8,-2.2,-1.8,1.3,4.1,4.5,3.6,5.1,6.3,4.5,3.8,8.7,9.6,1.9,-0.2,4.8,5.8,2.4,2,2.1,null,null,null,null,null,null,null,null,null],[2.3,1.8,8.9,9.7,4.6,6.6,12.9,12.2,6.9,8,10.5,10.6,8.8,7.8,11.3,10.9,4,4.4,10.6,10.3,7.7,8.8,10.6,8.8,3.6,0.7,3.8,4.1,-0.1,0.3,5.1,5.6,0.2,-0.9,5,5.4,0.4,1.1,6.5,7.3,1.5,0.7,7,7.9,4.8,6.8,9.3,7.7,2.7,2.4,3.7,null,null,null,null,null,null,null,null,null],[3.8,3.7,11.3,13.3,9.6,9,13.1,13.8,8.6,7.8,9.9,11,10.4,10.1,13.3,12.4,6.8,7.2,12.6,12.1,8.1,8.8,11.2,11.1,8.7,4.5,2.2,1.5,-1.8,-2.3,3.1,4.6,1.4,2.8,5,4.9,3.3,1.7,6.4,9,7.1,7.6,10.1,9.3,4.2,4.3,9.4,7.7,0.7,0.1,0.8,null,null,null,null,null,null,null,null,null],[1.6,4.4,11.9,12.7,9.1,8.7,13.3,13,8.9,10.2,12.7,13.7,10.3,7.6,11.2,12.5,6.9,3.5,6.7,9.1,8,8.2,10.3,10.2,5,1.9,5.5,5.5,1.1,0.9,5.6,7.1,1.7,1.2,5,5,3.3,3.7,7.4,8.9,5.6,4.9,9.8,10.3,4.3,1.3,8.5,9.5,3.3,8.4,11.7,null,null,null,null,null,null,null,null,null],[4.6,3.8,10.4,11.5,5.8,6.9,13.3,13.1,7.9,7.9,9.3,10.8,10.4,8.4,11.4,11.2,5.4,3.1,8.2,10.8,6.6,5.7,10.4,11.3,7.6,7,8.8,7,0.8,-0.4,3.5,2.7,-2.6,-2.3,5.2,5.9,1.6,4.4,9.4,9.5,7.5,7.9,12.2,10.4,5.6,7.6,9.1,9.1,6.4,3.9,3.3,null,null,null,null,null,null,null,null,null],[4.1,4.3,11.8,11,7.1,9.6,13.9,14.6,11.4,10.4,10.7,11.8,11.1,10.7,13.8,12.5,6.8,7.6,12.9,13.2,10.7,10.2,12,11.9,7.9,6.3,6.2,3.3,-0.9,-1.3,3.8,6.3,4.6,4.9,9,9.9,6.4,8.5,10.1,5.7,1.2,0.3,5.8,7.6,5.2,7.1,11.3,11.3,7.3,7.8,8.5,null,null,null,null,null,null,null,null,null],[2.7,2.3,10.2,12.9,9.7,10.4,14,13,8,7.9,9.9,10.3,8.6,6.4,9.5,10.4,6,6,12,12.2,8.4,10.1,11,10.1,8.1,6.8,8.2,6.9,2.3,0.4,1.8,1.1,-2.7,-2.5,3.7,3.9,1.9,4.2,8.7,8.2,1.2,1.4,9.4,10.6,6.9,7.8,11.2,11.6,8.2,8,8.2,null,null,null,null,null,null,null,null,null],[4.2,3.6,10.8,11.4,6.6,7.8,13.2,12.9,7.7,8.1,10.2,12.3,12.4,10.6,13.1,11.1,5.2,8,13.1,12.6,9.9,9,10.1,7.7,3,1.8,2.9,2.1,-1.8,-3,2.1,4.8,3.7,4.1,7.3,7.9,5.7,5,4.2,3.5,-0.7,0.2,7.8,7.3,2,3.1,11,14.7,11.1,9.9,10,null,null,null,null,null,null,null,null,null],[5.5,4.9,11.2,12.9,9.5,9,12.9,12.2,8.5,8.5,9.4,10.4,10.2,10.1,12.5,10.9,5.5,5.2,10,12,8.7,7.4,11,10.6,4.6,3.8,5.5,3.5,-0.5,-1.5,2.1,2.1,-2.5,-3.4,0.8,1.6,-3.6,-2.7,2.9,4.6,4.2,5.2,7.3,6.2,1,0.4,5.4,6.8,4.1,4.8,6.1,null,null,null,null,null,null,null,null,null],[2.8,3.4,10.8,12.1,8.1,7.9,12.3,12.9,6.9,7.1,9.3,10,9.6,9.1,12.4,11.5,6.5,7.5,11.5,11.9,8.8,8.1,11,9.9,4.3,3,6.3,5.6,0.8,0.5,5,4.7,2.2,4.5,7.9,9.6,5.9,3.2,6.1,5.2,0.5,1,6.8,6.9,2.2,3.1,9.8,9.9,6.4,8.7,9.3,null,null,null,null,null,null,null,null,null],[4.9,3.4,10.6,11.1,6.5,8.1,12.4,12,8.7,8.8,10,10.2,10,9.8,11.6,10.9,5.5,4.1,10.7,12.4,8.3,9.4,11.7,11.1,8.6,7.4,8.8,7.2,3.7,1.1,1.3,1.1,-2.5,-3.3,1.2,2.5,0.3,0.9,5.1,6.7,2.5,3.6,8.2,5.8,1.5,2.5,6.5,6.6,3.7,4.9,5.7,null,null,null,null,null,null,null,null,null],[3,5.5,11.5,12.3,9.8,10.5,14.3,13.2,6.3,7.2,10.8,11.6,11.7,11.3,14.2,13.3,7.3,6.4,13.3,15.3,11.5,10.6,10.3,10.5,8.9,6.3,7.5,6.5,1.2,-1.2,0.3,-0.1,-3,-1.7,3,5,4,4.7,7.9,7.8,3.8,3.2,8.4,9.8,6.9,6.6,9.4,8.3,1.9,2.2,3.9,null,null,null,null,null,null,null,null,null],[3.7,4.3,11.2,12.5,9.5,9.9,14,13.6,8.8,10.3,12.9,12.4,11.3,10.4,12,10.5,4.5,5,11.9,12.4,8.7,9,10.3,9.6,6.6,5.4,7.4,4.7,-1.1,-1.5,2.6,4.3,2.5,2.5,6.2,6.4,5,7,9.6,6.7,-0.7,-0.8,4.3,4,3.1,6.9,11.4,8.9,4.2,7.1,8.5,null,null,null,null,null,null,null,null,null],[5.7,3.6,10.5,11.7,7,8.2,13.2,11.9,7.3,8.8,9.3,9.4,9.2,8.5,11.8,11.3,5.2,2.2,5.8,7.3,4.3,5.3,10.6,11.7,6.5,4.5,4.3,1.3,-2.4,-2.7,2.9,3.8,1.5,2.7,3,3.6,3.5,3.3,7.4,7.7,2.7,3,8.9,9.7,5.5,6.8,12.5,10.4,3.9,3.6,3.6,null,null,null,null,null,null,null,null,null],[5.9,5.3,10.7,12.1,8.9,9.8,14.8,12.9,8.6,9.6,10.6,11.1,8.4,5.8,9.8,10.9,4,3.7,10.6,11.3,7.7,7.5,8.7,8.6,7.4,7,6.2,2.2,-2.2,-3.3,0.7,3.4,2.4,4.9,9.6,8.7,3.6,3.9,8.4,7.9,1.4,-0.5,6.7,8.4,4.1,4.5,10.3,10.4,6.5,8.2,8.6,null,null,null,null,null,null,null,null,null],[3.1,2.5,9.5,9.6,4.1,5.9,12,11.4,7.6,9.9,11.3,11.5,11.3,11,13.9,12.2,4.7,4.5,11.9,13.4,9.8,9.6,11.3,11.6,7.1,3,4.4,5,1.3,-0.2,3.7,2.7,-2.7,-2.8,2.5,4.1,2.1,3.2,5.2,7.2,6.4,5.8,8.3,6.5,1.3,1.7,7.8,9.2,5.8,7.2,8.6,null,null,null,null,null,null,null,null,null],[7.1,6.2,10.8,11.2,7,7.8,12.5,11.4,4.7,5.5,9.5,9.9,8.9,8.7,14.3,14.6,6.2,4.9,10.1,11.7,8.7,7.3,9.6,10.2,6.8,3.7,3.4,2.2,-2.6,-3.6,2.3,5.2,3.2,4.4,8.3,7.2,5.3,7.9,9.3,5,0.7,2.1,6.2,6.9,3.8,5.4,9.5,9.7,4.6,0,-0.9,null,null,null,null,null,null,null,null,null],[5.6,5.4,11.8,12.9,9.2,8.9,12.5,13.3,10,9.7,10.2,10.6,10.3,9.9,12,10.4,5.2,7.1,11.4,11,9.6,9.4,10.7,10,6.6,4.8,5.7,3.6,-0.9,-1.7,2.5,3.7,-0.5,0.4,5.2,5.5,3.2,4.3,8,7.2,4.4,4.8,8.7,10.4,7.2,8,12.5,11.2,5.2,4.1,4.8,null,null,null,null,null,null,null,null,null],[5.7,3.5,9.6,12.1,7.3,6.7,12.1,13.6,9.6,9.6,12.6,12.9,10.4,8.9,11.8,11.2,4.7,4.6,11.7,14,10.9,11.1,12.6,12.4,9.4,7.6,8.9,6.5,0.6,-1.2,2.8,4.5,1.2,1.4,7,7.6,4.5,6.6,11,9.7,3.6,2.6,5.6,5.7,2.3,2.7,9.9,10.8,7.2,10.1,11.5,null,null,null,null,null,null,null,null,null],[6.2,6.2,12,13.3,9.5,8.5,14.1,13.4,7.6,8.2,10.2,11,10.5,9.5,12.6,11.2,6,8.5,13.6,12.6,8.7,9.2,9.8,7.3,2.8,0.6,3.2,2.9,-1.5,-2.7,1.8,3.3,-0.3,-0.3,5.5,8,5.4,5.5,8.5,9.2,6.3,6.2,10.3,8.4,2.5,3.3,8.4,7.9,5.3,4.7,3.2,null,null,null,null,null,null,null,null,null],[2,1.6,9.1,10.2,5.2,6.4,11.9,12.1,6,6.2,9,9.8,9.7,9.3,11.7,10.8,6.4,7.3,12.5,13.1,9.3,8.9,11.2,11.2,5.2,0.7,1.9,1.3,-1.8,-3.2,-0.2,1,-2.4,-1.7,3.8,4.1,1.5,2.9,6.5,7.6,5.2,3.9,6.3,5,-0.8,-0.3,5.8,7.1,3.4,3.8,4.5,null,null,null,null,null,null,null,null,null],[5.3,6,12.1,13.1,8.9,7.7,12.3,12.1,5.7,6.6,9.1,9.6,9.9,8.7,11.9,12.1,6.1,6.8,12.1,11.7,8.4,8,10.7,11.1,7.8,5.5,4.6,2.4,-1.4,-1.7,3.5,6.6,5.8,6.2,9.2,9.5,6.9,7.2,11,12.5,8.9,9.4,13.8,12.5,6.4,4.3,9.9,12.4,5.5,3.2,4.3,null,null,null,null,null,null,null,null,null],[3.9,3.1,10.3,11.3,7.1,7.9,13,14,8.6,7.6,9.2,9.7,9.4,9.6,12.6,12.5,8.9,9.4,13,13,10.6,9.6,8.9,6.9,3,1.4,4.6,3.8,-0.6,-0.1,3.3,3.9,2,2.1,5.1,3.7,-1.9,-3,1.3,1.7,-3.5,-3.8,2.7,4.6,2.2,4.3,6.1,6.7,4,1.6,2.2,null,null,null,null,null,null,null,null,null],[4.8,4.5,10.4,13,9.6,8.3,12.5,14.1,9.7,9.2,11.9,12.6,11.2,11.3,14.8,13,8.5,10.5,12.3,10.9,8.4,7.9,10.6,11.1,6.9,4.4,7.6,7.6,2.9,2.7,6.2,6.5,1.5,-0.3,5.7,7.2,2.9,1.9,6.5,7.2,1.6,2.5,8.5,10.3,7.5,7.3,10.7,8.9,4.2,4.7,5.1,null,null,null,null,null,null,null,null,null],[3.4,3.2,11.2,12.2,7.3,7.3,12.8,12.2,8.3,9.9,10.8,11.3,9.1,7.4,11.4,11.3,5,5.4,9.7,9.5,7.5,6.7,10.2,10.3,7,7.6,9.1,8.5,5.6,4,5.8,5.6,0.8,-0.1,4.9,5.8,3,4.7,10.8,12.8,8.9,8.6,12.5,10.9,3.8,0.6,4.6,4.3,1.2,4,4.8,null,null,null,null,null,null,null,null,null],[2.2,3.1,10.8,12,7.3,6.1,10.2,10.9,5.6,7.2,9.9,9.5,9.1,9.5,12.8,13.1,9.5,10.8,14.1,12.8,9.4,8.9,9.5,8.9,5.9,2.2,2.7,3.4,1.5,1.7,4.9,5.2,1.2,0.7,5.9,5,-1.2,0.8,8.9,9.9,5.8,6.2,11.4,11.5,6,4,4.2,2.3,-0.5,-0.3,0.1,null,null,null,null,null,null,null,null,null],[4.8,4.9,12,13,9.4,10.1,14.5,15.2,11.4,10.5,10.8,11.8,11.7,10.1,12.3,10.7,5.7,5.9,9.9,11.4,8.8,8.6,10.3,8,1.3,-1.9,2.2,3,-1,-0.9,3.7,4.5,0.4,1.1,6.2,6.4,2.9,2.5,6.5,6,1.6,2.1,7,8.4,5.8,6.4,10.1,8.8,3.9,7.2,9.7,null,null,null,null,null,null,null,null,null],[4.5,4.2,11.2,13.2,10,9.9,13.2,12.9,9.4,9.3,11,11.4,9.1,7.8,12.2,11,5.2,7.8,13.1,13.4,10.5,10,10.3,8.9,4.6,1.7,3.9,3.9,-0.7,-0.6,4.7,4.9,0,-0.1,5.6,5.7,2.5,4.8,9.5,10.6,7.2,7.7,11.6,11.5,7.7,7.2,11.2,10.4,5.9,5.6,5.5,null,null,null,null,null,null,null,null,null],[3.7,3,10.8,12.6,8.7,8.7,12.9,13,7.9,8.2,11.1,10,6.5,5.7,10.9,11.7,8.2,8.8,11.6,11.7,8.4,8.2,10.1,8.2,3,0.6,4,4.1,-1.5,-1.2,5,5.3,-0.3,0.1,5.9,6.8,2.7,2,6.6,7.6,4.7,5.6,9.9,10.9,6.2,5.4,10.1,9.2,2.5,1.3,2.4,null,null,null,null,null,null,null,null,null],[4.7,5.6,12.5,12.4,8.1,9.1,14,13.1,6.8,6.7,8.5,8.6,8.6,9.4,13.6,12.8,5.3,5.6,12.3,12.4,9,8.6,9.2,9.2,8,7.6,8.6,7,2.8,0.6,3,2.4,-2.4,-1.8,3.9,6.6,5.8,6.5,10,10.2,4.7,3.4,8.2,7.3,3,4.8,10,9.6,4.7,4.5,5,null,null,null,null,null,null,null,null,null],[4.4,3.4,10.5,12.6,9.2,9.9,13.6,11.9,7.5,9.1,10.8,12.1,11,9.8,13.1,11.3,5.4,4.6,11.3,12.3,7.2,7.5,9.2,8.5,6.2,5.1,5.3,3.7,0.1,-1.3,2,3.5,0.5,1.3,5,6.6,5.9,7.3,9.3,8.6,5.7,3.9,7.5,7.4,3.5,5,9.3,8.5,2.4,1.5,2.3,null,null,null,null,null,null,null,null,null],[5.2,5.4,11.5,12.8,8.3,7.9,12.5,11.9,5.9,6.3,8.8,9.3,8.8,9.1,13.3,12,6.8,7.6,13,14,10.6,9.1,8.1,5.6,0.7,-1,2,1.8,-2.4,-3.1,0.7,2.5,0.8,0.9,3.7,2.3,-1.5,-0.9,4.6,6,1.1,2.2,7.8,8.9,6.4,6.6,9.5,8.6,2.4,-0.7,-0.7,null,null,null,null,null,null,null,null,null],[3.2,3.8,11.4,12.4,8.2,9.7,15,13,9,10.1,11.1,12.2,11.6,10.4,12,10.1,3.7,5.6,12.4,13.2,10.8,10.1,12.1,10.7,4.8,1.6,3.9,4.8,0.4,0.1,5.2,4.6,-1.3,-0.1,7.2,7.5,2.8,4.4,9.6,10.8,8.4,8.6,11.1,8.9,2.7,1,4.3,4.1,0.4,0.9,1.7,null,null,null,null,null,null,null,null,null],[7,7,11.9,12.1,8.4,9.5,14.3,13,7.7,8,10.2,10.5,10.5,9.3,10.8,10.2,4.5,2.6,9.8,12,8.4,9.1,9.1,8.5,5.7,3.2,7.5,7.8,1.7,1.4,4.7,4.7,1.6,0.9,5.4,6.4,1.5,2.3,7.2,6.1,1.4,0.7,3.1,2,-2.8,-4.4,2,5.5,2.4,2.5,2.9,null,null,null,null,null,null,null,null,null],[4.4,3.1,10,10.4,6.2,7.5,12.5,12.6,9,9.5,10.7,11.2,10.4,9.5,12.6,11.6,6.3,4.9,10.7,13,9.9,10.1,11.5,11.2,6.9,5.2,7.4,7.8,5.1,4.5,7,5.3,0.5,0.4,6.4,8.8,4.6,2.7,7.6,9.9,4.9,2.6,1.9,0,-2.5,-2.3,0.9,0,-3.3,-2.7,-2.2,null,null,null,null,null,null,null,null,null],[4.7,3.2,9.5,11.4,8.6,9.8,13.9,14.2,9.1,9.2,10.9,10.3,9.9,9.5,13.2,12.7,7.2,7.2,10.3,9,6.9,9.3,12.9,12.3,9.6,9.4,9.5,8.9,6.8,5.5,7.2,6.2,2.6,0.6,0.5,-1.2,-5.4,-6.9,-3.6,-3.3,-6.3,-4.2,-0.3,1.4,0,-1.3,1,1.1,-2.9,-1.2,0.8,null,null,null,null,null,null,null,null,null],[5.6,5.4,11.8,12.4,8.5,9.1,14.4,13.2,6.7,6.6,8.9,10.1,9.6,9.4,12.5,11.1,5.4,4.3,10.8,13.6,10.2,9.8,10.1,9.3,6.2,5.6,8.1,5.9,-0.1,-2.5,3,4.4,-1.8,-2.1,4.4,4.5,0.9,2.8,6.2,8.2,7.5,5.5,4.5,2.1,-1.1,-0.3,3.6,5.5,4,5.7,7.2,null,null,null,null,null,null,null,null,null],[3.6,3.3,9.7,11.1,6.9,7.1,12.7,12.1,7.5,8.4,10.1,11,10.1,9.7,13.4,13.1,6.9,7.1,13.2,14.8,11.3,10.2,10.9,10.7,9.5,8.9,11.4,11.6,6,2,2.1,1.7,-1.3,-2,2.5,4.3,2.9,5,8.7,7.4,2.1,1.9,8.8,12.5,7.9,4.5,8.2,9,3.3,2.2,3.5,null,null,null,null,null,null,null,null,null],[3.8,3.8,11.3,11.4,6.7,7.9,12.8,12.6,9.6,11,12.2,11.8,10,9.7,13.3,12.7,5.9,4.1,9.9,12.4,9.5,10,11.2,11.4,7.7,5,5.5,2,-2.9,-2.5,2.5,3.1,-1.3,-0.9,4.7,3.7,-0.3,2.1,8.2,8,4.8,5.4,9,10,5.1,4.6,10.7,11.1,5.6,5.7,6.2,null,null,null,null,null,null,null,null,null],[3.2,3.4,10.3,12.1,8.1,6.9,11.4,12.8,9,9.1,9.8,9.5,9.9,10.3,11.2,9.8,6.4,5.9,10,9.4,5.3,6.3,10.3,10.4,7.5,6.1,6.3,4.7,0.4,-0.9,3,3.6,-0.4,0.3,5,6.6,4.4,4.6,6.7,4.2,-0.6,-0.2,4.8,5.6,2.4,3.3,8.7,7.4,3.1,5.1,5.8,null,null,null,null,null,null,null,null,null],[6.2,6.1,10.7,12,8.2,8.3,13.4,12.5,7.3,8.4,9.9,10,9.3,8.5,12.6,12.5,5.9,5.6,11,12.2,9.6,9.2,12.9,12.8,8.7,8.1,8.4,7.7,5.2,2.8,1.6,1,-0.8,-1.3,3.1,3.4,-2.1,-2,4.7,5.7,1.7,3,9.4,9.1,3.6,3.9,9.2,9.6,4.6,5.2,6.4,null,null,null,null,null,null,null,null,null],[3.4,1.8,8.4,9.7,5.8,7.5,13.1,12.7,8.1,8.2,10.7,11.8,10.3,8.7,11.8,10.5,4.3,3.9,10.3,12.7,9,9,10.3,10,7.2,4.9,7.1,5.7,0.4,-0.3,4.4,4.4,-1.1,-0.5,6.1,6.2,3.1,4.5,6.8,7.6,5.8,6.1,8.6,6.9,2.4,3.2,8.9,8.2,2.3,4,6.3,null,null,null,null,null,null,null,null,null],[2.2,3.5,9.7,10.2,4.6,4.9,11,10.7,5.5,6.1,8.7,10.6,11.8,12.5,13.2,10.9,7.2,6.2,8.8,9.2,6.1,6.1,10.5,9.2,3.7,3.6,8.2,7.7,1.6,-0.1,4.9,6.6,2.1,2.3,5.3,4.4,-0.2,-1.4,3.5,3.9,-1.4,-1.7,4.9,6.8,4.2,7.1,10,7.7,3.5,2.2,2.1,null,null,null,null,null,null,null,null,null],[3,4,10.4,10.7,7.1,7.4,11.7,11.7,6.5,7.8,9.5,10.5,10.4,9.4,11.5,10.5,5.1,3.8,10.3,12.3,8.4,8.5,10.7,11.5,9.7,9.4,8.9,7.1,3.9,1.2,1.1,0.2,-3.3,-4.4,-0.2,3.5,3.1,2,5.6,7,2.5,3.2,8.9,7.9,4.8,7.9,11.5,9.9,6.2,6.7,7.4,null,null,null,null,null,null,null,null,null],[4,3.3,10.3,11.6,8,7.2,10.9,11.2,6.1,7,8.4,9.3,10.9,11.3,11.9,10.1,5.1,3.5,9,12,9.8,9.7,10.2,9.6,8.2,7.8,9.3,8,3.2,0.8,2.3,2,-2.1,-3,0.8,2.5,0.2,-2,0.7,0.5,-3.5,-2.5,3.2,4.8,1.9,2.1,6.6,8.4,3.6,3.9,5.7,null,null,null,null,null,null,null,null,null],[3.2,2.7,11.1,12.8,8.2,8.8,13.3,13.8,8.8,8.8,9.9,11,12.9,12.8,12.4,12.6,11.1,9.6,12.4,12.6,9.6,9.8,10.2,9.5,7,3.6,3.6,2.3,-2.4,-3.3,2.8,3.5,-2,-1.3,4.4,7.9,6.6,7.3,12.2,12.1,7.9,5.4,5.6,3.8,-1.2,-1.1,4.7,5.5,3,5.5,6.3,null,null,null,null,null,null,null,null,null],[2.7,4,11.7,12.5,6.8,7.3,13.5,13.4,9.4,9.9,10.2,10.6,10.3,9.7,12.8,11.9,6.3,7.5,13.9,14.4,9.9,8.7,9.3,8.2,5.8,2.8,3.5,3.3,-1.1,-1.3,3.3,3.8,-0.3,-0.1,4.2,5.7,2,1.8,7.2,8.4,6.6,7.2,7.4,4.5,0,1.2,8.2,9.3,3.6,2.9,3.9,null,null,null,null,null,null,null,null,null],[4.6,4.9,11.5,12.6,9.4,10.4,14.5,14.4,10.1,10.6,11.5,10.8,10.3,10.3,13.8,12.3,5.5,5.2,11.8,14.2,10,9.8,13.4,13.4,9.9,8.7,9.1,7.9,5.5,3.2,4.8,5.2,0.2,0.4,5.9,6,2.5,3.5,7.8,8.5,5.9,5.8,10.2,10.9,7.7,8,11.8,12.5,8.9,8.2,8,null,null,null,null,null,null,null,null,null],[4.4,5,11.2,13.5,9.1,7.4,12.2,11.7,7.1,8.2,9.6,9.5,8.8,8.7,12,11,5.9,5.8,10.7,12.8,10.3,10.6,11.1,10,8,7.5,8.5,8.3,6.9,7.1,9,7.3,3.9,4.4,7.3,7.9,5.9,6.1,8.1,6.4,3.1,3,6.9,5.5,-0.2,0.3,6.8,7.1,2.4,3.2,3.6,null,null,null,null,null,null,null,null,null]],"dates":["2026-11-12","2026-11-13","2026-11-14","2026-11-15","2026-11-16","2026-11-17","2026-11-18","2026-11-19","2026-11-20","2026-11-21","2026-11-22","2026-11-23","2026-11-24","2026-11-25","2026-11-26"],"rain":[[0,0,13.8,6.6,0.2,4.8,1,0,0,0,1,0.8,0,null,null],[0,0,7.8,11.4,4.6,14.6,0.6,0,0,0,0,0.8,7,null,null],[0,0,13.4,4.6,0.6,1.2,0.6,0,0.6,2.4,1.4,1.8,0.4,null,null],[0,1.2,12,4.2,1,3.2,0,0,0.8,0.4,0,0,0,null,null],[0,0,8,8.2,0.8,4.6,0,0,1.4,7.4,11.6,1,0.8,null,null],[0,0,21,3.6,0.2,2.6,9.2,0,0,0.4,22.2,0.8,0,null,null],[0,0.6,21.2,6.4,0.6,13.2,2.4,0,1.2,5.4,0,1.8,0,null,null],[0,0,21.2,10.6,0,0,0,0,0,6,0,0.8,11.2,null,null],[0,0,7.4,5.8,0,6.2,3.4,0,0,0,0,0,12,null,null],[0,0,14,7.6,0,0,0,4.2,0,0,14,1,0,null,null],[0,0,21.4,4.4,0.8,5.8,2.4,0,0,0,0,0,0,null,null],[0,0.2,29.8,3.6,0,5.4,0,0,4.2,0,0,4.2,0,null,null],[0,0,17.6,0.4,0,6.6,0,0,0,0,0,0,0,null,null],[0,0.6,9.2,0.4,0,3.8,0.4,0,1.8,0,0,0,5.4,null,null],[0,0,15.6,17.4,0,0.8,0.4,0,1.2,0,0,1.2,1.2,null,null],[0,0,5,1.6,0,13.2,1.2,0,3,2.2,1.4,0,0,null,null],[0,0,11.2,0.8,0,1.8,0,0,0,0,0,7.2,0,null,null],[0,0,16.6,14.6,0,4.4,1,0,6,0.8,2.2,0,0,null,null],[0,0.4,20.6,0,0,0,0,0,2,2.8,0,0,0,null,null],[0,0,28,0.8,0,4.4,10,0,0,1.6,2.6,11.4,0.6,null,null],[0,0,34.4,0.4,0.2,1,1.2,0,0,0,0.2,2.8,0,null,null],[0,0,7.2,0,0,8.2,0.8,0,0,0.6,0,5.4,2.4,null,null],[0,0,28.6,9.2,0.2,8.2,0,0.2,2.4,1,0,3.4,6.8,null,null],[0,0,26.2,9.8,1.4,4,2.4,0,0,4.6,3.8,0,0.6,null,null],[0,0,25.6,11,0,0,0,0,0,0,0,0,3,null,null],[0,0,11.8,3.8,0,1.4,2,3.8,0,4.2,0,0.6,0,null,null],[0,0,16,3.2,0.8,11.2,4.2,0,1.2,0,0.6,0.6,0,null,null],[0,0,20,5.2,0,3,0,0,0,1.2,0,4.8,0,null,null],[0,0,20.8,0.8,0,0.2,0.4,0.2,6.4,0,0,0,0,null,null],[0,0,15,0,0,6,7.8,0,2.4,0,0,0,0,null,null],[0,0,11.2,0.8,0,1.8,0,0,0,9,1.2,0,0,null,null],[0,0,10.2,7.8,1.6,3.8,0,0.4,3.2,0,0,8.4,0,null,null],[0,0,19.6,3.2,0,1.8,2.4,0,0,1.2,1.2,0,0,null,null],[0,0,0.2,0.4,0,6.2,9.4,0,0,3.6,0,0,10.2,null,null],[0,0,11.4,1.2,5.4,9.6,0,0,0,0,0,1.4,0.4,null,null],[0,0,8.4,9,0.2,1.6,0,0,0,1.2,0,0,0.6,null,null],[0,0,19.6,0.8,0.8,4.2,0.4,0.6,0,0.6,0,0,0,null,null],[0,0,20.2,0.8,1.2,4.8,0,0,0,0,0,9,0,null,null],[0,0,1.8,0,0.8,3.4,0,0,0,0,4.4,0.4,0,null,null],[0,0,31.2,0,0.6,3,10.8,0,0,0.8,0.4,0,1.8,null,null],[0,0,5.8,2,1.4,14.2,0,0,0,1,7.4,0,0,null,null],[0,0.6,26,0.4,0,0.6,0,0,0.6,0,0.6,3.6,0,null,null],[0,0.6,19.2,0,1.8,7.2,0,0,0,0,0,0,0,null,null],[0,0,3.2,0.4,0,1.8,0,0,0,0,0,0,0,null,null],[0,0,9.6,4.2,0.4,11.2,9,0.4,1,4.4,0,2.4,0,null,null],[0,0,14.8,0.8,3.6,6.2,0.4,0,0.4,7.4,0,0,0,null,null],[0,0,13.4,5.2,7.2,10.2,0,0.4,0.8,0,0.8,0.4,0,null,null],[0,0,28.4,0.4,0,1.2,0,0,0,4.6,3.8,0,0,null,null],[0,0,13.6,0.8,0,3,0,2.4,0,0,0,0,1.8,null,null],[0,0.4,4.6,1.6,0.2,2.2,0.8,1,0.8,2.4,2.2,0,0,null,null],[0,0.6,14.8,2,0,0,7.8,0.4,1.4,0,1.4,0.4,0,null,null],[0,0,14.4,8.4,0,1.2,0,0,0,11.8,0.8,0.8,2.2,null,null],[0,0,8.6,0.4,0,8.6,7,2.4,0,4.8,0.6,0,0,null,null],[0,0.2,8.8,5.4,0,2.4,1.2,0,0,0,0,0,0,null,null],[0,0,9.6,3.6,0,0.4,10.4,0,4.6,6.8,0.6,0,0,null,null],[0,0,12.6,1.2,0,0,11.8,2,0,0,0,0,0,null,null],[0,0,19.4,0.4,0,0.6,0,0,0,9.2,1.6,0,0,null,null],[0,0,20,2.2,0,0,0,0,0,0,0.4,14.2,0.4,null,null],[0,0,26.2,5,0,0.2,3.4,0,0.2,0.4,0,0,0,null,null],[0,0,20,4.6,0,6.8,4.6,0,0,0,0,0,0,null,null],[0,0.2,31,4.8,0,2,1.6,0,11.4,1.2,0,0,0,null,null],[0,0,9.2,4,1.6,15.2,0,0,0,0.8,7,0,0,null,null],[0,0,8.6,1.6,0,2.2,10.4,0,0,0,0,0.8,0.4,null,null],[0,0,14.2,11,0,3.8,2.2,0,1.4,7,0,0,0,null,null]]},"climate":{"delta":{"jjaTmax":1.5,"djfTmin":1.37,"annRain":27},"perModel":{"EC_Earth3P_HR":{"jjaTmax":1.4,"djfTmin":0.9,"annRain":96},"MRI_AGCM3_2_S":{"jjaTmax":1.8,"djfTmin":1.9,"annRain":36},"MPI_ESM1_2_XR":{"jjaTmax":1.3,"djfTmin":1.3,"annRain":-52}}},"era5":{"jjaTmax":28.2,"djfTmin":-5.7,"annRain":1236}}}}</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+'use strict';
+const BAKED = (() => { try { return JSON.parse(document.getElementById('baked-data').textContent || '{}'); } catch { return {}; } })();
+const STATIONS = BAKED.stations || [];
+const CITIES = BAKED.cities || [];
+const Q = new URLSearchParams(location.search);
+const DEMO = Q.get('demo') === 'ewha' && BAKED.demo && BAKED.demo.ewha ? BAKED.demo.ewha : null;
+let PRESENT = Q.has('present');
+const BASE_URL = location.href.split(/[?#]/)[0];
+
+const S = { place: null, station: null, dist: null, ens: null, clim: null, answers: [], cold: -10, rain: 10 };
+
+// ---------- 문장 (수정은 여기서) ----------
+const QUICK = [
+  { name: '이화여대', lat: 37.5622, lon: 126.9468 },
+  { name: '서울시청', lat: 37.5663, lon: 126.9779 },
+  { name: '부산', lat: 35.1796, lon: 129.0756 },
+  { name: '대구', lat: 35.8714, lon: 128.6014 },
+  { name: '광주', lat: 35.1595, lon: 126.8526 },
+  { name: '강릉', lat: 37.7519, lon: 128.8761 },
+  { name: '제주', lat: 33.4996, lon: 126.5312 },
+];
+const QUESTIONS = [
+  { q: '내일 비 올 확률 70%. 나는?', l: '우산만 챙긴다', r: '퇴근길, 대피 경로까지 확인한다' },
+  { q: '재난문자가 울렸다. 먼저 하는 일은?', l: '문자와 공식 앱을 확인한다', r: '창밖과 단톡방을 확인한다' },
+  { q: '큰비가 온다면 가장 먼저 떠오르는 건?', l: '나의 일정', r: '가족, 이웃, 반려동물' },
+  { q: '집에 비상 가방이 있나요?', l: '없다', r: '있다' },
+];
+const TYPES = {
+  '미리공식함께': { name: '든든한 대피반장 젤리', good: '미리 공식 정보를 확인하고 주변까지 챙겨요.', more: '내가 없을 때도 가족이 움직일 수 있게 계획을 나눠 두면 좋아요.' },
+  '미리공식나': { name: '꼼꼼한 체크리스트 젤리', good: '예보를 보고 내 준비를 빈틈없이 해요.', more: '내 계획을 가족이나 친구와도 나눠 보세요.' },
+  '미리주변함께': { name: '동네 소식통 젤리', good: '일찍 움직이고 이웃 소식도 빨라요.', more: '단톡방 소식은 공식 정보로 한 번 더 확인해요.' },
+  '미리주변나': { name: '촉 좋은 레이더 젤리', good: '하늘과 주변 분위기를 보고 먼저 대비해요.', more: '감보다 재난문자와 특보를 먼저 확인해요.' },
+  '닥쳐서공식함께': { name: '막판 스퍼트 반장 젤리', good: '상황이 오면 공식 정보로 빠르게 모두를 챙겨요.', more: '예보가 나왔을 때 하루 먼저 움직여 보세요.' },
+  '닥쳐서공식나': { name: '알림 믿는 침착 젤리', good: '공식 알림을 믿고 흔들리지 않아요.', more: '알림이 오기 전에 대피 경로를 한 번 봐 두세요.' },
+  '닥쳐서주변함께': { name: '단톡방 비상대책위원장 젤리', good: '사람들을 모으고 소식을 빠르게 나눠요.', more: '퍼 나르기 전에 공식 정보인지 확인해요.' },
+  '닥쳐서주변나': { name: '일단 창밖 보는 젤리', good: '지금 눈앞의 상황을 직접 확인해요.', more: '창밖보다 재난문자와 특보를 먼저, 그리고 하루 일찍 움직여요.' },
+};
+const ACTIONS = {
+  // 1줄: 유형의 보완점 (위에서부터 처음 맞는 것)
+  late: '비 예보 70% 이상이면 전날 밤 퇴근길(하굣길) 미리 정하기',
+  noBag: '물, 손전등, 보조배터리, 상비약을 담은 비상 가방 하나 꾸리기',
+  around: '긴급재난문자 수신 설정을 켜고, 특보는 기상청 날씨누리에서 확인하기',
+  ready: '정해 둔 대피 경로를 실제로 한 번 걸어 보기',
+  // 2줄: 우리 동네 데이터
+  rain: mm => `우리 동네는 올해 하루 ${mm}mm 비를 겪었어요. 집 근처 낮은 곳(지하차도, 반지하) 위치 확인하기`,
+  heat: d => `폭염일이 1990년대보다 ${d}일 늘었어요. 가까운 무더위쉼터 한 곳 찾아두기`,
+  cold: p => `앞으로 15일 안에 영하 10℃ 아래로 내려갈 확률이 ${p}%예요. 수도관 동파 대비, 보일러 외출 모드 확인하기`,
+  base: '우리 동네 기상특보 알림을 켜고, 가까운 대피소 한 곳 알아두기',
+  // 3줄: 챙기는 범위
+  together: '가족 단톡방에 우리 집 대피 장소 공유하기',
+  alone: '학교나 회사 근처 대피소 한 곳 알아두기',
+};
+
+// ---------- 공통 ----------
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+const round = (x, d = 1) => (x == null || !isFinite(x)) ? null : Math.round(x * 10 ** d) / 10 ** d;
+const fmt = (x, d = 0) => x == null ? '-' : Number(x).toLocaleString('ko-KR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const signed = (x, d = 1) => (x > 0 ? '+' : '') + fmt(x, d);
+// 받침에 따라 와/과
+const wa = w => { const c = w.charCodeAt(w.length - 1); return w + ((c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28) ? '과' : '와'); };
+const md = s => s ? `${Number(s.slice(5, 7))}월 ${Number(s.slice(8, 10))}일` : '-';
+function haversine(a, b) {
+  const R = 6371, r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function direction(a, b) {
+  const r = Math.PI / 180;
+  const y = Math.sin((b.lon - a.lon) * r) * Math.cos(b.lat * r);
+  const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lon - a.lon) * r);
+  const deg = (Math.atan2(y, x) / r + 360) % 360;
+  return ['북쪽', '북동쪽', '동쪽', '남동쪽', '남쪽', '남서쪽', '서쪽', '북서쪽'][Math.round(deg / 45) % 8];
+}
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 1800);
+}
+function countUp(root) {
+  root.querySelectorAll('[data-count]').forEach(el => {
+    const to = Number(el.dataset.count), dec = Number(el.dataset.dec || 0), sign = el.dataset.sign === '1';
+    const t0 = performance.now(), dur = 1000;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), v = to * (1 - (1 - k) ** 3);
+      el.textContent = sign ? signed(v, dec) : fmt(v, dec);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+const ICON = {
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>',
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  again: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7M4 4v4.7h4.7"/></svg>',
+};
+
+// ---------- Open-Meteo (메모리 캐시) ----------
+const memo = new Map();
+function cached(key, fn) {
+  if (!memo.has(key)) memo.set(key, fn().catch(e => { memo.delete(key); throw e; }));
+  return memo.get(key);
+}
+async function getJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+const ck = p => `${p.lat.toFixed(3)},${p.lon.toFixed(3)}`;
+const isDemoPlace = p => DEMO && haversine(p, DEMO) < 1;
+
+// 앙상블 응답 → 6시간 간격 멤버별 기온, 멤버별 일강수량 (build-data.mjs 와 같은 규칙)
+function normalizeEnsemble(j) {
+  const h = j.hourly;
+  const tKeys = Object.keys(h).filter(k => k === 'temperature_2m' || k.startsWith('temperature_2m_member'));
+  const pKeys = Object.keys(h).filter(k => k === 'precipitation' || k.startsWith('precipitation_member'));
+  const idx = [];
+  h.time.forEach((t, i) => { if (Number(t.slice(11, 13)) % 6 === 0) idx.push(i); });
+  const dates = [...new Set(h.time.map(t => t.slice(0, 10)))];
+  return {
+    generated: new Date().toISOString(),
+    times: idx.map(i => h.time[i]),
+    temp: tKeys.map(k => idx.map(i => round(h[k][i]))),
+    dates,
+    rain: pKeys.map(k => dates.map(d => {
+      let s = 0, any = false;
+      h.time.forEach((t, i) => { if (t.startsWith(d) && h[k][i] != null) { s += h[k][i]; any = true; } });
+      return any ? round(s) : null;
+    })),
+  };
+}
+function loadEnsemble(p) {
+  if (isDemoPlace(p)) return Promise.resolve(DEMO.wn2);
+  return cached('ens:' + ck(p), () => getJSON('https://ensemble-api.open-meteo.com/v1/ensemble'
+    + `?latitude=${p.lat}&longitude=${p.lon}&hourly=temperature_2m,precipitation&forecast_days=15&timezone=Asia%2FSeoul&models=google_weathernext2_ensemble`)
+    .then(normalizeEnsemble));
+}
+// 여름(6~8월) 평균 최고, 겨울(12~2월) 평균 최저, 연 강수량
+function climateStats(time, tmax, tmin, prcp) {
+  const jja = [], djf = [], years = new Set();
+  let rain = 0;
+  for (let i = 0; i < time.length; i++) {
+    const m = Number(time[i].slice(5, 7));
+    years.add(time[i].slice(0, 4));
+    if (m >= 6 && m <= 8 && tmax[i] != null) jja.push(tmax[i]);
+    if ((m === 12 || m <= 2) && tmin[i] != null) djf.push(tmin[i]);
+    if (prcp[i] != null) rain += prcp[i];
+  }
+  return { jjaTmax: mean(jja), djfTmin: mean(djf), annRain: rain / years.size };
+}
+const MODELS = ['EC_Earth3P_HR', 'MRI_AGCM3_2_S', 'MPI_ESM1_2_XR'];
+function loadClimate(p) {
+  if (isDemoPlace(p)) return Promise.resolve({ present: DEMO.era5, delta: DEMO.climate.delta });
+  return cached('clim:' + ck(p), async () => {
+    const vars = '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum';
+    const cm = (s, e) => getJSON(`https://climate-api.open-meteo.com/v1/climate?latitude=${p.lat}&longitude=${p.lon}&start_date=${s}&end_date=${e}&models=${MODELS.join(',')}${vars}`);
+    const [era, now, fut] = await Promise.all([
+      getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${p.lat}&longitude=${p.lon}&start_date=2015-01-01&end_date=2024-12-31${vars}&timezone=auto`),
+      cm('2015-01-01', '2024-12-31'), cm('2040-01-01', '2049-12-31'),
+    ]);
+    const present = climateStats(era.daily.time, era.daily.temperature_2m_max, era.daily.temperature_2m_min, era.daily.precipitation_sum);
+    const ds = MODELS.map(m => {
+      const st = r => climateStats(r.daily.time, r.daily['temperature_2m_max_' + m], r.daily['temperature_2m_min_' + m], r.daily['precipitation_sum_' + m]);
+      const a = st(now), b = st(fut);
+      return { jjaTmax: b.jjaTmax - a.jjaTmax, djfTmin: b.djfTmin - a.djfTmin, annRain: b.annRain - a.annRain };
+    });
+    const delta = {};
+    for (const k of ['jjaTmax', 'djfTmin', 'annRain']) delta[k] = mean(ds.map(d => d[k]));
+    return { present, delta };
+  });
+}
+
+// 델타 방법 닮은꼴: 후보 도시 표준편차로 표준화한 유클리드 거리
+function analogs(me, cities, place) {
+  const keys = ['jjaTmax', 'djfTmin', 'annRain'];
+  const sd = {};
+  for (const k of keys) {
+    const v = cities.map(c => c[k]); const m = mean(v);
+    sd[k] = Math.sqrt(mean(v.map(x => (x - m) ** 2))) || 1;
+  }
+  return cities.filter(c => haversine(c, place) > 30)
+    .map(c => ({ c, d: Math.sqrt(keys.reduce((s, k) => s + ((c[k] - me[k]) / sd[k]) ** 2, 0)) }))
+    .sort((a, b) => a.d - b.d).slice(0, 3);
+}
+
+// ---------- 동네 정하기 ----------
+function setPlace(p) {
+  S.place = p;
+  if (STATIONS.length) {
+    let best = null, bd = Infinity;
+    for (const s of STATIONS) { const d = haversine(p, s); if (d < bd) { bd = d; best = s; } }
+    S.station = best; S.dist = bd;
+  }
+  // 미리 불러오기 (카드 1~4를 보는 동안)
+  S.ens = loadEnsemble(p); S.ens.catch(() => {});
+  S.clim = loadClimate(p); S.clim.catch(() => {});
+  const el = $('#picked');
+  if (el) el.innerHTML = `<strong>${esc(p.name)}</strong>` + (S.station ? ` 가장 가까운 관측소는 ${esc(S.station.name)} (${fmt(S.dist, 1)}km)` : '');
+  const go = $('#startBtn'); if (go) go.disabled = false;
+  if (pickMap && window.L) {
+    if (pickMarker) pickMarker.setLatLng([p.lat, p.lon]); else pickMarker = L.circleMarker([p.lat, p.lon], { radius: 8, color: '#fff', weight: 3, fillColor: '#FFD166', fillOpacity: 1 }).addTo(pickMap);
+    pickMap.setView([p.lat, p.lon], Math.max(pickMap.getZoom(), 10));
+  }
+}
+async function searchPlace(name) {
+  const box = $('#results');
+  if (!name.trim()) return;
+  box.innerHTML = '<div class="loading"><div class="spin"></div>찾는 중</div>';
+  try {
+    const u = cc => `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name.trim())}&count=8&language=ko${cc ? '&countryCode=KR' : ''}`;
+    let res = (await getJSON(u(true))).results || [];
+    if (!res.length) res = (await getJSON(u(false))).results || [];
+    if (!res.length) { box.innerHTML = '<div class="sub">찾지 못했어요. 지도에서 직접 눌러 보세요.</div>'; return; }
+    box.innerHTML = '';
+    for (const r of res) {
+      const b = document.createElement('button');
+      const where = [r.admin1, r.admin2, r.country_code !== 'KR' ? r.country : ''].filter(Boolean).join(' ');
+      b.innerHTML = `${esc(r.name)}<span>${esc(where)}</span>`;
+      b.onclick = () => { box.innerHTML = ''; setPlace({ name: r.name, lat: r.latitude, lon: r.longitude }); };
+      box.appendChild(b);
+    }
+  } catch { box.innerHTML = '<div class="sub">지금은 검색하지 못했어요. 빠른 선택이나 지도를 써 보세요.</div>'; }
+}
+let pickMap = null, pickMarker = null;
+function initPickMap() {
+  if (pickMap || !window.L) return;
+  try {
+    pickMap = L.map('pickmap', { zoomControl: false, attributionControl: true }).setView([36.3, 127.8], 6);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(pickMap);
+    pickMap.on('click', e => setPlace({ name: '지도에서 고른 곳', lat: round(e.latlng.lat, 4), lon: round(e.latlng.lng, 4) }));
+  } catch { $('#pickmap').style.display = 'none'; }
+}
+
+// ---------- 카드 ----------
+const st = () => S.station;
+const ty = () => S.station && S.station.thisYear;
+const until = () => (BAKED.meta && BAKED.meta.dataUntil) || null;
+function noKma() {
+  return `<div class="main"><div class="kicker">기상청 관측</div><h2>기상청 자료가 아직 들어 있지 않아요</h2>
+    <p class="sub">개발자 컴퓨터에서 <b>build-data.mjs</b>를 실행하면 이 카드가 채워져요.</p></div>`;
+}
+function readLine(how, src) { return `<div class="read"><b>읽는 법</b> ${how}<br>출처: ${src}</div>`; }
+const SRC_KMA = () => `기상청 지상관측자료 (기상청 API허브)${until() ? ', ' + md(until()) + '까지' : ''}`;
+
+const CARDS = [
+  { id: 'intro', bg: 'var(--c0)', auto: false, once: true, render: el => {
+    el.innerHTML = `<div class="main" style="justify-content:flex-start;padding-top:12px">
+      <div class="kicker">${until() ? md(until()) + '까지의 기록' : '우리 동네 날씨 결산'}</div>
+      <h1>${until() ? until().slice(0, 4) : new Date().getFullYear()} 우리 동네<br>날씨 결산</h1>
+      <div class="search"><input id="q" placeholder="동네 이름 (예: 신촌, 해운대)" autocomplete="off"><button class="btn" id="qbtn" aria-label="검색">${ICON.search}</button></div>
+      <div id="results"></div>
+      <div class="chips">${QUICK.map((c, i) => `<button class="chip" data-i="${i}">${c.name}</button>`).join('')}</div>
+      <div class="map" id="pickmap"></div>
+      <div class="picked" id="picked">검색하거나, 지도를 누르거나, 빠른 선택을 골라 주세요.</div>
+      <button class="btn" id="startBtn" disabled>내 동네 결산 보기</button>
+    </div>`;
+    $('#qbtn', el).onclick = () => searchPlace($('#q', el).value);
+    $('#q', el).onkeydown = e => { if (e.key === 'Enter') searchPlace(e.target.value); };
+    el.querySelectorAll('.chip').forEach(b => b.onclick = () => setPlace({ ...QUICK[b.dataset.i] }));
+    $('#startBtn', el).onclick = () => next();
+    setTimeout(initPickMap, 50);
+  }, shown: () => { if (pickMap) pickMap.invalidateSize(); } },
+
+  { id: 'station', bg: 'var(--c1)', auto: true, render: el => {
+    if (!st()) return el.innerHTML = noKma();
+    el.innerHTML = `<div class="main">
+      <div class="kicker">우리 동네 관측소</div>
+      <h2>${esc(S.place.name)}의 날씨는</h2>
+      <div class="mid">${esc(st().name)} 관측소</div>
+      <div class="big"><span data-count="${S.dist}" data-dec="1">0</span><small>km</small></div>
+      <p class="sub">떨어진 곳에서 기록하고 있어요.</p>
+      ${st().thisYear.coverage < 0.9 ? '<p class="warn">이 관측소는 올해 자료가 일부 빠져 있어요.</p>' : ''}
+    </div>${readLine('관측소와 멀수록 실제 우리 동네 날씨와 차이가 날 수 있어요.', SRC_KMA())}`;
+  } },
+
+  { id: 'rain', bg: 'var(--c2)', auto: true, render: el => {
+    if (!st()) return el.innerHTML = noKma();
+    const t = ty();
+    el.innerHTML = `<div class="main">
+      <div class="kicker">올해 요약</div>
+      <h2>올해 ${esc(st().name)}에<br>비나 눈이 온 날은</h2>
+      <div class="big"><span data-count="${t.rainDays}">0</span><small>일</small></div>
+      <p class="sub">올해 총 강수량 <strong><span data-count="${t.rainTotal}">0</span>mm</strong></p>
+      ${t.coverage < 0.9 ? '<p class="warn">자료가 일부 빠져 있어요. 실제보다 적게 나올 수 있어요.</p>' : ''}
+    </div>${readLine(`기상청 관측소의 1월 1일부터 ${md(until())}까지 기록이에요. 하루 0.1mm 이상이면 비 온 날로 셌어요.`, SRC_KMA())}`;
+  } },
+
+  { id: 'day', bg: 'var(--c3)', auto: true, render: el => {
+    if (!st()) return el.innerHTML = noKma();
+    const t = ty();
+    el.innerHTML = `<div class="main">
+      <div class="kicker">올해의 그날</div>
+      <h2>가장 비가 많이 온 날</h2>
+      <div class="mid">${t.maxRain.date ? md(t.maxRain.date) : '-'}</div>
+      <p class="sub">하루 <strong><span data-count="${t.maxRain.mm}" data-dec="1">0</span>mm</strong></p>
+      <h2 style="margin-top:14px">가장 더웠던 날</h2>
+      <div class="mid">${t.maxTemp ? md(t.maxTemp.date) : '-'}</div>
+      <p class="sub">낮 최고 <strong>${t.maxTemp ? `<span data-count="${t.maxTemp.c}" data-dec="1">0</span>℃` : '-'}</strong></p>
+      <h2 style="margin-top:14px">그날 당신은 어디에 있었나요?</h2>
+    </div>${readLine('하루 동안의 강수량 합계와 낮 최고기온이에요. 관측소 한 곳의 기록이라 동네 안에서도 차이가 있어요.', SRC_KMA())}`;
+  } },
+
+  { id: 'past', bg: 'var(--c4)', auto: true, skip: () => S.station && !S.station.y1990s, render: el => {
+    if (!st()) return el.innerHTML = noKma();
+    const t = ty(), o = st().y1990s;
+    const dh = round(t.heatDays - o.heatDays), dn = round(t.tropNights - o.tropNights), dr = round(t.rainTotal - o.rainTotal, 0);
+    el.innerHTML = `<div class="main">
+      <div class="kicker">1990년대의 우리 동네와 비교</div>
+      <h2>낮 최고 33℃ 이상 폭염일</h2>
+      <div class="big"><span data-count="${dh}" data-dec="1" data-sign="1">0</span><small>일</small></div>
+      <p class="sub">올해 ${t.heatDays}일, 1991~2000년 같은 기간 평균 ${fmt(o.heatDays, 1)}일</p>
+      <dl class="stat">
+        <dt>열대야일 (간이)</dt><dd>${t.tropNights}일 (${signed(dn)}일)</dd>
+        <dt>강수량</dt><dd>${fmt(t.rainTotal)}mm (${dr > 0 ? '+' : ''}${fmt(dr)}mm)</dd>
+      </dl>
+    </div>${readLine(`한 해는 날씨, 10년 평균은 기후예요. 올해 하나만으로 단정하지 마세요. 1990년대 값은 각 해의 1월 1일~${md(until())} 기록을 평균했어요(${o.years}년치). 열대야는 하루 최저기온 25℃ 이상인 날로 간단히 셌어요.`, SRC_KMA())}`;
+  } },
+
+  { id: 'next15', bg: 'var(--c5)', auto: true, render: el => renderAsync(el, () => S.ens, renderEnsemble) },
+  { id: 'analog', bg: 'var(--c6)', auto: true, render: el => renderAsync(el, () => S.clim, renderAnalog) },
+
+  { id: 'test', bg: 'var(--c7)', auto: false, render: el => renderTest(el) },
+  { id: 'result', bg: 'var(--c8)', auto: false, render: el => {
+    const t = myType();
+    el.innerHTML = `<div class="main">
+      <div class="kicker">나의 재난 대응 유형</div>
+      <div class="jelly">${jelly(t)}</div>
+      <h1 style="text-align:center">${t.name}</h1>
+      <div class="tagline"><div><span>강점</span>${t.good}</div><div><span>보완점</span>${t.more}</div></div>
+    </div><div class="read">심리검사가 아니라, 내 습관을 돌아보는 놀이예요.</div>`;
+  } },
+
+  { id: 'mycard', bg: 'var(--c9)', auto: false, render: el => renderMyCard(el) },
+
+  { id: 'sources', bg: 'var(--c10)', auto: false, render: el => {
+    el.innerHTML = `<div class="main" style="justify-content:flex-start;padding-top:8px;overflow:auto">
+      <div class="kicker">데이터 출처와 한계</div>
+      <ul class="src">
+        <li><b>기상청 지상관측자료 (ASOS)</b><span>기상청 API허브, 공공누리. 전국 관측소 일자료, ${until() ? md(until()) + '까지' : '빌드 전'}. 관측소 한 곳의 기록이라 동네 안에서도 차이가 있어요.</span></li>
+        <li><b>WeatherNext 2</b><span>&copy; Google DeepMind, via Open-Meteo (CC BY 4.0). 약 25km 격자, 6시간 간격, 64개 앙상블, 15일. 공식 예보가 아니에요.</span></li>
+        <li><b>CMIP6 HighResMIP 기후모델</b><span>EC-Earth3P-HR, MRI-AGCM3-2-S, MPI-ESM1-2-XR, via Open-Meteo. 2015~2024년 대비 2040~2049년 변화량을 3개 모델 평균으로 썼어요.</span></li>
+        <li><b>ERA5 재분석</b><span>&copy; Copernicus, ECMWF, via Open-Meteo. 2015~2024년 현재 기후 계산에 썼어요.</span></li>
+        <li><b>지도</b><span>&copy; OpenStreetMap 기여자</span></li>
+        <li><span><a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a></span></li>
+        <li><span>데이터 빌드: ${BAKED.meta && BAKED.meta.builtAt ? md(BAKED.meta.builtAt.slice(0, 10)) : '-'}. 위치와 테스트 응답은 저장하거나 보내지 않아요 (Open-Meteo에 좌표를 보내는 것만 있어요).</span></li>
+      </ul>
+      <p class="sub" style="font-weight:700;color:#fff">이 앱은 교육용입니다. 대피 판단은 기상청 특보와 긴급재난문자를 따르세요.</p>
+      <button class="btn ghost" id="restart2">${ICON.again}처음부터</button>
+    </div>`;
+    $('#restart2', el).onclick = restart;
+  } },
+];
+
+// 비동기 카드: 불러오는 중 / 실패 시 다시 시도
+function renderAsync(el, getP, draw) {
+  if (!S.place) return;
+  el.innerHTML = '<div class="main"><div class="loading"><div class="spin"></div>불러오는 중이에요</div></div>';
+  const p = getP(), place = S.place;
+  p.then(d => { if (S.place === place && el.classList.contains('on')) { draw(el, d); countUp(el); } })
+   .catch(() => {
+     if (S.place !== place) return;
+     el.innerHTML = `<div class="main"><h2>지금은 불러오지 못했어요</h2><p class="sub">인터넷 연결을 확인하고 다시 시도해 주세요. 다음 카드로 넘어가도 괜찮아요.</p><button class="btn" id="retry">${ICON.again}다시 시도</button></div>`;
+     $('#retry', el).onclick = () => {
+       if (el.dataset.id === 'next15') { S.ens = loadEnsemble(place); S.ens.catch(() => {}); }
+       else { S.clim = loadClimate(place); S.clim.catch(() => {}); }
+       renderAsync(el, getP, draw);
+     };
+   });
+}
+
+// 카드 5
+function ensProbs(e) {
+  const n = e.temp.length;
+  const cold = e.temp.filter(m => m.some(v => v != null && v <= S.cold)).length / n;
+  const rain = e.rain.filter(m => m.some(v => v != null && v >= S.rain)).length / e.rain.length;
+  return { cold: Math.round(cold * 100), rain: Math.round(rain * 100) };
+}
+function renderEnsemble(el, e) {
+  const pr = ensProbs(e);
+  el.innerHTML = `<div class="main" style="gap:10px">
+    <div class="kicker">다음 15일, AI 앙상블 예측</div>
+    <div class="prob"><div class="top"><label>기온이 <b id="cv">${S.cold}</b>℃ 아래로 내려갈 확률</label><span class="pct"><span id="cp" data-count="${pr.cold}">0</span>%</span></div>
+      <input type="range" id="cs" min="-20" max="0" step="1" value="${S.cold}" aria-label="한파 기준 기온"></div>
+    <div class="prob"><div class="top"><label>하루 <b id="rv">${S.rain}</b>mm 넘는 비나 눈이 올 확률</label><span class="pct"><span id="rp" data-count="${pr.rain}">0</span>%</span></div>
+      <input type="range" id="rs" min="1" max="50" step="1" value="${S.rain}" aria-label="큰비 기준 강수량"></div>
+    <canvas class="spag" id="spag"></canvas>
+    <div class="legend"><span><i class="m"></i>64번의 예측</span><span><i></i>가운데 값</span><span><i class="t"></i>기준 기온</span></div>
+  </div>${readLine('AI가 64번 예측한 결과 중 몇 번이 기준을 넘었는지예요. 6시간 간격 자료라 실제 최저기온은 더 낮을 수 있어요. 공식 예보와 특보는 기상청을 확인하세요.', 'WeatherNext 2 &copy; Google DeepMind, via <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)')}`;
+  const upd = () => {
+    S.cold = Number($('#cs', el).value); S.rain = Number($('#rs', el).value);
+    const p = ensProbs(e);
+    $('#cv', el).textContent = S.cold; $('#rv', el).textContent = S.rain;
+    $('#cp', el).textContent = p.cold; $('#rp', el).textContent = p.rain;
+    drawSpaghetti($('#spag', el), e);
+  };
+  $('#cs', el).oninput = upd; $('#rs', el).oninput = upd;
+  requestAnimationFrame(() => drawSpaghetti($('#spag', el), e));
+}
+function drawSpaghetti(cv, e) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr);
+  const all = e.temp.flat().filter(v => v != null);
+  let lo = Math.min(...all, S.cold), hi = Math.max(...all);
+  lo = Math.floor(lo - 1); hi = Math.ceil(hi + 1);
+  const L = 30, R = 6, T = 6, B = 18, N = e.times.length;
+  const x = i => L + (W - L - R) * i / (N - 1), y = v => T + (H - T - B) * (hi - v) / (hi - lo);
+  g.font = '10px Pretendard, sans-serif'; g.fillStyle = 'rgba(255,255,255,.6)'; g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 1;
+  const stepV = (hi - lo) > 20 ? 10 : 5;
+  for (let v = Math.ceil(lo / stepV) * stepV; v <= hi; v += stepV) {
+    g.beginPath(); g.moveTo(L, y(v)); g.lineTo(W - R, y(v)); g.stroke();
+    g.textAlign = 'right'; g.fillText(v + '℃', L - 4, y(v) + 3);
+  }
+  g.textAlign = 'center';
+  e.times.forEach((t, i) => { if (t.endsWith('T00:00') && (i / 4) % 3 === 0) g.fillText(`${Number(t.slice(5, 7))}/${Number(t.slice(8, 10))}`, x(i), H - 4); });
+  g.strokeStyle = 'rgba(140,200,255,.28)'; g.lineWidth = 1;
+  for (const m of e.temp) {
+    g.beginPath(); let s = false;
+    m.forEach((v, i) => { if (v == null) { s = false; return; } s ? g.lineTo(x(i), y(v)) : g.moveTo(x(i), y(v)); s = true; });
+    g.stroke();
+  }
+  g.strokeStyle = '#fff'; g.lineWidth = 2.2; g.beginPath();
+  for (let i = 0; i < N; i++) {
+    const v = e.temp.map(m => m[i]).filter(a => a != null).sort((a, b) => a - b);
+    if (!v.length) continue;
+    const med = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
+    i ? g.lineTo(x(i), y(med)) : g.moveTo(x(i), y(med));
+  }
+  g.stroke();
+  g.strokeStyle = '#FFD166'; g.setLineDash([5, 4]); g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(L, y(S.cold)); g.lineTo(W - R, y(S.cold)); g.stroke(); g.setLineDash([]);
+}
+
+// 카드 6
+let analogMap = null;
+function renderAnalog(el, c) {
+  if (!CITIES.length) { el.innerHTML = '<div class="main"><h2>후보 도시 자료가 아직 없어요</h2><p class="sub">build-data.mjs --only=cities 를 실행해 주세요.</p></div>'; return; }
+  const p = S.place;
+  const fut = { jjaTmax: c.present.jjaTmax + c.delta.jjaTmax, djfTmin: c.present.djfTmin + c.delta.djfTmin, annRain: c.present.annRain + c.delta.annRain };
+  const top = analogs(fut, CITIES, p);
+  const a = top[0].c, km = haversine(p, a);
+  S.analog = a;
+  el.innerHTML = `<div class="main" style="gap:10px">
+    <div class="kicker">2050년 닮은꼴 도시</div>
+    <h2>2040년대 ${esc(p.name)}의 기후는,<br>지금의 <span style="color:var(--accent)">${esc(wa(a.name))}</span> 닮았어요</h2>
+    <div class="map tall" id="amap"></div>
+    <p class="sub">${direction(p, a)}으로 <strong><span data-count="${Math.round(km)}">0</span>km</strong> 떨어진 ${esc(a.country)}의 도시예요. 그다음은 ${top.slice(1).map(t => esc(t.c.name)).join(', ')}</p>
+    <table class="cmp"><tr><th></th><th>지금 ${esc(p.name)}</th><th>2040년대</th><th>지금 ${esc(a.name)}</th></tr>
+      <tr><td>여름 낮 최고</td><td>${fmt(c.present.jjaTmax, 1)}℃</td><td>${fmt(fut.jjaTmax, 1)}℃</td><td>${fmt(a.jjaTmax, 1)}℃</td></tr>
+      <tr><td>겨울 밤 최저</td><td>${fmt(c.present.djfTmin, 1)}℃</td><td>${fmt(fut.djfTmin, 1)}℃</td><td>${fmt(a.djfTmin, 1)}℃</td></tr>
+      <tr><td>연 강수량</td><td>${fmt(c.present.annRain)}mm</td><td>${fmt(fut.annRain)}mm</td><td>${fmt(a.annRain)}mm</td></tr></table>
+  </div>${readLine('여름 최고기온, 겨울 최저기온, 연 강수량 세 가지만 비교한 단순화된 닮은꼴이에요. 기후모델 3개의 평균이에요.', 'CMIP6 HighResMIP, ERA5 &copy; Copernicus, ECMWF, via <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>')}`;
+  if (!window.L) { $('#amap', el).style.display = 'none'; return; }
+  try {
+    if (analogMap) { analogMap.remove(); analogMap = null; }
+    analogMap = L.map($('#amap', el), { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, boxZoom: false, keyboard: false });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, attribution: '&copy; OpenStreetMap' }).addTo(analogMap);
+    const A = [p.lat, p.lon], B = [a.lat, a.lon];
+    L.polyline([A, B], { color: '#FFD166', weight: 3, dashArray: '6 6' }).addTo(analogMap);
+    L.circleMarker(A, { radius: 7, color: '#fff', weight: 2, fillColor: '#1B2A4A', fillOpacity: 1 }).addTo(analogMap).bindTooltip(p.name, { permanent: true, direction: 'top' });
+    L.circleMarker(B, { radius: 7, color: '#fff', weight: 2, fillColor: '#FFD166', fillOpacity: 1 }).addTo(analogMap).bindTooltip(a.name, { permanent: true, direction: 'top' });
+    analogMap.fitBounds([A, B], { padding: [36, 36], maxZoom: 9 });
+  } catch { $('#amap', el).style.display = 'none'; }
+}
+
+// 카드 7~8
+function renderTest(el) {
+  el.innerHTML = `<div class="main">
+    <div class="kicker">나의 재난 대응 유형 테스트</div>
+    <h2>질문 4개, 카드를 왼쪽이나 오른쪽으로 넘겨 답해 주세요</h2>
+    <div class="deck" id="deck"></div>
+  </div><div class="read">심리검사가 아니라, 내 습관을 돌아보는 놀이예요. 답은 어디에도 저장하거나 보내지 않아요.</div>`;
+  S.answers = [];
+  showQuestion(el, 0);
+}
+function showQuestion(el, i) {
+  const deck = $('#deck', el);
+  if (i >= QUESTIONS.length) { next(); return; }
+  const q = QUESTIONS[i];
+  deck.innerHTML = `<div class="q"><div><div class="n">${i + 1} / ${QUESTIONS.length}</div><h3>${q.q}</h3></div>
+    <div><div class="opts"><button data-a="0">${q.l}</button><button data-a="1">${q.r}</button></div>
+    <div class="hint" style="margin-top:8px">왼쪽으로 넘기면 왼쪽 답, 오른쪽이면 오른쪽 답</div></div></div>`;
+  const card = $('.q', deck);
+  const answer = a => {
+    S.answers[i] = a;
+    card.style.transition = 'transform .3s, opacity .3s';
+    card.style.transform = `translateX(${a ? 420 : -420}px) rotate(${a ? 16 : -16}deg)`; card.style.opacity = 0;
+    setTimeout(() => showQuestion(el, i + 1), 260);
+  };
+  card.querySelectorAll('[data-a]').forEach(b => b.onclick = ev => { ev.stopPropagation(); answer(Number(b.dataset.a)); });
+  let x0 = null, dx = 0;
+  card.addEventListener('pointerdown', ev => { if (ev.target.closest('button')) return; x0 = ev.clientX; dx = 0; card.setPointerCapture(ev.pointerId); card.style.transition = 'none'; });
+  card.addEventListener('pointermove', ev => { if (x0 == null) return; dx = ev.clientX - x0; card.style.transform = `translateX(${dx}px) rotate(${dx / 20}deg)`; });
+  const end = () => { if (x0 == null) return; x0 = null; if (Math.abs(dx) > 80) answer(dx > 0 ? 1 : 0); else { card.style.transition = 'transform .2s'; card.style.transform = ''; } };
+  card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
+}
+function myType() {
+  const a = S.answers;
+  const t = { prep: a[0] ? '미리' : '닥쳐서', info: a[1] ? '주변' : '공식', scope: a[2] ? '함께' : '나', bag: !!a[3] };
+  return Object.assign(t, TYPES[t.prep + t.info + t.scope]);
+}
+function jelly(t) {
+  const body = t.prep === '미리' ? '#5CC8A8' : '#FF8A65', dark = t.prep === '미리' ? '#3E9C82' : '#D9694A';
+  const blob = (cx, s, fill, edge) => `<g transform="translate(${cx} ${150 - 130 * s}) scale(${s})">
+    <path d="M70 6C108 6 132 46 134 86c2 34-22 44-64 44S4 120 6 86C8 46 32 6 70 6Z" fill="${fill}" stroke="${edge}" stroke-width="${3 / s}"/>
+    <ellipse cx="46" cy="36" rx="14" ry="8" fill="#fff" opacity=".45" transform="rotate(-25 46 36)"/>
+    <circle cx="52" cy="74" r="6" fill="#1B2A4A"/><circle cx="88" cy="74" r="6" fill="#1B2A4A"/>
+    <circle cx="54" cy="72" r="2" fill="#fff"/><circle cx="90" cy="72" r="2" fill="#fff"/>
+    <path d="M60 92q10 9 20 0" fill="none" stroke="#1B2A4A" stroke-width="${3 / s}" stroke-linecap="round"/>
+    <circle cx="40" cy="90" r="6" fill="#FF6B8B" opacity=".35"/><circle cx="100" cy="90" r="6" fill="#FF6B8B" opacity=".35"/></g>`;
+  const main = blob(t.scope === '함께' ? 20 : 40, 1, body, dark);
+  const friend = t.scope === '함께' ? blob(150, .5, '#FFD166', '#D9A93A') : '';
+  // 공식: 손에 든 휴대폰(알림), 주변: 머리 위 더듬이
+  const prop = t.info === '공식'
+    ? `<g transform="translate(${t.scope === '함께' ? 140 : 168} 70)"><rect x="0" y="0" width="22" height="36" rx="4" fill="#1B2A4A" stroke="#fff" stroke-width="2"/><rect x="4" y="5" width="14" height="20" rx="1" fill="#8CC8FF"/><path d="M27 6q5 6 0 12M31 2q8 10 0 20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>`
+    : `<g transform="translate(${t.scope === '함께' ? 90 : 110} 0)"><path d="M0 26Q4 10 -2 2" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/><circle cx="-2" cy="2" r="5" fill="#FFD166" stroke="${dark}" stroke-width="2"/></g>`;
+  return `<svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${friend}${main}${prop}</svg>`;
+}
+
+// 카드 9
+async function myActions() {
+  const t = myType(), out = [];
+  out.push(t.prep === '닥쳐서' ? ACTIONS.late : !t.bag ? ACTIONS.noBag : t.info === '주변' ? ACTIONS.around : ACTIONS.ready);
+  let line2 = null;
+  const y = ty(), o = S.station && S.station.y1990s;
+  if (y && y.maxRain.mm >= 80) line2 = ACTIONS.rain(fmt(y.maxRain.mm, 1));
+  else if (y && o && y.heatDays - o.heatDays >= 5) line2 = ACTIONS.heat(fmt(y.heatDays - o.heatDays, 1));
+  else {
+    try {
+      const e = await Promise.race([S.ens, new Promise((_, r) => setTimeout(r, 3000))]);
+      const n = e.temp.length, p = Math.round(e.temp.filter(m => m.some(v => v != null && v <= -10)).length / n * 100);
+      if (p >= 30) line2 = ACTIONS.cold(p);
+    } catch {}
+  }
+  out.push(line2 || ACTIONS.base);
+  out.push(t.scope === '함께' ? ACTIONS.together : ACTIONS.alone);
+  return out;
+}
+async function renderMyCard(el) {
+  const t = myType();
+  el.innerHTML = '<div class="main"><div class="loading"><div class="spin"></div>나만의 대응 카드를 만드는 중</div></div>';
+  const acts = await myActions();
+  S.acts = acts;
+  el.innerHTML = `<div class="main">
+    <div class="kicker">나만의 대응 카드</div>
+    <h2>${esc(S.place.name)}에 사는<br>${t.name}의 할 일 3가지</h2>
+    <ol class="acts">${acts.map(a => `<li>${esc(a)}</li>`).join('')}</ol>
+    <button class="btn" id="saveImg">${ICON.down}공유 이미지 저장</button>
+    <div class="row"><button class="btn ghost" id="copyLink">${ICON.link}링크 복사</button><button class="btn ghost" id="restart">${ICON.again}처음부터</button></div>
+  </div><div class="read">이 앱은 교육용입니다. 대피 판단은 기상청 특보와 긴급재난문자를 따르세요.</div>`;
+  $('#saveImg', el).onclick = saveImage;
+  $('#copyLink', el).onclick = async () => {
+    try { await navigator.clipboard.writeText(BASE_URL); toast('링크를 복사했어요'); }
+    catch { prompt('이 주소를 복사해 주세요', BASE_URL); }
+  };
+  $('#restart', el).onclick = restart;
+}
+async function saveImage() {
+  if (!window.htmlToImage) { toast('이미지 도구를 불러오지 못했어요'); return; }
+  const t = myType(), y = ty(), o = S.station && S.station.y1990s;
+  const n1 = y ? `<div><b>${y.rainDays}일</b><span>올해 비나 눈이 온 날</span></div>` : '';
+  const n2 = y && o ? `<div><b>${signed(round(y.heatDays - o.heatDays))}일</b><span>1990년대보다 늘어난 폭염일</span></div>`
+    : y ? `<div><b>${fmt(y.rainTotal)}</b><span>올해 강수량(mm)</span></div>` : '';
+  const node = $('#share');
+  node.innerHTML = `<div class="k">${until() ? md(until()) + '까지의 기록' : ''}</div>
+    <div class="t">${esc(S.place.name)}의<br>${until() ? until().slice(0, 4) : ''} 날씨 결산</div>
+    ${n1 || n2 ? `<div class="nums">${n1}${n2}</div>` : ''}
+    ${S.analog ? `<div class="an">2040년대 ${esc(S.place.name)}의 기후는<br>지금의 <strong>${esc(wa(S.analog.name))}</strong> 닮았어요</div>` : ''}
+    <div class="ty">${jelly(t)}<b>${t.name}</b></div>
+    <ol>${(S.acts || []).map(a => `<li>${esc(a)}</li>`).join('')}</ol>
+    <div class="foot">기상청 지상관측자료(기상청 API허브) / WeatherNext 2 &copy; Google DeepMind / CMIP6, ERA5 &copy; Copernicus, ECMWF / Weather data by Open-Meteo.com<br>교육용 자료예요. 대피 판단은 기상청 특보와 긴급재난문자를 따르세요.</div>`;
+  toast('이미지를 만드는 중이에요');
+  try {
+    const url = await htmlToImage.toPng(node, { width: 1080, height: 1920, pixelRatio: 1, style: { left: '0', position: 'static' } });
+    const file = `climate-wrapped-${(until() || '').slice(0, 4)}.png`;
+    const blob = await (await fetch(url)).blob();
+    const f = new File([blob], file, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [f] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      await navigator.share({ files: [f], title: '우리 동네 기후 Wrapped' }).catch(() => {});
+    } else {
+      const a = document.createElement('a'); a.href = url; a.download = file; a.click();
+      toast('이미지를 저장했어요');
+    }
+  } catch (e) { toast('이미지를 만들지 못했어요'); console.error(e); }
+}
+
+// ---------- 스토리 진행 ----------
+const AUTO_MS = 10000;
+let cur = 0, elapsed = 0, paused = false, lastT = 0;
+const cardEls = [];
+function buildCards() {
+  const box = $('#cards');
+  CARDS.forEach(c => {
+    const el = document.createElement('section');
+    el.className = 'card'; el.dataset.id = c.id; el.style.background = c.bg;
+    box.appendChild(el); cardEls.push(el);
+  });
+}
+const isSkipped = i => !!(CARDS[i].skip && CARDS[i].skip());
+function show(i) {
+  cardEls[cur].classList.remove('on');
+  cur = i; elapsed = 0;
+  const c = CARDS[i], el = cardEls[i];
+  el.classList.add('on');
+  if (!c.once || !el.dataset.done) { c.render(el); el.dataset.done = 1; countUp(el); }
+  if (c.shown) c.shown();
+  drawBars();
+}
+function canLeave(dir) {
+  const id = CARDS[cur].id;
+  if (dir > 0 && id === 'intro' && !S.place) { const b = $('#startBtn'); if (b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); } return false; }
+  if (dir > 0 && id === 'test' && S.answers.filter(a => a != null).length < QUESTIONS.length) return false;
+  return true;
+}
+function next() {
+  if (!canLeave(1)) return;
+  let i = cur + 1; while (i < CARDS.length && isSkipped(i)) i++;
+  if (i < CARDS.length) show(i);
+}
+function prev() {
+  let i = cur - 1; while (i > 0 && isSkipped(i)) i--;
+  if (i >= 0) show(i);
+}
+function restart() { S.answers = []; S.acts = null; S.analog = null; show(0); }
+function drawBars() {
+  const bars = $('#bars');
+  const vis = CARDS.map((c, i) => i).filter(i => !isSkipped(i));
+  bars.innerHTML = vis.map(i => `<i><b style="width:${i < cur ? 100 : 0}%"></b></i>`).join('');
+  bars.dataset.cur = vis.indexOf(cur);
+  $('#mode').textContent = PRESENT ? '발표자 모드' : (DEMO ? '데모 모드' : '');
+}
+function tick(t) {
+  const dt = lastT ? t - lastT : 0; lastT = t;
+  const c = CARDS[cur];
+  const bar = $('#bars').children[Number($('#bars').dataset.cur)];
+  if (bar) {
+    if (c.auto && !PRESENT && !paused) {
+      elapsed += dt;
+      if (elapsed >= AUTO_MS) next();
+    }
+    if (bar.firstChild) bar.firstChild.style.width = (c.auto && !PRESENT ? Math.min(100, elapsed / AUTO_MS * 100) : 100) + '%';
+  }
+  requestAnimationFrame(tick);
+}
+// 오른쪽 탭 다음, 왼쪽 탭 이전, 길게 누르면 일시정지
+function bindInput() {
+  const phone = $('#phone');
+  let down = 0, longT = null, wasLong = false;
+  const interactive = e => e.target.closest('button, input, a, label, select, .leaflet-container, .deck, #results, .no-tap');
+  phone.addEventListener('pointerdown', e => {
+    if (interactive(e)) return;
+    down = Date.now(); wasLong = false;
+    longT = setTimeout(() => { paused = true; wasLong = true; }, 300);
+  });
+  const up = () => { clearTimeout(longT); paused = false; };
+  phone.addEventListener('pointerup', up); phone.addEventListener('pointercancel', up); phone.addEventListener('pointerleave', up);
+  phone.addEventListener('click', e => {
+    if (interactive(e) || wasLong) { wasLong = false; return; }
+    const r = phone.getBoundingClientRect();
+    if (e.clientX - r.left < r.width * 0.3) prev(); else next();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input[type=text], input:not([type])')) return;
+    if (e.key === 'ArrowRight') next();
+    else if (e.key === 'ArrowLeft') prev();
+    else if (e.key === 'p' || e.key === 'P') { PRESENT = !PRESENT; elapsed = 0; drawBars(); }
+  });
+}
+
+function showQR() {
+  $('#qr').classList.add('on');
+  $('#qrurl').textContent = BASE_URL;
+  if (window.qrcode) {
+    const q = qrcode(0, 'M'); q.addData(BASE_URL); q.make();
+    $('#qrcode').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+  } else $('#qrcode').textContent = 'QR 도구를 불러오지 못했어요';
+}
+
+buildCards();
+bindInput();
+show(0);
+if (DEMO) setPlace({ name: '이화여대', lat: DEMO.lat, lon: DEMO.lon });
+if (Q.get('qr') === '1') showQR();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
