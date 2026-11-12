@@ -25,10 +25,11 @@ export const T_TODAY = 58; // 오늘날
 export const TODAY_END = 70;
 export const T_END = 72;
 
-export const DC = { x: 44, y: 56 }; // 절리가 성긴 큰 덩어리의 가운데(칸)
+export const DC = { x: 46, y: N - 1 }; // 절리가 성긴 큰 덩어리의 가운데(칸). 앞면 위에 두어 앞면 단면이 돔 한가운데를 자른다.
 export const SITE_R = 10; // 덜 갈라진 곳(토르 자리) 하나의 반지름 비슷한 값(m)
 // 토르 자리: 둘레보다 절리가 덜 이어진 곳. [x, y(칸), 단단한 정도(0에서 1)]
-export const SITES = [[96, 56, 1], [112, 92, 0.9], [80, 110, 0.85], [24, 106, 0.8], [106, 22, 0.75], [62, 12, 0.95], [10, 16, 0.7]];
+// 앞면과 오른쪽 면에 하나씩 걸쳐 두어, 잘린 면에서 토르 아래 기반암 언덕과 핵석이 보이게 한다.
+export const SITES = [[98, 124, 1], [124, 84, 0.9], [80, 100, 0.85], [14, 70, 0.8], [106, 22, 0.75], [62, 12, 0.95], [10, 16, 0.7]];
 
 export const SPACING = {
   dense: { name: '촘촘함', sp: 2.5, depth: 40, bodyR: 18, bodyD: 0.42, siteD: 0.33 },
@@ -82,7 +83,7 @@ export function createModel(seed = 7) {
   const ring = [], core = [];
   let kCenter = DC.y * N + DC.x, meanFinal = 0, bodyRc = 0;
 
-  // 처음 땅: 뒤쪽이 조금 높은 완만한 산지. 큰 덩어리 둘레가 가장 높다.
+  // 처음 땅: 완만한 산지. 큰 덩어리(앞면 위) 둘레가 가장 높다.
   function buildGround() {
     const { S, W, gneiss, R } = opt();
     // 화강암 풍화 깊이를 먼저 구한다. 편마암은 이 평균을 써서 고르게 풍화된다.
@@ -90,8 +91,8 @@ export function createModel(seed = 7) {
     bodyRc = gneiss ? 0 : bodyRg;
     let sum = 0;
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-      const k = j * N + i, dx = i - 50, dy = j - 58, d2 = (dx * dx + dy * dy) / (64 * 64);
-      g[k] = 4 + 14 / (1 + d2) + 5 * (1 - j / (N - 1)) + (n1(i, j) - 0.5) * 2;
+      const k = j * N + i, dx = i - DC.x, dy = j - DC.y, d2 = (dx * dx + dy * dy) / (64 * 64);
+      g[k] = 4 + 14 / (1 + d2) + (n1(i, j) - 0.5) * 2;
       // 풍화 전선이 내려가는 깊이의 비율. 1보다 작을수록 덜 갈라져 얕게 풍화된다.
       let q = 0.84 + 0.3 * (nQ(i, j) - 0.5);
       for (const [sx, sy, s] of SITES) {
@@ -342,12 +343,12 @@ export function createModel(seed = 7) {
     const out = {}, F = N - 1, ph = m.phase(), gn = opt().gneiss;
     const face = x => { const k = F * N + x; return { g: g[k], h: h[k], wf: wf[k], e: e[k] }; };
     const early = ph === 'joint' || ph === 'weather' || ph === 'cold';
-    if (early && m.jointFrac() > 0.3) { const x = 30, f = face(x); out.joint = { x, y: F, z: Math.max(m.bottom + 4, f.g - f.wf - 3) }; }
+    if (early && m.jointFrac() > 0.3) { const x = 10, f = face(x); out.joint = { x, y: F, z: Math.max(m.bottom + 4, f.g - f.wf - 3) }; }
     if (ph !== 'done' && ph !== 'today') { const x = 112, f = face(x); out.bedrock = { x, y: F, z: Math.max(m.bottom + 3, f.g - f.wf - 9) }; }
     if (m.weatherFrac() > 0.15 && ph !== 'today' && ph !== 'done') {
-      const xf = 66, f = face(xf);
+      const xf = 80, f = face(xf);
       if (f.wf - f.e > 2) out.front = { x: xf, y: F, z: f.g - f.wf };
-      const xs = 46, s = face(xs), thick = s.wf - s.e;
+      const xs = 86, s = face(xs), thick = s.wf - s.e;
       if (thick > 2.5) out.saprolite = { x: xs, y: F, z: s.h - thick * (gn ? 0.5 : 0.3) };
       let best = -1;
       for (let b = 0; b < B.n; b++) {
