@@ -1060,7 +1060,7 @@ flowchart TD
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css&quot;&gt;
 &lt;style&gt;
   html, body { height: 100%; margin: 0; background: #fff; font-family: Pretendard, sans-serif; }
-  #map { position: absolute; inset: 0; background: #eef3f7; }
+  #map { position: absolute; inset: 0; background: #cfe0ee; }
   #info { position: absolute; z-index: 999; left: 12px; top: 12px; background: rgba(255,255,255,.94); border: 1px solid #ccc; padding: 10px 14px; font-size: 16px; line-height: 1.55; max-width: 62%; }
   #info b { font-size: 22px; }
   #info small { color: #767676; font-size: 13px; }
@@ -1080,7 +1080,7 @@ flowchart TD
   map.attributionControl.setPrefix(false).addAttribution(&#x27;지진: USGS, 지도: Natural Earth&#x27;);
   // 배경: Natural Earth 육지 (타일 없이 그린다)
   fetch(&#x27;https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/ne_110m_land.geojson&#x27;)
-    .then(r =&gt; r.json()).then(g =&gt; L.geoJSON(g, { style: { color: &#x27;#b9b9b9&#x27;, weight: 0.6, fillColor: &#x27;#f4f2ee&#x27;, fillOpacity: 1 }, interactive: false }).addTo(map).bringToBack());
+    .then(r =&gt; r.json()).then(g =&gt; L.geoJSON(g, { style: { color: &#x27;#8f8f8f&#x27;, weight: 0.8, fillColor: &#x27;#fbfaf7&#x27;, fillOpacity: 1 }, interactive: false }).addTo(map).bringToBack());
   const size = m =&gt; 2 + Math.pow(Math.max(m, 2.5) - 2, 1.6) * 2.2;
   // USGS 실시간 피드: 키 없이 부르는 공개 API
   fetch(&#x27;https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson&#x27;)
