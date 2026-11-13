@@ -1445,33 +1445,20 @@ flowchart TD
 
 <section class="slide" data-sec="HTML 시연">
   <div class="hd"></div>
-  <div class="bd">
-    <h2>재난별로 만들 수 있는 도구</h2>
-    <div class="cards" style="grid-template-columns:repeat(3,1fr);row-gap:48px">
-      <div><b>지진</b><p>행동 요령 퀴즈</p><p>최근 지진 지도</p></div>
-      <div><b>호우, 홍수</b><p>강수 예보 그래프</p><p>물 높이별 침수 모형</p></div>
-      <div><b>태풍</b><p>태풍 경로 지도</p><p>집 안 대비 점검표</p></div>
-      <div><b>폭염</b><p>시간대별 기온 그래프</p><p>무더위 쉼터 찾기</p></div>
-      <div><b>산불</b><p>위성 산불 위치 지도</p><p>대피 경로 그리기</p></div>
-      <div><b>미세먼지</b><p>대기질 알림판</p><p>야외 활동 판단표</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="slide" data-sec="HTML 시연">
-  <div class="hd"></div>
   <div class="bd" style="padding:40px 0 56px">
     <h2>지진 조기 경보 시뮬레이터</h2>
     <div class="two" style="grid-template-columns:1fr 1fr;gap:64px;margin-top:32px;flex:1;min-height:0">
       <div>
-        <div class="ask" style="font-size:26px">
-          <div class="lab">시연 요청 문장</div>
-          지진 조기 경보 원리를 보여 주는 시뮬레이터를 HTML 파일 하나로 만들어 줘. 진앙에서 P파와 S파가 퍼져 나가는 모습을 그리고, 도시까지의 거리와 경보 발표에 걸리는 시간을 슬라이더로 바꾸게 해 줘. 경보 뒤 S파가 오기까지 남는 시간을 보여 줘.
+        <div class="ask" style="font-size:24px">
+          <div class="lab">앞 장의 STICC 요청문으로 만든 결과</div>
+          시민 대상 강연에서 쓰는 지진 조기 경보 시뮬레이터
         </div>
-        <div class="chk frag" style="margin-top:32px">
-          <h3>이어서 요청</h3>
-          <p>"도시의 지진계 기록도 아래에 함께 그려 줘"</p>
-          <p>"진앙 깊이도 바꿀 수 있게 해 줘"</p>
+        <div class="chk" style="margin-top:28px">
+          <h3>요청이 반영된 곳</h3>
+          <p><b>T</b> P파, S파가 퍼지는 그림과 도시 지진계 기록</p>
+          <p class="frag"><b>I</b> 거리 슬라이더를 밀면 대피할 시간이 늘어남</p>
+          <p class="frag"><b>C</b> 아래에 「속도는 평균값으로 가정」 표시</p>
+          <p class="frag"><b>C</b> 만들기 전 AI가 이해한 내용을 세 줄로 먼저 확인</p>
         </div>
       </div>
       <iframe srcdoc="&lt;!-- © 2026 김용현 --&gt;
@@ -1572,6 +1559,21 @@ flowchart TD
 &lt;/body&gt;
 &lt;/html&gt;
 " title="지진 조기 경보 시뮬레이터 완성 예시" style="width:100%;height:100%;border:1px solid var(--g3);display:block"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>재난별로 만들 수 있는 도구</h2>
+    <div class="cards" style="grid-template-columns:repeat(3,1fr);row-gap:48px">
+      <div><b>지진</b><p>행동 요령 퀴즈</p><p>최근 지진 지도</p></div>
+      <div><b>호우, 홍수</b><p>강수 예보 그래프</p><p>물 높이별 침수 모형</p></div>
+      <div><b>태풍</b><p>태풍 경로 지도</p><p>집 안 대비 점검표</p></div>
+      <div><b>폭염</b><p>시간대별 기온 그래프</p><p>무더위 쉼터 찾기</p></div>
+      <div><b>산불</b><p>위성 산불 위치 지도</p><p>대피 경로 그리기</p></div>
+      <div><b>미세먼지</b><p>대기질 알림판</p><p>야외 활동 판단표</p></div>
     </div>
   </div>
 </section>
