@@ -233,6 +233,20 @@
   .case4 p { font-size: 21px; }
   .case4 .hl { color: var(--k); font-weight: 600; font-size: 22px; border-bottom: 0; }
   .case4 .hl span { display: block; font-weight: 400; font-size: 17px; color: var(--g5); }
+  /* 휴대폰 화면 비교 */
+  .phone { height: 560px; border: 3px solid var(--k); border-radius: 36px; padding: 40px 26px; display: flex; flex-direction: column; gap: 14px; }
+  .phone.busy .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .phone.busy .row3 span { height: 54px; background: var(--g2); }
+  .phone.busy .bars { display: grid; gap: 7px; }
+  .phone.busy .bars i { display: block; height: 9px; background: var(--g3); }
+  .phone.busy .btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .phone.busy .btns b { height: 26px; border: 1px solid var(--g4); }
+  .phone.calm { justify-content: center; text-align: center; gap: 8px; }
+  .phone.calm .cap { font-size: 22px; color: var(--g5); }
+  .phone.calm .num { font-size: 84px; font-weight: 600; letter-spacing: -2px; }
+  .phone.calm .sub { font-size: 22px; color: var(--g6); }
+  .phone.calm .go { margin-top: 36px; background: var(--k); color: var(--w); font-size: 26px; font-weight: 600; padding: 18px; border-radius: 14px; }
+  .phone.calm .more { font-size: 18px; color: var(--g5); text-decoration: underline; margin-top: 8px; }
   .say { font-size: 21px; color: var(--g6); line-height: 1.6; margin-top: 14px; }
   .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
   .lane .who { font-size: 32px; font-weight: 600; }
@@ -1808,6 +1822,67 @@ flowchart TD
         <p>하나만 고친다면 무엇을 고칠까</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>한 화면에는 한 가지 일만</h2>
+    <div class="two" style="grid-template-columns:330px 330px 1fr;gap:56px;margin-top:40px;align-items:start">
+      <div>
+        <div class="phone busy">
+          <div class="row3"><span></span><span></span><span></span></div>
+          <div class="bars"><i style="width:90%"></i><i style="width:70%"></i><i style="width:85%"></i><i style="width:60%"></i><i style="width:95%"></i><i style="width:75%"></i><i style="width:50%"></i><i style="width:80%"></i></div>
+          <div class="row3"><span></span><span></span><span></span></div>
+          <div class="btns"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+          <div class="bars"><i style="width:90%"></i><i style="width:70%"></i><i style="width:85%"></i><i style="width:60%"></i><i style="width:95%"></i><i style="width:75%"></i><i style="width:50%"></i><i style="width:80%"></i></div>
+        </div>
+        <p class="note" style="text-align:center;margin-top:14px">모든 정보를 한 화면에</p>
+      </div>
+      <div class="frag">
+        <div class="phone calm">
+          <div class="cap">가장 가까운 대피소</div>
+          <div class="num">340 m</div>
+          <div class="sub">걸어서 약 5분</div>
+          <div class="go">길 안내</div>
+          <div class="more">자세히 보기</div>
+        </div>
+        <p class="note" style="text-align:center;margin-top:14px">지금 필요한 것 하나</p>
+      </div>
+      <div class="frag">
+        <div class="chk">
+          <h3>좋은 화면의 규칙</h3>
+          <p>화면마다 목적 하나</p>
+          <p>가장 중요한 숫자, 버튼 하나를 크게</p>
+          <p>나머지는 눌렀을 때 펼치거나 다음 화면으로</p>
+          <p>재난 때는 읽을 시간이 없음. 더 줄이기</p>
+        </div>
+        <div class="ask" style="margin-top:24px;font-size:22px"><div class="lab">요청 문장</div>"한 화면에는 지금 할 일 하나만 크게 보여 주고, 자세한 정보는 눌렀을 때 펼쳐지게 해 줘"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd" style="padding-top:44px">
+    <h2>원하는 디자인으로 만들기</h2>
+    <div class="flow sm" style="margin-top:32px">
+      <div><b>디자인 고르기</b><span>마음에 드는 사이트, 디자인 시스템</span></div>
+      <i><em>캡처, DESIGN.md</em></i>
+      <div><b>AI에게 함께 주기</b><span>색, 글꼴, 간격, 부품 규칙</span></div>
+      <i><em>요청</em></i>
+      <div style="background:var(--k);color:var(--w)"><b>내 웹앱</b><span style="color:var(--g3)">"이 디자인 규칙으로 만들어 줘"</span></div>
+    </div>
+    <div class="rows tight frag" style="grid-template-columns:420px 1fr;margin-top:32px;font-size:22px">
+      <div class="k" style="font-size:25px">getdesign.md</div><div>AI 코딩 도구용 DESIGN.md 모음, 550여 개 브랜드 디자인 분석</div>
+      <div class="k" style="font-size:25px">designmd.app</div><div>DESIGN.md 오픈 레퍼런스 759개, Claude Code, Cursor 설정 안내</div>
+      <div class="k" style="font-size:25px">uiverse.io</div><div>버튼, 카드, 로딩 같은 인터랙티브 UI 요소, 무료로 복사해 사용</div>
+      <div class="k" style="font-size:25px">seed-design.io</div><div>당근 디자인 시스템 SEED</div>
+      <div class="k" style="font-size:25px">토스 디자인 시스템 (TDS)</div><div>developers-apps-in-toss.toss.im/design/components</div>
+    </div>
+    <p class="note frag" style="margin-top:16px">DESIGN.md: 디자인 규칙을 글로 적은 파일. AI가 읽고 같은 스타일로 화면을 만듦. 로고와 브랜드 이름은 빼고 스타일만 참고.</p>
   </div>
 </section>
 
