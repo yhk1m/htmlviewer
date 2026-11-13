@@ -263,6 +263,13 @@
   .case3 .hl span { display: block; font-weight: 400; font-size: 17px; color: var(--g5); }
   a.lk { text-decoration: underline; text-decoration-color: var(--g3); text-underline-offset: 4px; }
   a.lk:hover { text-decoration-color: currentColor; }
+  /* 한 파일 안의 세 언어 */
+  .lang3 { display: grid; gap: 12px; margin-top: 8px; }
+  .lang3 > div { border-left: 6px solid var(--k); background: var(--g1); padding: 14px 20px 6px; }
+  .lang3 .css { border-color: #2f7fd0; }
+  .lang3 .js { border-color: #d32f2f; }
+  .lang3 b { font-size: 22px; font-weight: 600; margin-left: 4px; }
+  .lang3 pre { background: none; border: 0; padding: 8px 0 6px; font-size: 21px; }
   .say { font-size: 21px; color: var(--g6); line-height: 1.6; margin-top: 14px; }
   .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
   .lane .who { font-size: 32px; font-weight: 600; }
@@ -1347,51 +1354,40 @@ flowchart TD
 
 <section class="slide" data-sec="HTML 시연">
   <div class="hd"></div>
-  <div class="bd">
-    <h2>웹 페이지는 글자로 된 파일이다</h2>
-    <div class="two">
+  <div class="bd" style="padding-top:44px">
+    <h2>웹 페이지는 글자 파일 하나</h2>
+    <div class="two" style="grid-template-columns:1.15fr 1fr;gap:64px;margin-top:32px">
       <div>
-        <div class="chk"><h3>quiz.html 파일 안의 글자</h3></div>
+        <div class="chk"><h3>quiz.html 안의 글자</h3></div>
+        <div class="lang3">
+          <div class="css"><span class="tag">CSS</span><b>어떻게 보일지</b>
+<pre>&lt;style&gt;
+  button { background: red; color: white; }
+&lt;/style&gt;</pre></div>
+          <div class="html"><span class="tag">HTML</span><b>무엇을 보여 줄지</b>
 <pre>&lt;h1&gt;오늘의 퀴즈&lt;/h1&gt;
 &lt;p&gt;지진으로 흔들릴 때 먼저 할 일은?&lt;/p&gt;
-&lt;button&gt;정답 보기&lt;/button&gt;</pre>
+&lt;button&gt;정답 보기&lt;/button&gt;</pre></div>
+          <div class="js"><span class="tag">JS</span><b>누르면 무엇을 할지</b>
+<pre>&lt;script&gt;
+  누르면 → "탁자 아래로 몸 보호" 보여 주기
+&lt;/script&gt;</pre></div>
+        </div>
       </div>
       <div class="frag">
-        <div class="chk"><h3>브라우저로 열었을 때</h3></div>
+        <div class="chk"><h3>브라우저로 열면</h3></div>
         <div class="browser">
           <div class="bar">quiz.html</div>
-          <div class="page"><h1>오늘의 퀴즈</h1><p>지진으로 흔들릴 때 먼저 할 일은?</p><button>정답 보기</button></div>
+          <div class="page"><h1>오늘의 퀴즈</h1><p>지진으로 흔들릴 때 먼저 할 일은?</p><button style="background:#d32f2f;color:#fff;border:0;padding:6px 14px;font-size:20px">정답 보기</button><p style="margin:16px 0 0;color:#d32f2f;font-weight:700">탁자 아래로 몸 보호</p></div>
+        </div>
+        <div class="rows tight" style="grid-template-columns:1fr 110px;margin-top:28px;font-size:23px">
+          <div>문장, 버튼을 바꾸고 싶으면</div><div class="k" style="font-size:24px">HTML</div>
+          <div>색, 크기, 배치가 마음에 안 들면</div><div class="k" style="font-size:24px;color:#2f7fd0">CSS</div>
+          <div>눌러도 반응이 없거나 결과가 틀리면</div><div class="k" style="font-size:24px;color:#d32f2f">JS</div>
         </div>
       </div>
     </div>
-    <p class="frag" style="margin-top:48px">HyperText Markup Language, 웹 페이지를 적는 형식.<br>ChatGPT가 만들어 주는 것도 이런 글자 파일.</p>
-  </div>
-</section>
-
-<section class="slide" data-sec="HTML 시연">
-  <div class="hd"></div>
-  <div class="bd">
-    <h2>세 언어가 맡는 일</h2>
-    <div class="two" style="grid-template-columns:1.25fr 1fr;margin-top:44px">
-      <div class="rows" style="grid-template-columns:160px 1fr;margin-top:0">
-        <div class="k">HTML</div><div>무엇을 보여 줄지<br><span class="s">제목, 문단, 버튼, 그림</span></div>
-        <div class="k frag">CSS</div><div class="frag">어떻게 보일지<br><span class="s">색, 크기, 위치, 글꼴</span></div>
-        <div class="k frag">JS</div><div class="frag">누르면 무엇을 할지<br><span class="s">정답 판정, 점수 계산, 화면 바꾸기</span></div>
-      </div>
-      <div class="frag">
-        <div class="chk"><h3>HTML 파일 하나에 셋이 함께</h3></div>
-<pre>&lt;html&gt;
-&lt;head&gt;
-  &lt;style&gt; <span class="c">CSS</span> &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  <span class="c">HTML</span>
-  &lt;script&gt; <span class="c">JS</span> &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</pre>
-      </div>
-    </div>
-    <p class="frag" style="margin-top:40px">코드를 직접 쓰지 않아도 고칠 곳이 어느 쪽인지만 알면 충분.<br>"색만 바꿔 줘"는 CSS, "점수 계산이 틀려"는 JS.</p>
+    <p class="frag" style="margin-top:28px;font-size:25px">ChatGPT가 만들어 주는 것도 이런 글자 파일 하나. 코드를 몰라도 고칠 곳이 어느 칸인지만 말하면 됨.</p>
   </div>
 </section>
 
