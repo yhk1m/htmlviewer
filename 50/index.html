@@ -935,8 +935,11 @@ flowchart TD
 &lt;script&gt;
   mermaid.initialize({ startOnLoad: true, theme: &#x27;neutral&#x27;, fontFamily: &#x27;Pretendard, &quot;Malgun Gothic&quot;, sans-serif&#x27;, flowchart: { useMaxWidth: true } });
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1043,9 +1046,11 @@ flowchart TD
   addEventListener(&#x27;resize&#x27;, () =&gt; { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
   renderer.setAnimationLoop(() =&gt; { controls.update(); renderer.render(scene, camera); });
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if (e.target.tagName === &#x27;INPUT&#x27;) return;
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1166,8 +1171,11 @@ flowchart TD
         `최근 7일, 규모 2.5 이상 &lt;b&gt;${fs.length}건&lt;/b&gt;&lt;br&gt;가장 큰 지진: 규모 ${top.mag.toFixed(1)}, ${top.place}&lt;br&gt;&lt;small&gt;불러온 시각 ${new Date().toLocaleString(&#x27;ko-KR&#x27;)}&lt;/small&gt;`;
     }).catch(() =&gt; { document.getElementById(&#x27;info&#x27;).textContent = &#x27;인터넷에 연결되어 있어야 지진 자료를 불러올 수 있습니다&#x27;; });
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1231,8 +1239,11 @@ flowchart TD
   }
   load(0);
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1317,8 +1328,11 @@ flowchart TD
   map.on(&#x27;click&#x27;, e =&gt; { here = [e.latlng.lng, e.latlng.lat]; run(); });
   run();
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1635,9 +1649,11 @@ flowchart TD
   }
   read(); requestAnimationFrame(draw);
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if (e.target.tagName === &#x27;INPUT&#x27;) return;
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1734,8 +1750,11 @@ flowchart TD
   [&#x27;생수&#x27;, &#x27;손전등&#x27;, &#x27;구급약&#x27;, &#x27;마스크&#x27;, &#x27;담요&#x27;, &#x27;호루라기&#x27;, &#x27;보조 배터리&#x27;].forEach(x =&gt; { have.add(x); document.querySelector(`[data-x=&quot;${x}&quot;]`).classList.add(&#x27;on&#x27;); });
   draw();
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -1909,9 +1928,11 @@ flowchart TD
     $(&#x27;miss&#x27;).innerHTML = items.map((it, k) =&gt; res[k] ? &#x27;&#x27; : `&lt;li&gt;${it[0]}&lt;br&gt;정답 &lt;b&gt;${it[1]}&lt;/b&gt;&lt;/li&gt;`).join(&#x27;&#x27;);
   }
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
-    if ([&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;].includes(e.target.tagName)) return;
-    if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
-  });
+    // 발표용 리모컨 키(PageDown, PageUp)는 입력 칸에 있어도 슬라이드로 넘긴다
+    const remote = [&#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;MediaTrackNext&#x27;, &#x27;MediaTrackPrevious&#x27;, &#x27;F5&#x27;].includes(e.key);
+    if (!remote &amp;&amp; [&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;, &#x27;SELECT&#x27;].includes(e.target.tagName)) return;
+    if (remote || [&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;ArrowDown&#x27;, &#x27;ArrowUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;); }
+  }, true);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -2241,14 +2262,18 @@ function prev() {
   if (done.length) { done.at(-1).classList.remove('show'); return; }
   show(cur - 1);
 }
-document.addEventListener('keydown', e => {
-  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
-  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+// 발표용 리모컨(레이저 포인터)은 기종마다 보내는 키가 달라서 넉넉히 받는다. 다른 요소가 가로채지 못하게 먼저(capture) 받는다
+const NEXT = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter', 'MediaTrackNext'];
+const PREV = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'MediaTrackPrevious'];
+window.addEventListener('keydown', e => {
+  if (NEXT.includes(e.key)) { e.preventDefault(); next(); }
+  else if (PREV.includes(e.key)) { e.preventDefault(); prev(); }
   else if (e.key === 'Home') show(0);
   else if (e.key === 'End') show(slides.length - 1);
+  else if (e.key === 'F5') { e.preventDefault(); if (!document.fullscreenElement) toggleFull(); }  // 리모컨의 발표 시작 버튼
   else if (e.key === 'f' || e.key === 'F') toggleFull();
   else if (e.key === 'p' || e.key === 'P') savePdf();
-});
+}, true);
 // 그래프(iframe) 안에서 누른 키도 슬라이드 조작으로 받는다
 window.addEventListener('message', e => {
   if (e.data && e.data.slideKey) document.dispatchEvent(new KeyboardEvent('keydown', { key: e.data.slideKey }));
