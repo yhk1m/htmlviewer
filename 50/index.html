@@ -1472,8 +1472,8 @@ flowchart TD
     <h2>STICC로 쓴 요청문</h2>
     <div class="rows" style="grid-template-columns:220px 1fr;margin-top:36px;font-size:25px">
       <div class="k" style="font-size:28px">S 상황</div><div>시민 대상 재난 교육 강연에서 지진 조기 경보 원리를 설명하려 해. 청중은 지진학 비전공자야.</div>
-      <div class="k frag" style="font-size:28px">T 할 일</div><div class="frag">P파와 S파가 퍼지는 모습과 도시 지진계 기록을 보여 주는 시뮬레이터를 HTML 파일 하나로 만들어 줘.</div>
-      <div class="k frag" style="font-size:28px">I 의도</div><div class="frag">거리가 멀수록 경보 뒤 대피할 시간이 늘어난다는 것을 눈으로 보게 하고 싶어.</div>
+      <div class="k frag" style="font-size:28px">T 할 일</div><div class="frag">지도에서 진앙과 도시를 눌러 정하면 P파와 S파가 퍼지는 모습과 도시 지진계 기록을 보여 주는 시뮬레이터를 HTML 파일 하나로 만들어 줘.</div>
+      <div class="k frag" style="font-size:28px">I 의도</div><div class="frag">우리 동네가 진앙에서 멀수록 경보 뒤 대피할 시간이 늘어난다는 것을 직접 눌러 보며 알게 하고 싶어.</div>
       <div class="k frag" style="font-size:28px">C 주의할 점</div><div class="frag">파의 속도는 평균값 가정이라고 화면에 밝혀 줘. 프로젝터에서도 보이게 글씨를 크게.</div>
       <div class="k frag" style="font-size:28px">C 맞춰 보기</div><div class="frag">만들기 전에 이해한 내용을 세 줄로 정리하고, 모르는 점은 먼저 물어봐 줘.</div>
     </div>
@@ -1492,8 +1492,8 @@ flowchart TD
         </div>
         <div class="chk" style="margin-top:28px">
           <h3>요청이 반영된 곳</h3>
-          <p><b>T</b> P파, S파가 퍼지는 그림과 도시 지진계 기록</p>
-          <p class="frag"><b>I</b> 거리 슬라이더를 밀면 대피할 시간이 늘어남</p>
+          <p><b>T</b> 지도를 눌러 진앙과 도시를 정하면 P파, S파와 지진계 기록</p>
+          <p class="frag"><b>I</b> 도시를 진앙에서 멀리 찍을수록 대피할 시간이 늘어남</p>
           <p class="frag"><b>C</b> 아래에 「속도는 평균값으로 가정」 표시</p>
           <p class="frag"><b>C</b> 만들기 전 AI가 이해한 내용을 세 줄로 먼저 확인</p>
         </div>
@@ -1512,6 +1512,14 @@ flowchart TD
   #ctl { display: grid; grid-template-columns: auto 1fr auto; gap: 8px 12px; align-items: center; font-size: 17px; }
   #ctl input { width: 100%; accent-color: #000; }
   #ctl b { font-size: 19px; min-width: 76px; text-align: right; }
+  #pick { display: flex; gap: 6px; align-items: center; }
+  #pick button { font: inherit; font-size: 16px; padding: 4px 16px; border: 1px solid #000; background: #fff; cursor: pointer; }
+  #pick button.on { background: #000; color: #fff; }
+  #pick em { font-style: normal; font-size: 13px; color: #9f9f9f; margin-left: 6px; }
+  #map { cursor: crosshair; }
+  .pin { border-radius: 50%; box-sizing: border-box; }
+  .pin.epi { background: #000; border: 2px solid #fff; }
+  .pin.city { background: #fff; border: 3px solid #000; }
   #map { flex: 1.7; min-height: 0; position: relative; border: 1px solid #ddd; }
   #map .leaflet-tile-pane { filter: grayscale(1) contrast(0.9) brightness(1.08); }
   #alert { position: absolute; z-index: 999; right: 10px; top: 10px; background: #000; color: #fff; font-weight: 600; font-size: 17px; padding: 6px 14px; display: none; }
@@ -1530,7 +1538,7 @@ flowchart TD
 &lt;/head&gt;
 &lt;body&gt;
 &lt;div id=&quot;ctl&quot;&gt;
-  &lt;label for=&quot;d&quot;&gt;진앙에서 도시까지&lt;/label&gt;&lt;input id=&quot;d&quot; type=&quot;range&quot; min=&quot;10&quot; max=&quot;300&quot; step=&quot;5&quot; value=&quot;120&quot;&gt;&lt;b id=&quot;dv&quot;&gt;&lt;/b&gt;
+  &lt;span&gt;지도를 누르면 옮길 것&lt;/span&gt;&lt;div id=&quot;pick&quot;&gt;&lt;button data-k=&quot;epi&quot;&gt;진앙&lt;/button&gt;&lt;button data-k=&quot;city&quot; class=&quot;on&quot;&gt;도시&lt;/button&gt;&lt;em&gt;점은 끌어서 옮겨도 됨&lt;/em&gt;&lt;/div&gt;&lt;b id=&quot;dv&quot;&gt;&lt;/b&gt;
   &lt;label for=&quot;a&quot;&gt;경보 발표까지&lt;/label&gt;&lt;input id=&quot;a&quot; type=&quot;range&quot; min=&quot;3&quot; max=&quot;30&quot; step=&quot;1&quot; value=&quot;8&quot;&gt;&lt;b id=&quot;av&quot;&gt;&lt;/b&gt;
 &lt;/div&gt;
 &lt;div id=&quot;map&quot;&gt;&lt;div id=&quot;alert&quot;&gt;지진 경보 발표&lt;/div&gt;&lt;/div&gt;
@@ -1540,48 +1548,50 @@ flowchart TD
   &lt;div&gt;S파 도착 (큰 흔들림)&lt;b id=&quot;ts&quot;&gt;&lt;/b&gt;&lt;/div&gt;
   &lt;div class=&quot;left&quot;&gt;경보 뒤 대피할 시간&lt;b id=&quot;tl&quot;&gt;&lt;/b&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;row&quot;&gt;&lt;button id=&quot;go&quot;&gt;다시 재생&lt;/button&gt;&lt;span&gt;진앙은 경주 부근 예시. 속도는 평균값으로 가정 (P파 6.0 km/s, S파 3.5 km/s). 실제 값은 지역과 깊이에 따라 다름&lt;/span&gt;&lt;/div&gt;
+&lt;div id=&quot;row&quot;&gt;&lt;button id=&quot;go&quot;&gt;다시 재생&lt;/button&gt;&lt;span&gt;처음 진앙은 경주 부근 예시. 속도는 평균값으로 가정 (P파 6.0 km/s, S파 3.5 km/s). 실제 값은 지역과 깊이에 따라 다름&lt;/span&gt;&lt;/div&gt;
 &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js&quot;&gt;&lt;/script&gt;
 &lt;script&gt;
   const VP = 6.0, VS = 3.5, $ = id =&gt; document.getElementById(id);
-  // 진앙(경주 부근, 예시)에서 서울 쪽으로 도시를 옮긴다
-  const EPI = [35.84, 129.21], TOWARD = [37.57, 126.98];
-  const R = 6371, rad = x =&gt; x * Math.PI / 180, deg = x =&gt; x * 180 / Math.PI;
-  const brg = (() =&gt; { const [a, b] = [EPI, TOWARD].map(p =&gt; p.map(rad)); const y = Math.sin(b[1] - a[1]) * Math.cos(b[0]), x = Math.cos(a[0]) * Math.sin(b[0]) - Math.sin(a[0]) * Math.cos(b[0]) * Math.cos(b[1] - a[1]); return Math.atan2(y, x); })();
-  function dest(km) {
-    const d = km / R, la = rad(EPI[0]), lo = rad(EPI[1]);
-    const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(brg));
-    const lo2 = lo + Math.atan2(Math.sin(brg) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
-    return [deg(la2), deg(lo2)];
-  }
+  // 처음 진앙은 경주 부근, 도시는 대전 (예시). 지도를 누르거나 점을 끌어서 바꾼다
+  let EPI = L.latLng(35.84, 129.21), CITY = L.latLng(36.35, 127.38), mode = &#x27;city&#x27;;
   const map = L.map(&#x27;map&#x27;, { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false });
   map.attributionControl.setPrefix(false);
   L.tileLayer(&#x27;https://tile.openstreetmap.org/{z}/{x}/{y}.png&#x27;, { maxZoom: 12, attribution: &#x27;&amp;copy; OpenStreetMap contributors&#x27; }).addTo(map);
   map.fitBounds([[34.6, 126.6], [37.9, 130.0]]);
-  L.polyline([EPI, dest(300)], { color: &#x27;#000&#x27;, weight: 1.5, dashArray: &#x27;4 6&#x27;, opacity: 0.6 }).addTo(map);
-  const pw = L.circle(EPI, { radius: 1, color: &#x27;#2f7fd0&#x27;, weight: 3, fill: false }).addTo(map);
-  const sw = L.circle(EPI, { radius: 1, color: &#x27;#d32f2f&#x27;, weight: 3, fillColor: &#x27;#d32f2f&#x27;, fillOpacity: 0.08 }).addTo(map);
-  L.circleMarker(EPI, { radius: 7, color: &#x27;#000&#x27;, fillColor: &#x27;#000&#x27;, fillOpacity: 1 }).addTo(map).bindTooltip(&#x27;진앙&#x27;, { permanent: true, direction: &#x27;right&#x27;, className: &#x27;lab&#x27; });
-  const city = L.circleMarker(EPI, { radius: 9, color: &#x27;#000&#x27;, weight: 2, fillColor: &#x27;#fff&#x27;, fillOpacity: 1 }).addTo(map);
-  city.bindTooltip(&#x27;도시&#x27;, { permanent: true, direction: &#x27;left&#x27;, className: &#x27;lab&#x27; });
+  const line = L.polyline([EPI, CITY], { color: &#x27;#000&#x27;, weight: 1.5, dashArray: &#x27;4 6&#x27;, opacity: 0.7, interactive: false }).addTo(map);
+  const pw = L.circle(EPI, { radius: 1, color: &#x27;#2f7fd0&#x27;, weight: 3, fill: false, interactive: false }).addTo(map);
+  const sw = L.circle(EPI, { radius: 1, color: &#x27;#d32f2f&#x27;, weight: 3, fillColor: &#x27;#d32f2f&#x27;, fillOpacity: 0.08, interactive: false }).addTo(map);
+  const epiM = L.marker(EPI, { draggable: true, icon: L.divIcon({ className: &#x27;pin epi&#x27;, iconSize: [18, 18] }) }).addTo(map).bindTooltip(&#x27;진앙&#x27;, { permanent: true, direction: &#x27;right&#x27;, offset: [8, 0], className: &#x27;lab&#x27; });
+  const cityM = L.marker(CITY, { draggable: true, icon: L.divIcon({ className: &#x27;pin city&#x27;, iconSize: [22, 22] }) }).addTo(map).bindTooltip(&#x27;도시&#x27;, { permanent: true, direction: &#x27;left&#x27;, offset: [-10, 0], className: &#x27;lab&#x27; });
+  document.getElementById(&#x27;pick&#x27;).onclick = e =&gt; {
+    const k = e.target.dataset.k; if (!k) return;
+    mode = k; [...e.currentTarget.querySelectorAll(&#x27;button&#x27;)].forEach(b =&gt; b.classList.toggle(&#x27;on&#x27;, b.dataset.k === k));
+  };
+  map.on(&#x27;click&#x27;, e =&gt; { if (mode === &#x27;epi&#x27;) EPI = e.latlng; else CITY = e.latlng; read(); });
+  epiM.on(&#x27;drag&#x27;, e =&gt; { EPI = e.target.getLatLng(); place(); }).on(&#x27;dragend&#x27;, read);
+  cityM.on(&#x27;drag&#x27;, e =&gt; { CITY = e.target.getLatLng(); place(); }).on(&#x27;dragend&#x27;, read);
 
   const cv = $(&#x27;c&#x27;), ctx = cv.getContext(&#x27;2d&#x27;);
   let t0 = performance.now(), D, A;
+  function place() {
+    epiM.setLatLng(EPI); cityM.setLatLng(CITY); line.setLatLngs([EPI, CITY]); pw.setLatLng(EPI); sw.setLatLng(EPI);
+    D = Math.max(1, EPI.distanceTo(CITY) / 1000);
+    $(&#x27;dv&#x27;).textContent = Math.round(D) + &#x27; km&#x27;;
+  }
   function read() {
-    D = +$(&#x27;d&#x27;).value; A = +$(&#x27;a&#x27;).value;
-    $(&#x27;dv&#x27;).textContent = D + &#x27; km&#x27;; $(&#x27;av&#x27;).textContent = A + &#x27; 초&#x27;;
+    place(); A = +$(&#x27;a&#x27;).value;
+    $(&#x27;av&#x27;).textContent = A + &#x27; 초&#x27;;
     const tp = D / VP, ts = D / VS, left = ts - A;
     $(&#x27;tp&#x27;).textContent = tp.toFixed(1) + &#x27; 초&#x27;;
     $(&#x27;ts&#x27;).textContent = ts.toFixed(1) + &#x27; 초&#x27;;
     $(&#x27;tl&#x27;).textContent = left &gt; 0 ? left.toFixed(1) + &#x27; 초&#x27; : &#x27;경보보다 흔들림이 먼저&#x27;;
-    city.setLatLng(dest(D));
     t0 = performance.now();
   }
-  $(&#x27;d&#x27;).oninput = read; $(&#x27;a&#x27;).oninput = read; $(&#x27;go&#x27;).onclick = read;
+  $(&#x27;a&#x27;).oninput = read; $(&#x27;go&#x27;).onclick = read;
   function draw(now) {
     const T = D / VS + 4, t = Math.max(0, Math.min((now - t0) / 1000 * (T / 8), T));  // 장면을 8초에 재생
     pw.setRadius(Math.max(1, VP * t * 1000)); sw.setRadius(Math.max(1, VS * t * 1000));
-    city.setStyle({ fillColor: t &gt;= D / VS ? &#x27;#d32f2f&#x27; : t &gt;= D / VP ? &#x27;#2f7fd0&#x27; : &#x27;#fff&#x27; });
+    const ce = cityM.getElement(); if (ce) ce.style.background = t &gt;= D / VS ? &#x27;#d32f2f&#x27; : t &gt;= D / VP ? &#x27;#2f7fd0&#x27; : &#x27;#fff&#x27;;
     $(&#x27;alert&#x27;).style.display = t &gt;= A ? &#x27;block&#x27; : &#x27;none&#x27;;
     // 도시 지진계 기록
     const w = cv.clientWidth, h = cv.clientHeight, r = devicePixelRatio;
@@ -1741,71 +1751,121 @@ flowchart TD
 &lt;title&gt;재난 안전 퀴즈&lt;/title&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;&gt;
 &lt;style&gt;
-  html, body { height: 100%; margin: 0; background: #fff; font-family: Pretendard, sans-serif; }
-  body { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 0 32px; box-sizing: border-box; font-size: 18px; }
-  .lab { font-size: 15px; color: #767676; }
-  textarea { font: inherit; font-size: 18px; line-height: 1.6; height: 200px; padding: 12px; border: 1px solid #999; resize: none; width: 100%; box-sizing: border-box; }
-  button { font: inherit; font-size: 16px; padding: 7px 18px; border: 1px solid #000; background: #fff; cursor: pointer; }
-  button:hover { background: #000; color: #fff; }
-  #q { font-size: 30px; line-height: 1.4; }
-  #top { display: flex; justify-content: space-between; color: #606060; }
-  .row { display: flex; gap: 6px; }
-  input { font: inherit; font-size: 20px; padding: 7px 10px; border: 1px solid #999; flex: 1; min-width: 0; }
-  #msg { min-height: 28px; font-weight: 600; }
+  :root { --ok: #1f7a4a; --ok-bg: #e8f4ed; --no: #d32f2f; --no-bg: #fbeaea; --line: #e2e2e2; --mute: #767676; }
+  html, body { height: 100%; margin: 0; background: #f6f6f4; font-family: Pretendard, sans-serif; color: #111; }
+  body { display: flex; align-items: center; justify-content: center; padding: 22px; box-sizing: border-box; }
+  .card { width: 100%; max-width: 720px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 28px 32px; box-sizing: border-box; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+  .eyebrow { font-size: 14px; font-weight: 600; color: var(--ok); letter-spacing: .5px; }
+  h1 { font-size: 30px; margin: 4px 0 16px; letter-spacing: -.5px; }
+  .lab { font-size: 14px; color: var(--mute); margin-bottom: 8px; }
+  textarea { width: 100%; height: 190px; box-sizing: border-box; font: inherit; font-size: 17px; line-height: 1.7; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fafafa; resize: none; }
+  textarea:focus, input:focus { outline: 2px solid #111; outline-offset: 1px; }
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+  .chip { font-size: 14px; padding: 5px 12px; border-radius: 999px; background: #f0f0ee; color: #444; }
+  .btn { font: inherit; font-size: 18px; font-weight: 600; padding: 12px 22px; border-radius: 12px; border: 1px solid #111; background: #111; color: #fff; cursor: pointer; }
+  .btn.ghost { background: #fff; color: #111; }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .grow { flex: 1; }
+  /* 진행 막대 */
+  .bar { display: flex; gap: 6px; margin-bottom: 14px; }
+  .bar i { flex: 1; height: 8px; border-radius: 4px; background: #ececea; transition: background .3s; }
+  .bar i.now { background: #111; }
+  .bar i.ok { background: var(--ok); }
+  .bar i.no { background: var(--no); }
+  .top { display: flex; justify-content: space-between; font-size: 15px; color: var(--mute); }
+  .top b { color: #111; }
+  .q { font-size: 30px; font-weight: 600; line-height: 1.4; letter-spacing: -.5px; margin: 22px 0 22px; min-height: 84px; }
+  form { display: flex; gap: 10px; }
+  form input { flex: 1; min-width: 0; font: inherit; font-size: 22px; padding: 12px 16px; border: 1px solid #bbb; border-radius: 12px; }
+  .fb { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 14px 18px; border-radius: 14px; font-size: 20px; font-weight: 600; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; }
+  .fb.show { opacity: 1; transform: none; }
+  .fb.ok { background: var(--ok-bg); color: var(--ok); }
+  .fb.no { background: var(--no-bg); color: var(--no); }
+  .fb svg { width: 28px; height: 28px; flex: none; }
+  .fb small { display: block; font-size: 16px; font-weight: 400; color: #333; }
+  /* 결과 */
+  .end { display: grid; grid-template-columns: 200px 1fr; gap: 28px; align-items: center; }
+  .end svg { width: 200px; height: 200px; }
+  .end h2 { font-size: 26px; margin: 0 0 10px; }
+  .miss { list-style: none; padding: 0; margin: 0; font-size: 16px; line-height: 1.5; }
+  .miss li { padding: 8px 0; border-top: 1px solid var(--line); }
+  .miss b { color: var(--no); }
   [hidden] { display: none !important; }
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
-&lt;div id=&quot;edit&quot;&gt;
-  &lt;div class=&quot;lab&quot; style=&quot;margin-bottom:8px&quot;&gt;한 줄에 한 문제, 「문제 | 정답」 형식&lt;/div&gt;
-  &lt;textarea id=&quot;src&quot;&gt;지진으로 흔들릴 때 들어가 몸을 보호하는 곳은? | 탁자 아래
+&lt;div class=&quot;card&quot;&gt;
+  &lt;section id=&quot;edit&quot;&gt;
+    &lt;div class=&quot;eyebrow&quot;&gt;퀴즈 만들기&lt;/div&gt;
+    &lt;h1&gt;재난 안전 퀴즈&lt;/h1&gt;
+    &lt;div class=&quot;lab&quot;&gt;한 줄에 한 문제, 「문제 | 정답」 형식으로 붙여 넣기&lt;/div&gt;
+    &lt;textarea id=&quot;src&quot; spellcheck=&quot;false&quot;&gt;지진으로 흔들릴 때 들어가 몸을 보호하는 곳은? | 탁자 아래
 지진 뒤 건물을 나갈 때 엘리베이터와 계단 중 쓸 것은? | 계단
 불이 나 연기가 찰 때 코와 입을 막는 것은? | 젖은 수건
 물이 찬 길을 걸어서 건너도 될까? (예, 아니요) | 아니요
 폭염일 때 야외 활동을 피하는 시간은 낮 12시부터 몇 시까지? (숫자) | 5&lt;/textarea&gt;
-  &lt;div style=&quot;margin-top:12px&quot;&gt;&lt;button id=&quot;start&quot;&gt;퀴즈 시작&lt;/button&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&quot;play&quot; hidden style=&quot;display:flex;flex-direction:column;gap:16px&quot;&gt;
-  &lt;div id=&quot;top&quot;&gt;&lt;span id=&quot;pos&quot;&gt;&lt;/span&gt;&lt;span id=&quot;score&quot;&gt;&lt;/span&gt;&lt;/div&gt;
-  &lt;div id=&quot;q&quot;&gt;&lt;/div&gt;
-  &lt;form class=&quot;row&quot; id=&quot;f&quot;&gt;&lt;input id=&quot;a&quot; autocomplete=&quot;off&quot; aria-label=&quot;정답 입력&quot;&gt;&lt;button&gt;확인&lt;/button&gt;&lt;/form&gt;
-  &lt;div id=&quot;msg&quot;&gt;&lt;/div&gt;
-  &lt;div class=&quot;row&quot;&gt;&lt;button id=&quot;back&quot; type=&quot;button&quot;&gt;문제 고치기&lt;/button&gt;&lt;/div&gt;
+    &lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;chip&quot; id=&quot;cnt&quot;&gt;&lt;/span&gt;&lt;span class=&quot;grow&quot;&gt;&lt;/span&gt;&lt;button class=&quot;btn&quot; id=&quot;start&quot;&gt;퀴즈 시작&lt;/button&gt;&lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section id=&quot;play&quot; hidden&gt;
+    &lt;div class=&quot;bar&quot; id=&quot;bar&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;top&quot;&gt;&lt;span id=&quot;pos&quot;&gt;&lt;/span&gt;&lt;span&gt;맞힌 문제 &lt;b id=&quot;score&quot;&gt;0&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;q&quot; id=&quot;q&quot;&gt;&lt;/div&gt;
+    &lt;form id=&quot;f&quot;&gt;&lt;input id=&quot;a&quot; autocomplete=&quot;off&quot; aria-label=&quot;정답 입력&quot; placeholder=&quot;정답 입력&quot;&gt;&lt;button class=&quot;btn&quot;&gt;확인&lt;/button&gt;&lt;/form&gt;
+    &lt;div class=&quot;fb&quot; id=&quot;fb&quot;&gt;&lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section id=&quot;done&quot; hidden&gt;
+    &lt;div class=&quot;end&quot;&gt;
+      &lt;svg viewBox=&quot;0 0 120 120&quot;&gt;&lt;circle cx=&quot;60&quot; cy=&quot;60&quot; r=&quot;50&quot; fill=&quot;none&quot; stroke=&quot;#eee&quot; stroke-width=&quot;12&quot;/&gt;&lt;circle id=&quot;arc&quot; cx=&quot;60&quot; cy=&quot;60&quot; r=&quot;50&quot; fill=&quot;none&quot; stroke=&quot;#1f7a4a&quot; stroke-width=&quot;12&quot; stroke-linecap=&quot;round&quot; stroke-dasharray=&quot;0 315&quot; transform=&quot;rotate(-90 60 60)&quot; style=&quot;transition:stroke-dasharray .8s&quot;/&gt;&lt;text id=&quot;ringTxt&quot; x=&quot;60&quot; y=&quot;68&quot; text-anchor=&quot;middle&quot; font-size=&quot;24&quot; font-weight=&quot;700&quot; font-family=&quot;Pretendard, sans-serif&quot;&gt;&lt;/text&gt;&lt;/svg&gt;
+      &lt;div&gt;
+        &lt;h2 id=&quot;msg&quot;&gt;&lt;/h2&gt;
+        &lt;ul class=&quot;miss&quot; id=&quot;miss&quot;&gt;&lt;/ul&gt;
+        &lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;again&quot;&gt;처음부터&lt;/button&gt;&lt;button class=&quot;btn ghost&quot; id=&quot;back&quot;&gt;문제 고치기&lt;/button&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
 &lt;/div&gt;
 &lt;script&gt;
   const $ = id =&gt; document.getElementById(id);
-  let items = [], i = 0, score = 0, wait = false;
+  const ICON = {
+    ok: &#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/&gt;&lt;path d=&quot;M7 12.5l3.2 3L17 9&quot;/&gt;&lt;/svg&gt;&#x27;,
+    no: &#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2.5&quot; stroke-linecap=&quot;round&quot;&gt;&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/&gt;&lt;path d=&quot;M8.5 8.5l7 7M15.5 8.5l-7 7&quot;/&gt;&lt;/svg&gt;&#x27;
+  };
+  let items = [], res = [], i = 0, wait = false;
   const norm = s =&gt; s.trim().toLowerCase().replace(/\s+/g, &#x27;&#x27;);
+  const parse = () =&gt; $(&#x27;src&#x27;).value.split(&#x27;\n&#x27;).map(l =&gt; l.split(&#x27;|&#x27;).map(x =&gt; x.trim())).filter(x =&gt; x.length === 2 &amp;&amp; x[0] &amp;&amp; x[1]);
+  function count() { const n = parse().length; $(&#x27;cnt&#x27;).textContent = &#x27;문제 &#x27; + n + &#x27;개&#x27;; $(&#x27;start&#x27;).disabled = !n; }
+  $(&#x27;src&#x27;).oninput = count; count();
+  function view(id) { [&#x27;edit&#x27;, &#x27;play&#x27;, &#x27;done&#x27;].forEach(k =&gt; $(k).hidden = k !== id); }
+  function bar() { $(&#x27;bar&#x27;).innerHTML = items.map((_, k) =&gt; `&lt;i class=&quot;${k &lt; res.length ? (res[k] ? &#x27;ok&#x27; : &#x27;no&#x27;) : k === i ? &#x27;now&#x27; : &#x27;&#x27;}&quot;&gt;&lt;/i&gt;`).join(&#x27;&#x27;); }
   function show() {
-    wait = false;
-    $(&#x27;pos&#x27;).textContent = (i + 1) + &#x27; / &#x27; + items.length;
-    $(&#x27;score&#x27;).textContent = &#x27;점수 &#x27; + score;
+    wait = false; bar();
+    $(&#x27;pos&#x27;).textContent = &#x27;문제 &#x27; + (i + 1) + &#x27; / &#x27; + items.length;
+    $(&#x27;score&#x27;).textContent = res.filter(Boolean).length;
     $(&#x27;q&#x27;).textContent = items[i][0];
-    $(&#x27;a&#x27;).value = &#x27;&#x27;; $(&#x27;msg&#x27;).textContent = &#x27;&#x27;; $(&#x27;f&#x27;).hidden = false;
-    $(&#x27;a&#x27;).focus();
+    $(&#x27;a&#x27;).value = &#x27;&#x27;; $(&#x27;a&#x27;).disabled = false; $(&#x27;fb&#x27;).className = &#x27;fb&#x27;; $(&#x27;a&#x27;).focus();
   }
-  $(&#x27;start&#x27;).onclick = () =&gt; {
-    items = $(&#x27;src&#x27;).value.split(&#x27;\n&#x27;).map(l =&gt; l.split(&#x27;|&#x27;).map(x =&gt; x.trim())).filter(x =&gt; x.length === 2 &amp;&amp; x[0] &amp;&amp; x[1]);
-    if (!items.length) return;
-    i = 0; score = 0;
-    $(&#x27;edit&#x27;).hidden = true; $(&#x27;play&#x27;).hidden = false;
-    show();
-  };
-  $(&#x27;back&#x27;).onclick = () =&gt; { $(&#x27;play&#x27;).hidden = true; $(&#x27;edit&#x27;).hidden = false; };
+  function start() { items = parse(); if (!items.length) return; i = 0; res = []; view(&#x27;play&#x27;); show(); }
+  $(&#x27;start&#x27;).onclick = start; $(&#x27;again&#x27;).onclick = start;
+  $(&#x27;back&#x27;).onclick = () =&gt; view(&#x27;edit&#x27;);
   $(&#x27;f&#x27;).onsubmit = e =&gt; {
-    e.preventDefault();
-    if (wait) return;
-    wait = true;
-    const ok = norm($(&#x27;a&#x27;).value) === norm(items[i][1]);
-    if (ok) score++;
-    $(&#x27;score&#x27;).textContent = &#x27;점수 &#x27; + score;
-    $(&#x27;msg&#x27;).textContent = ok ? &#x27;정답입니다&#x27; : &#x27;정답: &#x27; + items[i][1];
-    setTimeout(() =&gt; {
-      if (++i &lt; items.length) return show();
-      $(&#x27;q&#x27;).textContent = items.length + &#x27;문제 중 &#x27; + score + &#x27;문제를 맞혔습니다&#x27;;
-      $(&#x27;pos&#x27;).textContent = &#x27;끝&#x27;; $(&#x27;f&#x27;).hidden = true; $(&#x27;msg&#x27;).textContent = &#x27;&#x27;;
-    }, 1200);
+    e.preventDefault(); if (wait || !$(&#x27;a&#x27;).value.trim()) return; wait = true;
+    const ok = norm($(&#x27;a&#x27;).value) === norm(items[i][1]); res.push(ok); $(&#x27;a&#x27;).disabled = true;
+    $(&#x27;score&#x27;).textContent = res.filter(Boolean).length; bar();
+    $(&#x27;fb&#x27;).className = &#x27;fb show &#x27; + (ok ? &#x27;ok&#x27; : &#x27;no&#x27;);
+    $(&#x27;fb&#x27;).innerHTML = ok ? ICON.ok + &#x27;&lt;div&gt;정답입니다&lt;/div&gt;&#x27; : ICON.no + &#x27;&lt;div&gt;아쉬워요&lt;small&gt;정답: &#x27; + items[i][1] + &#x27;&lt;/small&gt;&lt;/div&gt;&#x27;;
+    setTimeout(() =&gt; { if (++i &lt; items.length) show(); else finish(); }, 1500);
   };
+  function finish() {
+    view(&#x27;done&#x27;);
+    const n = res.filter(Boolean).length, L = 2 * Math.PI * 50;
+    $(&#x27;ringTxt&#x27;).textContent = n + &#x27; / &#x27; + items.length;
+    $(&#x27;arc&#x27;).setAttribute(&#x27;stroke-dasharray&#x27;, &#x27;0 &#x27; + L);
+    requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; $(&#x27;arc&#x27;).setAttribute(&#x27;stroke-dasharray&#x27;, (n / items.length * L) + &#x27; &#x27; + L)));
+    $(&#x27;msg&#x27;).textContent = n === items.length ? &#x27;모두 맞혔어요&#x27; : n &gt;= items.length / 2 ? &#x27;거의 다 왔어요&#x27; : &#x27;한 번 더 해 볼까요&#x27;;
+    $(&#x27;miss&#x27;).innerHTML = items.map((it, k) =&gt; res[k] ? &#x27;&#x27; : `&lt;li&gt;${it[0]}&lt;br&gt;정답 &lt;b&gt;${it[1]}&lt;/b&gt;&lt;/li&gt;`).join(&#x27;&#x27;);
+  }
   if (window.parent !== window) addEventListener(&#x27;keydown&#x27;, e =&gt; {
     if ([&#x27;INPUT&#x27;, &#x27;TEXTAREA&#x27;].includes(e.target.tagName)) return;
     if ([&#x27;ArrowRight&#x27;, &#x27;ArrowLeft&#x27;, &#x27;PageDown&#x27;, &#x27;PageUp&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(e.key)) window.parent.postMessage({ slideKey: e.key }, &#x27;*&#x27;);
