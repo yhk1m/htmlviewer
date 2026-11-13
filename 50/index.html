@@ -205,6 +205,13 @@
   .cards b { display: block; font-size: 36px; font-weight: 600; letter-spacing: -1px; margin-bottom: 16px; }
   .cards p { font-size: 24px; line-height: 1.6; color: var(--g6); padding: 8px 0; border-bottom: 1px solid var(--g2); }
   .flow .tag { display: inline-block; font-size: 20px; color: inherit; margin: 0 8px 0 0; }
+  /* STICC 다섯 칸 */
+  .sticc { display: grid; grid-template-columns: repeat(5, 1fr); gap: 28px; margin-top: 48px; }
+  .sticc > div { border-top: 3px solid var(--k); padding-top: 18px; }
+  .sticc b { display: block; font-size: 96px; font-weight: 600; line-height: 1; }
+  .sticc em { display: block; font-style: normal; font-size: 22px; color: var(--g5); margin-top: 10px; }
+  .sticc span { display: block; font-size: 32px; font-weight: 600; margin-top: 6px; }
+  .sticc p { font-size: 23px; line-height: 1.6; color: var(--g6); margin-top: 12px; }
   .say { font-size: 21px; color: var(--g6); line-height: 1.6; margin-top: 14px; }
   .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
   .lane .who { font-size: 32px; font-weight: 600; }
@@ -1363,6 +1370,61 @@ flowchart TD
         <div class="lab">채운 예</div>
         주민이 지진 대피 훈련 전에 쓰는 비상 가방 점검표를 HTML 파일 하나로 만들어 줘.<br>사용자는 챙긴 물품을 누르고, 화면에는 준비한 비율과 빠진 물품이 나와야 해.
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>프롬프트에서 컨텍스트로</h2>
+    <div class="two" style="grid-template-columns:1fr 1.5fr;gap:80px;margin-top:48px;align-items:stretch">
+      <div>
+        <div class="chk"><h3>프롬프트 엔지니어링</h3></div>
+        <div class="ask" style="margin-top:8px">"지진 시뮬레이터 만들어 줘"</div>
+        <p class="note">문장 하나를 잘 다듬기.<br>AI는 빈칸을 짐작으로 채움.</p>
+      </div>
+      <div class="frag">
+        <div class="chk"><h3>컨텍스트 엔지니어링</h3></div>
+        <div style="display:grid;gap:10px;margin-top:8px">
+          <div style="background:var(--k);color:var(--w);padding:18px 26px;font-size:26px">상황과 목적 <span style="color:var(--g3);font-size:22px">누가, 어디서, 왜 쓰는지</span></div>
+          <div style="border:1px solid var(--k);padding:18px 26px;font-size:26px">자료 <span class="gray" style="font-size:22px">CSV, GeoJSON, API 주소, 설명 문서</span></div>
+          <div style="border:1px solid var(--k);padding:18px 26px;font-size:26px">제약 <span class="gray" style="font-size:22px">HTML 한 파일, 인터넷 없이, 큰 글씨</span></div>
+          <div style="border:1px solid var(--k);padding:18px 26px;font-size:26px">예시와 양식 <span class="gray" style="font-size:22px">참고할 화면, 저장해 둔 웹페이지</span></div>
+          <div style="border:1px dashed var(--k);padding:18px 26px;font-size:26px">확인 방법 <span class="gray" style="font-size:22px">무엇이 되면 완성인지</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="frag" style="margin-top:36px">AI가 일하는 데 필요한 것을 처음부터 함께 건네기.</p>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>STICC로 건네기</h2>
+    <p class="gray" style="margin-top:20px">재난 현장 지휘관이 대원에게 상황을 넘겨줄 때 쓰는 브리핑 순서 (Gary Klein)</p>
+    <div class="sticc">
+      <div><b>S</b><em>Situation</em><span>상황</span><p>지금 어떤 상황인가</p></div>
+      <div class="frag"><b>T</b><em>Task</em><span>할 일</span><p>무엇을 만들어야 하나</p></div>
+      <div class="frag"><b>I</b><em>Intent</em><span>의도</span><p>왜 필요한가, 무엇이 되면 성공인가</p></div>
+      <div class="frag"><b>C</b><em>Concern</em><span>주의할 점</span><p>틀리기 쉬운 곳, 지킬 조건</p></div>
+      <div class="frag"><b>C</b><em>Calibrate</em><span>맞춰 보기</span><p>모르는 점은 먼저 묻기, 이해한 내용 확인</p></div>
+    </div>
+    <p class="frag" style="margin-top:44px">사람에게 일을 넘길 때와 같은 순서. 의도와 주의할 점을 알면 AI도 빈칸을 덜 틀림.</p>
+  </div>
+</section>
+
+<section class="slide" data-sec="HTML 시연">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>STICC로 쓴 요청문</h2>
+    <div class="rows" style="grid-template-columns:220px 1fr;margin-top:36px;font-size:25px">
+      <div class="k" style="font-size:28px">S 상황</div><div>시민 대상 재난 교육 강연에서 지진 조기 경보 원리를 설명하려 해. 청중은 지진학 비전공자야.</div>
+      <div class="k frag" style="font-size:28px">T 할 일</div><div class="frag">P파와 S파가 퍼지는 모습과 도시 지진계 기록을 보여 주는 시뮬레이터를 HTML 파일 하나로 만들어 줘.</div>
+      <div class="k frag" style="font-size:28px">I 의도</div><div class="frag">거리가 멀수록 경보 뒤 대피할 시간이 늘어난다는 것을 눈으로 보게 하고 싶어.</div>
+      <div class="k frag" style="font-size:28px">C 주의할 점</div><div class="frag">파의 속도는 평균값 가정이라고 화면에 밝혀 줘. 프로젝터에서도 보이게 글씨를 크게.</div>
+      <div class="k frag" style="font-size:28px">C 맞춰 보기</div><div class="frag">만들기 전에 이해한 내용을 세 줄로 정리하고, 모르는 점은 먼저 물어봐 줘.</div>
     </div>
   </div>
 </section>
