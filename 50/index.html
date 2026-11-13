@@ -219,6 +219,14 @@
   .qrbox svg { width: 190px; height: 190px; display: block; }
   .qrbox b { display: block; font-size: 22px; font-weight: 600; margin-top: 6px; }
   .qrbox span { display: block; font-size: 16px; color: var(--g5); line-height: 1.5; }
+  .etc4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 18px; }
+  .etc4 b { display: block; font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+  .etc4 p { font-size: 20px; line-height: 1.55; color: var(--g6); padding: 6px 0; border-top: 1px solid var(--g2); }
+  .rows.xt > div { padding: 7px 24px 7px 0; }
+  .api-url { margin-top: 8px; gap: 0; }
+  .api-url code { font-size: 28px; padding: 0 0 12px; }
+  .api-url span + span code { border-color: var(--g4); }
+  .api-url i { font-size: 20px; padding-right: 24px; }
   .say { font-size: 21px; color: var(--g6); line-height: 1.6; margin-top: 14px; }
   .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
   .lane .who { font-size: 32px; font-weight: 600; }
@@ -804,7 +812,15 @@ let rt; window.addEventListener(&#x27;resize&#x27;, () =&gt; { clearTimeout(rt);
       <i class="frag"><em>그리기</em></i>
       <div class="frag" style="background:var(--k);color:var(--w)"><span class="tag" style="border-color:#fff">HTML</span><b style="margin-top:20px">화면</b><span style="color:var(--g3)">파일 하나, 주소 하나로 공유</span></div>
     </div>
-    <div class="frag" style="margin-top:40px;border:1px dashed var(--g4);padding:24px 32px;font-size:26px"><span class="tag">기타</span> 공식 정보 우선, 끊겨도 쓰이게, 누구나 읽게, 위치와 개인정보</div>
+    <div class="frag" style="margin-top:40px;border:1px dashed var(--g4);padding:24px 32px 28px">
+      <span class="tag" style="font-size:20px">기타</span>
+      <div class="etc4">
+        <div><b>공식 정보 우선</b><p>내 도구는 공식 경보, 재난 문자를 대신하지 않음</p><p>화면에 자료 출처와 갱신 시각 표시</p></div>
+        <div><b>끊겨도 쓰이게</b><p>재난 때는 통신과 전기가 불안정</p><p>HTML 한 파일로 만들어 휴대폰에 미리 저장, 인터넷 없이 열리는지 확인</p></div>
+        <div><b>누구나 읽게</b><p>큰 글씨, 쉬운 말, 휴대폰 화면 먼저</p><p>색만으로 구분하지 않고 글자도 함께, 외국어 안내</p></div>
+        <div><b>위치와 개인정보</b><p>위치는 동의를 받고 쓰고 저장하지 않음</p><p>AI에게는 실제 명단 대신 가짜 자료로 요청</p></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -812,7 +828,7 @@ let rt; window.addEventListener(&#x27;resize&#x27;, () =&gt; { clearTimeout(rt);
   <div class="hd"></div>
   <div class="bd">
     <h2><span class="tag" style="font-size:28px;vertical-align:middle">오픈소스</span> 재난 도구에 쓰는 라이브러리</h2>
-    <div class="rows tight" style="grid-template-columns:240px 440px 1fr;margin-top:32px;font-size:24px">
+    <div class="rows tight xt" style="grid-template-columns:240px 440px 1fr;margin-top:20px;font-size:23px">
       <div class="s">하는 일</div><div class="s">라이브러리</div><div class="s">재난 도구에서</div>
       <div>웹 지도</div><div class="k" style="font-size:26px">Leaflet, MapLibre GL JS</div><div>진앙, 대피소, 위험 지역 표시</div>
       <div>공간 분석</div><div class="k" style="font-size:26px">Turf.js</div><div>반경 안 시설 찾기, 거리, 면적</div>
@@ -821,6 +837,10 @@ let rt; window.addEventListener(&#x27;resize&#x27;, () =&gt; { clearTimeout(rt);
       <div>3D</div><div class="k" style="font-size:26px">Three.js</div><div>지형과 물 높이, 산사태 모형</div>
       <div>흐름도</div><div class="k" style="font-size:26px">Mermaid</div><div>대피 절차, 행동 요령</div>
       <div>파일 읽기</div><div class="k" style="font-size:26px">shpjs, Papa Parse</div><div>SHP, CSV 자료 바로 불러오기</div>
+      <div>대용량 지도</div><div class="k" style="font-size:26px">deck.gl</div><div>수만 건의 지진, 신고 지점을 한 번에, 3D 기둥</div>
+      <div>3D 지구본</div><div class="k" style="font-size:26px">CesiumJS</div><div>실제 지형 위에 태풍 경로, 침수 범위</div>
+      <div>밀도 지도</div><div class="k" style="font-size:26px">Leaflet.heat</div><div>피해, 신고가 몰린 곳을 히트맵으로</div>
+      <div>오프라인</div><div class="k" style="font-size:26px">Workbox</div><div>한 번 열어 두면 인터넷 없이도 열림</div>
     </div>
     <p class="note" style="margin-top:16px">모두 무료. CDN 주소 한 줄로 불러와 씀. 이름을 넣어 요청하면 결과가 안정적.</p>
   </div>
@@ -987,20 +1007,26 @@ flowchart TD
 
 <section class="slide" data-sec="재난재해 바이브 코딩">
   <div class="hd"></div>
-  <div class="bd">
+  <div class="bd" style="padding-top:44px">
     <h2><span class="tag" style="font-size:28px;vertical-align:middle">API</span> 다른 서버에 자료를 묻는 주소</h2>
-    <div class="flow" style="margin-top:48px">
-      <div><b>내 HTML 페이지</b><span>필요한 자료를 주소로 요청</span></div>
-      <i><em>요청 주소<br>+ 키</em></i>
-      <div class="frag"><b>API 서버</b><span>기상청, USGS 같은 기관이 운영</span></div>
-      <i class="frag"><em>JSON 응답</em></i>
-      <div class="frag"><b>화면</b><span>지도, 그래프로 그리기</span></div>
+    <div class="flow sm" style="margin-top:32px">
+      <div><b>내 HTML 페이지</b><span>주소로 자료를 요청</span></div>
+      <i><em>요청 주소 + 키</em></i>
+      <div><b>API 서버</b><span>기상청, USGS 같은 기관이 운영</span></div>
+      <i><em>JSON 응답</em></i>
+      <div><b>화면</b><span>지도, 그래프로 그리기</span></div>
     </div>
-    <div class="two frag" style="grid-template-columns:1.2fr 1fr;gap:56px;margin-top:40px">
-<pre style="font-size:20px;margin:0"><span class="c">// USGS 지진 API 응답의 모양 (값은 예시)</span>
-{ "properties": { "mag": 5.1, "place": "Japan", "time": 1762987200000 },
-  "geometry": { "coordinates": [142.3, 38.1, 35.0] } }</pre>
-      <p style="font-size:26px">숫자와 글자로 된 자료.<br>"이 API 응답으로 지도를 그려 줘"면 충분.</p>
+    <div class="chk frag" style="margin-top:36px"><h3>요청 주소 뜯어 보기 (Open-Meteo 강수 예보)</h3></div>
+    <div class="anat frag api-url">
+      <span><code>https://api.open-meteo.com/v1/forecast</code><i>어느 서버의 어떤 자료</i></span>
+      <span><code>?latitude=37.57&amp;longitude=126.98</code><i>조건: 어디의 (위도, 경도)</i></span>
+      <span><code>&amp;hourly=precipitation</code><i>무엇을: 시간당 강수량</i></span>
+    </div>
+    <div class="etc4 frag" style="margin-top:32px">
+      <div><b>키</b><p>회원가입하고 받는 긴 문자열</p><p>HTML에 넣으면 F12로 누구나 볼 수 있음</p></div>
+      <div><b>응답 형식</b><p>대부분 JSON, 국내 공공 API는 XML도 많음</p><p>"JSON으로 받게 해 줘"라고 요청</p></div>
+      <div><b>사용 한도</b><p>하루 몇 번까지처럼 호출 횟수 제한</p><p>자주 부르지 않게 결과를 저장해 두기</p></div>
+      <div><b>이용 조건</b><p>출처 표기, 상업 이용 여부 확인</p><p>API 안내 문서를 AI에게 함께 붙여 넣기</p></div>
     </div>
   </div>
 </section>
@@ -1155,25 +1181,6 @@ flowchart TD
 <section class="slide" data-sec="재난재해 바이브 코딩">
   <div class="hd"></div>
   <div class="bd">
-    <h2>API 키는 HTML에 넣지 않는다</h2>
-    <div class="flow" style="margin-top:56px">
-      <div><b>브라우저</b><span>HTML 화면만<br>키는 보이지 않음</span></div>
-      <i><em>요청</em></i>
-      <div class="frag" style="background:var(--k);color:var(--w)"><b>Apps Script</b><span style="color:var(--g3)">키를 보관하고<br>대신 요청</span></div>
-      <i class="frag"><em>키 + 요청</em></i>
-      <div class="frag"><b>API 서버</b><span>기상청, 공공데이터포털</span></div>
-    </div>
-    <div class="three frag" style="margin-top:56px;gap:48px">
-      <div class="chk"><h3>왜</h3><p>HTML은 F12로 누구나 봄<br><span class="gray" style="font-size:22px">키가 새면 남이 내 사용량을 씀</span></p></div>
-      <div class="chk"><h3>덤으로</h3><p>브라우저에서 바로 못 부르는 API도 해결<br><span class="gray" style="font-size:22px">CORS 오류가 나는 국내 API</span></p></div>
-      <div class="chk"><h3>요청 문장</h3><p style="font-size:23px">"API 키는 Apps Script에 두고, HTML은 Apps Script 주소만 부르게 해 줘"</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="slide" data-sec="재난재해 바이브 코딩">
-  <div class="hd"></div>
-  <div class="bd">
     <h2><span class="tag" style="font-size:28px;vertical-align:middle">공간데이터</span> 자료를 받는 곳</h2>
     <div class="rows tight" style="grid-template-columns:400px 1fr;margin-top:32px;font-size:24px">
       <div class="k" style="font-size:26px">생활안전지도</div><div>재난, 치안, 교통 위험 지도와 대피 시설<br><span class="s">safemap.go.kr, 행정안전부</span></div>
@@ -1289,7 +1296,7 @@ flowchart TD
     <div class="rows" style="grid-template-columns:380px 420px 1fr;margin-top:40px">
       <div class="k" style="font-size:30px">Netlify Drop</div><div>폴더를 끌어다 놓기</div><div>무료 가입, 여러 파일도 됨<br><span class="s">app.netlify.com/drop</span></div>
       <div class="k frag" style="font-size:30px">GitHub Pages</div><div class="frag">저장소에 파일 올리기</div><div class="frag">무료, 고친 기록이 남음<br><span class="s">처음 쓰기에는 조금 어려움</span></div>
-      <div class="k frag" style="font-size:30px">Apps Script</div><div class="frag">스크립트 편집기에서 배포</div><div class="frag">구글 시트와 바로 연결됨<br><span class="s">API 키 숨기기에도 씀</span></div>
+      <div class="k frag" style="font-size:30px">Apps Script</div><div class="frag">스크립트 편집기에서 배포</div><div class="frag">구글 시트와 바로 연결됨<br><span class="s">시트 자료로 페이지를 만들 때</span></div>
     </div>
   </div>
 </section>
