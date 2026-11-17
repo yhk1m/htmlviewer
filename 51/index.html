@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- © 2026 김용현 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f1f3f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
+<title>동아 디자인 스킬과 가이드 비교</title>
+<style>
+@font-face { font-family: "Pretendard"; font-weight: 400; font-display: swap; src: url("./assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; font-display: swap; src: url("./assets/fonts/Pretendard-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; font-display: swap; src: url("./assets/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; font-display: swap; src: url("./assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+.dc-content {
+  /* ===== CI 색 (고정, 바꾸지 않는다) ===== */
+  --donga-red: #ec1940;          /* CI 빨강. 로고와 브랜드 그래픽에만 */
+  --donga-ink: #333333;          /* CI 먹. 로고 ㄷ과 글자표 */
+
+  /* ===== 테마색 (CI에서 만든 값, 고정) ===== */
+  --accent-light: #d4153a;       /* 주색, 라이트: CI 빨강을 OKLCH 밝기만 내림. 흰 글자 대비 5.3 */
+  --on-accent-light: #ffffff;
+  --accent-dark: #ff5a72;        /* 주색, 다크: 밝게 올림. 위 글자 대비 6.2 */
+  --on-accent-dark: #2a0610;
+  --second-base: #333333;        /* 보조색 = CI 먹: 머리 띠, 로고, 차트 둘째 계열. 버튼에 쓰지 않음 */
+
+  /* ===== 회색 10단계 (남색 기운) ===== */
+  --gray-50: #f8f9fb;
+  --gray-100: #f1f3f6;
+  --gray-200: #e4e7ec;
+  --gray-300: #d0d5dd;
+  --gray-400: #a9b1bd;
+  --gray-500: #868f9c;
+  --gray-600: #646d7a;
+  --gray-700: #4a5260;
+  --gray-800: #2f3640;
+  --gray-900: #1a1e25;
+
+  /* ===== 역할 색, 라이트 ===== */
+  --bg: var(--gray-100);
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --fill-subtle: var(--gray-100);
+  --text-strong: var(--gray-900);
+  --text: var(--gray-700);
+  --text-muted: var(--gray-600);
+  --icon-muted: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --line: rgba(16, 24, 40, 0.08);
+  --line-strong: rgba(16, 24, 40, 0.16);
+  --focus: #2a64d4;
+  --logo-ink: var(--donga-ink);
+
+  /* 위험색은 주색(빨강)과 헷갈리지 않게 주황 쪽으로 옮긴 빨강. 늘 아이콘과 문구를 함께 쓴다 */
+  --positive: #0b7a52;  --positive-weak: #e6f5ee;
+  --warning:  #8a5a00;  --warning-weak:  #fdf3dc;
+  --critical: #b42318;  --critical-weak: #fdeeea;
+  --info:     #2a64d4;  --info-weak:     #eaf1fd;
+
+  /* 자료 색: 지도, 차트, 범례 계열. 빨강 주색, 상태색과 따로. 버튼에 쓰지 않음 */
+  --data-1: #2563c9; --data-2: #b4530a; --data-3: #0f7f86; --data-4: #6b7380;
+
+  --accent: var(--accent-light);
+  --on-accent: var(--on-accent-light);
+  --second: var(--second-base);
+
+  /* ===== 글자 (편안 기본) ===== */
+  --font: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: var(--font);
+  --fs-caption: 0.8125rem;  /* 13 */
+  --fs-small: 0.875rem;     /* 14 */
+  --fs-body: 1rem;          /* 16 */
+  --fs-body-lg: 1.125rem;   /* 18: 학생 개인 기기 본문 권장 */
+  --fs-title-s: 1.25rem;    /* 20 */
+  --fs-title: 1.5rem;       /* 24 */
+  --fs-title-l: 1.875rem;   /* 30 */
+  --lh-body: 1.5;
+  --lh-title: 1.35;
+  --ls-title: -0.025em;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ===== 크기 (편안) ===== */
+  --row-h: 3.5rem;
+  --btn-h: 3.25rem;
+  --btn-h-s: 2.75rem;       /* 작은 버튼도 44 (두클래스 최소 터치 영역) */
+  --touch: 2.75rem;         /* 44, 교실 화면은 --touch-class */
+  --touch-class: 3rem;      /* 48 */
+  --page-x: 1.25rem;
+
+  /* ===== 간격 (4px 단위) ===== */
+  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem;
+  --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem; --sp-10: 2.5rem; --sp-12: 3rem; --sp-16: 4rem;
+
+  /* ===== 모서리 ===== */
+  --r-badge: 4px;
+  --r-control: 10px;
+  --r-card: 16px;
+  --r-sheet: 20px;
+  --r-full: 999px;
+
+  /* ===== 그림자 (떠 있는 것에만) ===== */
+  --shadow-1: 0 1px 4px rgba(16, 24, 40, 0.06);
+  --shadow-2: 0 4px 16px rgba(16, 24, 40, 0.08);
+  --shadow-3: 0 12px 32px rgba(16, 24, 40, 0.12);
+
+  /* ===== 겹침 순서 (100 이하) ===== */
+  --z-sticky: 10;
+  --z-sheet: 50;
+  --z-toast: 60;
+
+  /* ===== 움직임 ===== */
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 400ms;
+  --ease: cubic-bezier(0.35, 0, 0.35, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.15, 1);
+  --ease-exit: cubic-bezier(0.35, 0, 1, 1);
+
+  color-scheme: light;
+}
+
+/* ===== 다크 모드 ===== */
+@media (prefers-color-scheme: dark) {
+  .dc-content:not([data-theme="light"]) {
+    --bg: #121418;
+    --surface: #1b1e24;
+    --surface-raised: #252930;
+    --fill-subtle: #252930;
+    --text-strong: #eef0f3;
+    --text: #c4cad3;
+    --text-muted: #8e97a4;
+    --icon-muted: #6b7380;
+    --text-disabled: #5d6571;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --focus: #7aa5ff;
+    --logo-ink: #eceef1;
+    --positive: #3ccf8e;  --positive-weak: #15302a;
+    --warning:  #f0b44a;  --warning-weak:  #33291a;
+    --critical: #ff8a5c;  --critical-weak: #3a2219;
+    --info:     #7aa5ff;  --info-weak:     #1d2840;
+    --accent: var(--accent-dark);
+    --on-accent: var(--on-accent-dark);
+    --second: #e8e8e8;
+    --data-1: #7aa5ff; --data-2: #ffa45c; --data-3: #4fc9cf; --data-4: #9aa3b0;
+    --shadow-1: none; --shadow-2: none; --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+.dc-content[data-theme="dark"],
+.dc-content [data-theme="dark"] {
+  --bg: #121418;
+  --surface: #1b1e24;
+  --surface-raised: #252930;
+  --fill-subtle: #252930;
+  --text-strong: #eef0f3;
+  --text: #c4cad3;
+  --text-muted: #8e97a4;
+  --icon-muted: #6b7380;
+  --text-disabled: #5d6571;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --focus: #7aa5ff;
+  --logo-ink: #eceef1;
+  --positive: #3ccf8e;  --positive-weak: #15302a;
+  --warning:  #f0b44a;  --warning-weak:  #33291a;
+  --critical: #ff8a5c;  --critical-weak: #3a2219;
+  --info:     #7aa5ff;  --info-weak:     #1d2840;
+  --accent: var(--accent-dark);
+  --on-accent: var(--on-accent-dark);
+  --second: #e8e8e8;
+  --data-1: #7aa5ff; --data-2: #ffa45c; --data-3: #4fc9cf; --data-4: #9aa3b0;
+  --shadow-1: none; --shadow-2: none; --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+/* 래퍼 안 일부만 라이트로 되돌릴 때 */
+.dc-content [data-theme="light"] {
+  --bg: var(--gray-100); --surface: #ffffff; --surface-raised: #ffffff; --fill-subtle: var(--gray-100);
+  --text-strong: var(--gray-900); --text: var(--gray-700); --text-muted: var(--gray-600);
+  --icon-muted: var(--gray-500); --text-disabled: var(--gray-400);
+  --line: rgba(16, 24, 40, 0.08); --line-strong: rgba(16, 24, 40, 0.16); --focus: #2a64d4;
+  --logo-ink: var(--donga-ink);
+  --positive: #0b7a52; --positive-weak: #e6f5ee; --warning: #8a5a00; --warning-weak: #fdf3dc;
+  --critical: #b42318; --critical-weak: #fdeeea; --info: #2a64d4; --info-weak: #eaf1fd;
+  --accent: var(--accent-light); --on-accent: var(--on-accent-light); --second: var(--second-base);
+  --data-1: #2563c9; --data-2: #b4530a; --data-3: #0f7f86; --data-4: #6b7380;
+  color-scheme: light;
+}
+
+/* ===== 자동 계산 (건드리지 않음) ===== */
+.dc-content, .dc-content [data-theme] {
+  --accent-press: color-mix(in oklch, var(--accent) 86%, black);
+  --accent-weak: color-mix(in oklch, var(--accent) 9%, var(--surface));
+  --accent-weak-press: color-mix(in oklch, var(--accent) 16%, var(--surface));
+  --accent-text: color-mix(in oklch, var(--accent) 90%, var(--text-strong));
+}
+@media (prefers-color-scheme: dark) {
+  .dc-content:not([data-theme="light"]) { --accent-press: color-mix(in oklch, var(--accent) 85%, white); }
+}
+.dc-content[data-theme="dark"], .dc-content [data-theme="dark"] { --accent-press: color-mix(in oklch, var(--accent) 85%, white); }
+
+/* ===== 다이얼: 촘촘 (교사, 관리 화면) ===== */
+.dc-content[data-density="compact"], .dc-content [data-density="compact"] {
+  --fs-caption: 0.75rem;
+  --fs-small: 0.8125rem;
+  --fs-body: 0.875rem;
+  --fs-body-lg: 0.875rem;
+  --fs-title-s: 1rem;
+  --fs-title: 1.125rem;
+  --fs-title-l: 1.375rem;
+  --lh-body: 1.45;
+  --fw-medium: 400;
+  --fw-bold: 600;
+  --row-h: 2.5rem;
+  --btn-h: 2.75rem;         /* 두클래스 최소 44 를 지킨다 */
+  --btn-h-s: 2.75rem;
+  --page-x: 1rem;
+  --r-control: 7px;
+  --r-card: 10px;
+  --r-sheet: 14px;
+}
+
+/* ===== 다이얼: 브랜드 ===== */
+.dc-content[data-personality="brand"], .dc-content [data-personality="brand"] {
+  --r-badge: 0; --r-control: 0; --r-card: 0; --r-sheet: 0;  /* CI의 각진 ㄷ을 따라 모서리 0 */
+}
+
+/* ===== 래퍼 기본 ===== */
+.dc-content {
+  position: relative;       /* 시트, 토스트는 position:fixed 대신 이 안에서 absolute */
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-strong);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.dc-content [data-theme] { background: var(--bg); color: var(--text-strong); }
+.dc-content,
+.dc-content *,
+.dc-content *::before,
+.dc-content *::after { box-sizing: border-box; }
+.dc-content .dc-h1, .dc-content .dc-h2, .dc-content .dc-h3 {
+  font-family: var(--font-display); line-height: var(--lh-title); letter-spacing: var(--ls-title); margin: 0;
+}
+.dc-content :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dc-content .num { font-variant-numeric: tabular-nums; }
+.dc-content .dc-sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* 누르면 살짝 줄어듦 */
+.dc-content .pressable { transition: transform var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease); }
+.dc-content .pressable:active { transform: scale(0.97); }
+
+/* 움직임 줄이기: !important 대신 시간 변수를 0으로 */
+@media (prefers-reduced-motion: reduce) {
+  .dc-content { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+  .dc-content .pressable:active { transform: none; }
+}
+
+/* ===== 태블릿 (references/tablet.md) ===== */
+@media (pointer: coarse) {
+  .dc-content { --touch: var(--touch-class); --btn-h-s: var(--touch-class); }
+}
+@media (min-width: 744px) {
+  .dc-content { --page-x: 1.5rem; --fs-body-lg: 1.125rem; }
+}
+@media (min-width: 1024px) and (orientation: landscape) {
+  .dc-content { --page-x: 2rem; }
+}
+
+/* =====================================================================
+   브라우저 기본 부품 (당토 디자인 v1.4.0과 같은 내용, 두클래스 규칙에 맞춘 판)
+   스크롤바, 선택 상자와 펼친 목록, 체크와 라디오, 슬라이더, 입력 칸, 자동 완성 바탕,
+   글자 선택 색, 대화상자 뒤 막까지 테마를 따르게 한다.
+   두클래스는 태그 선택자를 쓰지 않으므로 아래 클래스를 붙여 쓴다.
+     <select class="dc-select">, <input class="dc-input">, <textarea class="dc-input dc-textarea">,
+     스크롤되는 패널 class="dc-scroll", <dialog class="dc-dialog">, <input type="file" class="dc-file">
+   체크, 라디오, 슬라이더, 진행 막대의 색은 .dc-content에서 물려받으므로 클래스가 필요 없다.
+   <head>에는 <meta name="color-scheme" content="light dark">를 넣는다(화면 스크롤바와 첫 화면).
+   ===================================================================== */
+.dc-content, .dc-content [data-theme] {
+  --scroll-thumb: color-mix(in oklch, var(--text-strong) 22%, transparent);
+  --scroll-thumb-hover: color-mix(in oklch, var(--text-strong) 38%, transparent);
+  --field-bg: var(--surface);
+  --field-line: var(--line-strong);
+  --menu-bg: var(--surface-raised);
+}
+
+/* 1. 물려받는 값: 스크롤바 색, 체크와 라디오 색, 입력 커서 색 */
+.dc-content, .dc-content [data-theme] {
+  scrollbar-color: var(--scroll-thumb) transparent;
+  accent-color: var(--accent);
+  caret-color: var(--accent);
+}
+.dc-content, .dc-content * { scrollbar-width: thin; }
+.dc-content ::-webkit-scrollbar { width: 10px; height: 10px; }
+.dc-content ::-webkit-scrollbar-track { background: transparent; }
+.dc-content ::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.dc-content ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); background-clip: content-box; }
+.dc-content ::-webkit-scrollbar-corner { background: transparent; }
+.dc-content .dc-scroll { overflow: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
+.dc-content ::selection { background: color-mix(in oklch, var(--accent) 24%, transparent); color: inherit; }
+
+/* 2. 입력 칸과 선택 상자 */
+.dc-content .dc-input, .dc-content .dc-select {
+  font: inherit;
+  font-size: max(1rem, var(--fs-body));   /* 16px 아래면 아이폰이 화면을 확대한다 */
+  color: var(--text-strong);
+  background-color: var(--field-bg);
+  border: 1px solid var(--field-line);
+  border-radius: var(--r-control);
+  min-height: var(--touch);
+  padding: 0 var(--sp-3);
+  color-scheme: inherit;
+}
+.dc-content .dc-input.dc-textarea, .dc-content .dc-input[rows] { padding: var(--sp-3); min-height: 6rem; }
+.dc-content .dc-input::placeholder { color: var(--text-muted); opacity: 1; }
+.dc-content .dc-input:focus-visible, .dc-content .dc-select:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent;
+}
+.dc-content .dc-input:disabled, .dc-content .dc-select:disabled { color: var(--text-disabled); background-color: var(--fill-subtle); }
+.dc-content .dc-input:-webkit-autofill, .dc-content .dc-input:-webkit-autofill:hover, .dc-content .dc-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-strong);
+  box-shadow: 0 0 0 1000px var(--field-bg) inset;
+  transition: background-color 9999s;
+}
+.dc-content .dc-input[type="number"] { font-variant-numeric: tabular-nums; }
+
+/* 선택 상자 화살표: 기본 화살표를 지우고 CSS로 그린 꺾쇠로 (그림 주소를 쓰지 않아 검사기에 걸리지 않는다) */
+.dc-content .dc-select {
+  appearance: none;
+  padding-right: calc(var(--sp-3) + 24px);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--icon-muted) 50%),
+    linear-gradient(135deg, var(--icon-muted) 50%, transparent 50%);
+  background-repeat: no-repeat;
+  background-position: calc(100% - 21px) 52%, calc(100% - 16px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  cursor: pointer;
+}
+.dc-content .dc-select[multiple] { background-image: none; padding-right: var(--sp-3); }
+/* 펼친 목록의 항목 색 (윈도우의 Chrome, Edge, Firefox는 이 색을 따른다) */
+.dc-content .dc-select > * { background-color: var(--menu-bg); color: var(--text-strong); }
+
+/* 펼친 목록 전체를 꾸밀 수 있는 브라우저(Chrome 135 이상)에서는 목록 모양까지 맞춘다 */
+@supports (appearance: base-select) {
+  .dc-content .dc-select:not([multiple]) {
+    appearance: base-select;
+    background-image: none;
+    padding-right: var(--sp-3);
+    display: inline-flex; align-items: center; gap: var(--sp-2);
+  }
+  .dc-content .dc-select:not([multiple])::picker-icon {
+    content: ""; width: 7px; height: 7px; margin: -4px 4px 0 auto;
+    border-right: 2px solid var(--icon-muted); border-bottom: 2px solid var(--icon-muted);
+    transform: rotate(45deg);
+    transition: rotate var(--dur-fast) var(--ease);
+  }
+  .dc-content .dc-select:not([multiple]):open::picker-icon { rotate: 180deg; margin-top: 4px; }
+  .dc-content .dc-select::picker(select) {
+    appearance: base-select;
+    background: var(--menu-bg);
+    color: var(--text-strong);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    box-shadow: var(--shadow-2);
+    padding: var(--sp-1);
+    margin-block: var(--sp-1);
+    max-height: min(320px, 60vh);
+    overflow: auto;
+  }
+  .dc-content .dc-select > * {
+    min-height: var(--touch); padding: 0 var(--sp-3); border-radius: calc(var(--r-control) - 2px);
+    display: flex; align-items: center; gap: var(--sp-2);
+    background: transparent;
+  }
+  .dc-content .dc-select > *:hover, .dc-content .dc-select > *:focus-visible { background: var(--fill-subtle); outline: none; }
+  .dc-content .dc-select > *:checked { color: var(--accent-text); font-weight: var(--fw-semibold); background: var(--accent-weak); }
+  .dc-content .dc-select > *::checkmark { content: ""; display: none; }
+}
+
+/* 3. 그 밖의 기본 부품 */
+.dc-content .dc-file::file-selector-button {
+  font: inherit; font-weight: var(--fw-semibold);
+  color: var(--text-strong); background: var(--fill-subtle);
+  border: 0; border-radius: calc(var(--r-control) - 2px);
+  padding: var(--sp-2) var(--sp-3); margin-right: var(--sp-3); cursor: pointer;
+}
+.dc-content .dc-dialog { color: var(--text-strong); background: var(--surface-raised); border: 0; border-radius: var(--r-sheet); box-shadow: var(--shadow-3); }
+.dc-content .dc-dialog::backdrop { background: rgba(16, 24, 40, .42); }
+
+
+.dc-content .dc-logo { display: block; width: 100%; max-width: 15rem; height: auto; overflow: visible; }
+.dc-content .dc-logo .dc-logo-d,
+.dc-content .dc-logo .dc-logo-word { fill: var(--logo-ink); }
+.dc-content .dc-logo .dc-logo-o { fill: var(--donga-red); }
+
+/* 붙은 자리: ㄷ의 열린 오른쪽과 ㅇ의 곧은 왼쪽이 맞닿아 가운데에서 D 하나가 된다 */
+.dc-content .dc-logo.is-open .dc-logo-d { animation: dc-logo-d 1.5s cubic-bezier(0.2, 0, 0, 1) both; }
+.dc-content .dc-logo.is-open .dc-logo-o { animation: dc-logo-o 1.5s cubic-bezier(0.2, 0, 0, 1) both; }
+.dc-content .dc-logo.is-open .dc-logo-word { animation: dc-logo-word 1.5s cubic-bezier(0.2, 0, 0, 1) both; }
+
+@keyframes dc-logo-d {
+  0%   { transform: translate(183.5px, -41.25px); opacity: 0; }
+  15%  { transform: translate(183.5px, -41.25px); opacity: 1; }
+  35%  { transform: translate(183.5px, -41.25px); }
+  80%, 100% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes dc-logo-o {
+  0%   { transform: translate(-183.5px, 41.25px); opacity: 0; }
+  15%  { transform: translate(-183.5px, 41.25px); opacity: 1; }
+  35%  { transform: translate(-183.5px, 41.25px); }
+  80%, 100% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes dc-logo-word {
+  /* 글자는 ㄷ의 오른쪽 끝과 ㅇ의 왼쪽 끝 사이만 보인다: 둘과 같은 시간, 같은 곡선으로 틈을 따라 열려 하얀 빈칸이 생기지 않는다.
+     아래쪽도 내려가는 ㄷ의 밑변을 따라가서 붙은 D 밖으로 글자가 삐져나오지 않는다 */
+  0%, 35% { clip-path: inset(-10px 116.87px 30.65px 159.22px); }
+  80%, 100% { clip-path: inset(-10px -66.63px -10.6px -24.28px); }
+}
+/* 움직임 줄이기: 벌어지는 움직임 없이 제자리에서 잠깐 나타나기만 한다 */
+@keyframes dc-logo-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .dc-content .dc-logo.is-open .dc-logo-d,
+  .dc-content .dc-logo.is-open .dc-logo-o,
+  .dc-content .dc-logo.is-open .dc-logo-word { animation: dc-logo-fade 0.4s linear both; }
+}
+
+/* 이 화면 규칙 */
+.dc-content .cmp-page { max-width: 60rem; margin: 0 auto; padding: var(--sp-6) var(--page-x) var(--sp-12); display: flex; flex-direction: column; gap: var(--sp-4); }
+.dc-content .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding-bottom: var(--sp-4); }
+.dc-content .cmp-head .dc-logo { max-width: 8.5rem; }
+.dc-content .cmp-theme { display: inline-flex; padding: 3px; gap: 2px; background: var(--fill-subtle); border-radius: var(--r-control); }
+.dc-content .cmp-seg {
+  font: inherit; font-size: var(--fs-small); font-weight: var(--fw-medium);
+  min-height: var(--touch); min-width: var(--touch); padding: 0 var(--sp-3);
+  border: 0; border-radius: calc(var(--r-control) - 3px); background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.dc-content .cmp-seg[aria-checked="true"] { background: var(--surface); color: var(--text-strong); font-weight: var(--fw-semibold); box-shadow: var(--shadow-1); }
+
+.dc-content .cmp-intro { padding: var(--sp-4) 0 var(--sp-6); }
+.dc-content .cmp-title { font-size: var(--fs-title-l); font-weight: var(--fw-bold); color: var(--text-strong); }
+.dc-content .cmp-lead { margin: var(--sp-3) 0 0; font-size: var(--fs-body-lg); color: var(--text); max-width: 40rem; }
+
+.dc-content .cmp-card { background: var(--surface); border-radius: var(--r-card); padding: var(--sp-6) var(--sp-5); }
+.dc-content .cmp-h2 { font-size: var(--fs-title-s); font-weight: var(--fw-bold); }
+.dc-content .cmp-sub { margin: var(--sp-1) 0 0; font-size: var(--fs-small); color: var(--text-muted); }
+
+/* 표 */
+.dc-content .cmp-table { width: 100%; border-collapse: collapse; margin-top: var(--sp-4); }
+.dc-content .cmp-table th, .dc-content .cmp-table td { text-align: left; vertical-align: top; padding: var(--sp-4) var(--sp-3); }
+.dc-content .cmp-table thead th { font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--text-muted); padding-top: 0; padding-bottom: var(--sp-3); border-bottom: 1px solid var(--line); }
+.dc-content .cmp-table thead .cmp-th-skill { color: var(--accent-text); }
+.dc-content .cmp-table tbody th { font-weight: var(--fw-semibold); color: var(--text-strong); width: 8rem; white-space: nowrap; }
+.dc-content .cmp-table tbody td { color: var(--text); }
+.dc-content .cmp-table tbody td:nth-child(2) { color: var(--text-strong); }
+.dc-content .cmp-table tbody tr + tr > * { border-top: 1px solid var(--line); }
+.dc-content .cmp-table th:first-child, .dc-content .cmp-table td:first-child { padding-left: 0; }
+.dc-content .cmp-table th:last-child, .dc-content .cmp-table td:last-child { padding-right: 0; }
+
+@media (max-width: 743px) {
+  .dc-content .cmp-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .dc-content .cmp-table, .dc-content .cmp-table tbody, .dc-content .cmp-table tr, .dc-content .cmp-table th, .dc-content .cmp-table td { display: block; width: auto; }
+  .dc-content .cmp-table tbody tr { padding: var(--sp-4) 0; }
+  .dc-content .cmp-table tbody tr + tr { border-top: 1px solid var(--line); }
+  .dc-content .cmp-table tbody tr + tr > * { border-top: 0; }
+  .dc-content .cmp-table tbody th, .dc-content .cmp-table tbody td { padding: 0; }
+  .dc-content .cmp-table tbody th { font-size: var(--fs-body-lg); margin-bottom: var(--sp-3); }
+  .dc-content .cmp-table tbody td + td { margin-top: var(--sp-3); }
+  .dc-content .cmp-table tbody td::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--text-muted);
+  }
+  .dc-content .cmp-table tbody td:nth-child(2)::before { color: var(--accent-text); }
+}
+
+/* 막대 */
+.dc-content .cmp-bars { list-style: none; margin: var(--sp-5) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.dc-content .cmp-bar-row { display: grid; grid-template-columns: 13rem 1fr 4rem; align-items: center; gap: var(--sp-3); }
+.dc-content .cmp-bar-label { display: flex; gap: var(--sp-2); align-items: baseline; font-size: var(--fs-small); color: var(--text); }
+.dc-content .cmp-bar-who { font-weight: var(--fw-semibold); color: var(--text-muted); min-width: 2.75rem; }
+.dc-content .cmp-bar-who.is-skill { color: var(--accent-text); }
+.dc-content .cmp-bar-track { height: 10px; background: var(--fill-subtle); border-radius: var(--r-full); overflow: hidden; }
+.dc-content .cmp-bar-fill { height: 100%; background: var(--data-4); border-radius: var(--r-full); }
+.dc-content .cmp-bar-fill.is-skill { background: var(--accent); }
+.dc-content .cmp-bar-val { font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--text-strong); text-align: right; }
+@media (max-width: 743px) {
+  .dc-content .cmp-bar-row { grid-template-columns: 1fr auto; row-gap: var(--sp-2); }
+  .dc-content .cmp-bar-track { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* 쓰는 법 */
+.dc-content .cmp-tips { list-style: none; margin: var(--sp-4) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-5); }
+.dc-content .cmp-tip { display: flex; gap: var(--sp-3); align-items: flex-start; }
+.dc-content .cmp-ic { flex: none; width: 24px; height: 24px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-top: 1px; }
+.dc-content .cmp-ic-ok { stroke: var(--positive); }
+.dc-content .cmp-ic-warn { stroke: var(--warning); }
+.dc-content .cmp-tip-title { margin: 0; font-weight: var(--fw-semibold); color: var(--text-strong); }
+.dc-content .cmp-tip-body { margin: 2px 0 0; color: var(--text); }
+
+.dc-content .cmp-foot { margin: var(--sp-4) 0 0; font-size: var(--fs-caption); color: var(--text-muted); text-align: center; }
+
+@media (min-width: 744px) {
+  .dc-content .cmp-page { padding-top: var(--sp-8); gap: var(--sp-5); }
+  .dc-content .cmp-card { padding: var(--sp-8); }
+}
+
+</style>
+</head>
+<body style="margin:0">
+<div class="dc-content" id="app">
+  <div class="cmp-page">
+
+    <header class="cmp-head">
+      <svg class="dc-logo" viewBox="42 38 475.5 220" role="img" aria-label="동아출판">
+        <g class="dc-logo-word"><path fill-rule="evenodd" d="M303.34 169.25 303.93 168.50 303.61 166.75 300.61 162.75 299.75 160.68 298.70 159.75 297.88 158.00 296.71 156.75 295.75 154.62 292.73 150.50 291.75 148.34 290.58 147.25 289.79 145.00 290.11 144.25 291.25 143.72 299.50 143.70 301.74 143.25 302.08 142.25 302.08 135.50 301.57 134.25 289.00 133.89 288.31 133.25 288.11 132.50 288.04 125.25 287.66 124.25 285.50 123.81 279.75 123.78 277.50 124.01 276.80 124.75 276.64 132.50 276.00 133.77 275.00 134.03 265.50 134.00 263.13 134.50 262.81 135.50 262.79 142.00 263.21 143.25 265.50 143.71 273.50 143.72 274.64 144.25 274.96 145.00 274.17 147.25 273.00 148.34 272.02 150.50 269.00 154.62 268.04 156.75 266.88 158.00 266.05 159.75 265.00 160.68 264.14 162.75 261.14 166.75 260.80 168.00 261.01 169.00 262.00 169.30 271.50 169.17 273.75 166.15 274.56 164.25 275.75 163.09 276.59 161.00 277.78 159.75 278.50 157.96 279.75 156.51 280.81 154.00 281.50 153.56 283.25 153.30 284.14 154.00 284.78 155.75 286.16 157.50 286.99 159.50 288.25 160.88 289.00 162.89 290.10 164.00 290.85 165.75 292.04 167.00 293.25 169.16 303.34 169.25ZM165.31 187.75 165.92 186.50 165.94 179.75 165.49 178.50 164.75 178.24 149.50 178.19 148.50 177.83 148.00 176.91 147.99 171.00 148.26 170.00 149.00 169.17 158.75 168.99 161.00 168.35 161.62 166.50 161.64 162.00 161.50 160.68 161.00 159.82 158.75 159.20 135.50 159.22 134.25 158.48 133.71 156.50 133.70 143.75 134.25 142.02 135.75 141.58 160.75 141.38 161.38 141.00 161.64 140.25 161.63 133.50 161.30 132.50 158.50 131.82 125.75 131.79 123.00 132.39 122.57 134.00 122.75 167.53 123.25 168.48 124.00 168.82 135.42 169.25 136.44 171.00 136.47 176.50 135.99 177.75 134.75 178.22 119.00 178.34 118.39 179.00 118.28 179.75 118.29 186.50 118.62 187.50 119.75 187.94 165.31 187.75ZM239.35 187.25 239.95 186.50 240.22 184.50 240.39 158.25 241.25 157.06 243.25 156.61 253.00 156.68 253.50 156.41 254.11 154.50 254.05 148.00 253.75 146.83 253.00 146.38 243.75 146.44 241.00 145.99 240.22 144.50 240.23 133.75 239.87 132.25 239.00 131.79 231.50 131.79 230.44 132.50 230.14 133.75 230.24 185.50 230.75 186.89 231.50 187.34 239.35 187.25ZM200.31 172.25 207.00 171.32 211.00 169.12 213.51 167.00 217.77 160.50 218.95 152.50 218.69 149.00 217.83 144.25 216.63 142.50 215.73 140.25 211.86 136.25 209.50 134.54 203.50 132.28 198.75 132.01 194.00 132.38 188.50 134.38 182.79 139.00 180.80 142.25 178.71 148.00 178.44 152.75 178.74 156.50 181.00 162.76 183.00 165.63 187.00 169.45 192.25 171.67 198.50 172.38 200.31 172.25ZM379.84 175.50 380.44 174.25 380.46 161.50 380.75 160.40 382.25 159.77 393.84 159.50 394.37 158.25 394.30 151.00 393.86 150.25 393.25 150.03 383.25 150.04 381.09 149.75 380.48 148.50 380.48 137.75 380.07 136.25 379.00 135.80 371.50 135.89 370.75 136.30 370.21 137.50 370.29 174.50 370.72 175.25 371.50 175.62 379.84 175.50ZM357.40 173.25 357.96 172.75 358.28 171.50 358.29 165.00 357.50 164.04 354.25 163.66 353.14 162.50 352.82 160.50 352.82 149.25 353.20 147.75 354.00 146.79 355.25 146.16 357.50 146.05 358.18 145.25 358.35 139.25 357.75 137.62 357.00 137.33 320.00 137.34 319.25 137.59 318.66 139.25 318.89 145.50 319.50 146.08 321.50 146.12 322.27 146.50 323.40 148.00 323.76 149.25 323.60 161.75 322.50 163.64 319.50 164.03 318.77 164.75 318.66 170.75 319.25 173.10 357.40 173.25ZM199.75 162.52 195.25 162.16 193.00 161.32 190.47 159.00 188.65 155.25 188.30 153.75 188.49 150.00 190.50 145.82 192.71 143.75 197.25 142.02 199.50 141.91 201.50 142.26 205.75 144.36 208.10 147.25 209.03 152.25 208.11 157.50 206.29 159.75 203.75 161.81 199.75 162.52ZM341.25 164.03 335.50 164.01 334.75 163.72 334.20 163.00 334.01 149.00 334.38 147.25 335.25 146.19 341.25 146.09 342.00 146.39 342.58 147.25 342.96 149.25 342.90 162.25 342.47 163.50 341.25 164.03ZM301.86 231.25 303.01 229.50 303.16 225.75 302.65 223.75 301.75 222.86 275.50 222.77 274.34 221.75 274.18 219.00 274.59 217.00 275.50 216.24 299.50 216.28 301.25 216.10 301.75 215.74 302.08 213.75 302.08 195.75 301.82 194.50 301.00 193.91 289.24 193.75 288.61 193.00 288.32 191.75 288.25 187.25 288.75 186.12 289.75 185.78 305.75 185.58 306.20 184.50 306.22 178.00 305.76 176.25 305.00 175.99 259.75 175.99 259.00 176.24 258.53 177.75 258.55 184.50 259.00 185.58 275.25 185.75 276.44 186.25 276.93 187.25 276.84 191.75 276.47 193.00 275.75 193.74 265.50 193.86 263.25 194.41 262.79 195.75 262.85 200.00 263.25 201.26 265.75 201.80 289.00 201.75 290.25 202.21 290.71 203.25 290.60 207.25 289.50 208.25 265.50 208.26 263.12 208.75 262.78 209.75 262.81 228.50 263.29 230.50 263.91 231.00 265.75 231.47 301.86 231.25ZM379.76 211.25 380.74 209.00 380.82 203.75 380.52 202.75 379.75 202.11 355.75 202.02 353.25 201.35 352.53 198.75 352.41 181.00 351.75 180.33 351.00 180.18 343.75 180.21 342.75 180.70 342.44 181.75 342.47 208.50 342.76 210.50 343.25 211.24 379.76 211.25ZM142.56 235.25 150.52 233.50 153.75 231.66 157.50 227.99 158.44 226.25 159.60 225.00 161.50 219.57 161.91 213.25 161.55 210.00 159.64 204.75 157.34 201.25 155.10 199.00 151.00 196.41 148.12 195.75 145.50 194.66 141.25 194.32 137.00 194.73 131.25 196.64 128.50 198.49 126.62 200.25 124.75 202.28 122.52 206.00 121.18 211.75 120.74 215.25 121.20 218.50 122.68 223.75 124.90 227.50 128.72 231.50 133.00 233.82 140.50 235.40 142.56 235.25ZM142.75 224.77 140.75 224.91 137.00 224.26 135.84 223.75 132.20 220.00 130.86 215.25 131.09 213.25 132.50 208.86 134.93 206.25 138.00 204.69 140.00 204.18 144.50 204.55 147.97 206.25 150.10 208.50 151.57 211.50 151.98 213.25 151.88 217.00 149.75 221.64 146.75 223.92 142.75 224.77Z"/></g>
+        <g class="dc-logo-d"><path d="M42 132H94V163H72V215H94V246H42Z"/></g>
+        <g class="dc-logo-o"><path d="M461 50A56.5 56.5 0 0 1 461 163V134.5A28 28 0 0 0 461 78.5Z"/></g>
+      </svg>
+      <div class="cmp-theme" role="radiogroup" aria-label="화면 밝기">
+        <button type="button" class="cmp-seg pressable" role="radio" aria-checked="true" data-mode="auto">자동</button>
+        <button type="button" class="cmp-seg pressable" role="radio" aria-checked="false" data-mode="light">밝게</button>
+        <button type="button" class="cmp-seg pressable" role="radio" aria-checked="false" data-mode="dark">어둡게</button>
+      </div>
+    </header>
+
+    <section class="cmp-intro" aria-labelledby="cmp-title">
+      <h1 class="dc-h1 cmp-title" id="cmp-title">동아출판 자료를 만들 때는<br>동아 디자인 스킬이 나아요</h1>
+      <p class="cmp-lead">동아 디자인 스킬과 동아출판 제작 가이드(HTML 46쪽)로 화면을 만들 때를 비교했어요. 품질, 일관성, 토큰 효율 모두 스킬이 앞서요.</p>
+    </section>
+
+    <section class="cmp-card" aria-labelledby="cmp-table-title">
+      <h2 class="dc-h2 cmp-h2" id="cmp-table-title">항목별 비교</h2>
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th scope="col" class="cmp-th-key">기준</th>
+            <th scope="col" class="cmp-th-skill">동아 디자인 스킬</th>
+            <th scope="col">가이드 HTML 46쪽</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">디자인 품질</th>
+            <td data-label="동아 디자인 스킬">당근, 토스 중심 10곳의 공통 규칙에 동아 CI 색을 입혔어요. 다크 모드, 태블릿, 드롭다운과 스크롤바까지 정해져 있어요.</td>
+            <td data-label="가이드 HTML 46쪽">디자인 기준이 약해서 스킬을 만들 때도 일부러 뺐어요. 가이드를 그대로 따르면 그 모양이 나와요.</td>
+          </tr>
+          <tr>
+            <th scope="row">일관성</th>
+            <td data-label="동아 디자인 스킬">높아요. 색, 간격, 부품이 tokens.css 한 파일에 값으로 정해져 있어서 몇 번을 만들어도 결과가 비슷해요.</td>
+            <td data-label="가이드 HTML 46쪽">낮아요. 글로 된 설명을 AI가 그때그때 해석해서 만들 때마다 결과가 달라요. 문서가 길어 중간 내용을 놓치기도 쉬워요.</td>
+          </tr>
+          <tr>
+            <th scope="row">규칙 지키기</th>
+            <td data-label="동아 디자인 스킬">구조와 보안 점검(rules-check), 화면 점검(check)을 자동으로 돌리고 오류가 0개가 될 때까지 고쳐요.</td>
+            <td data-label="가이드 HTML 46쪽">자동 점검이 없어요. 규칙을 지켰는지는 AI의 기억과 사람의 검토에 달려 있어요.</td>
+          </tr>
+          <tr>
+            <th scope="row">토큰 효율</th>
+            <td data-label="동아 디자인 스킬">처음에 약 22KB만 읽고, 필요한 참고 파일만 더 읽어요. 보통 한 번에 30~50KB예요.</td>
+            <td data-label="가이드 HTML 46쪽">글만 207KB라 읽을 때마다 스킬의 몇 배를 써요. 대화가 길어지면 앞부분이 요약되면서 규칙이 빠질 수 있어요.</td>
+          </tr>
+          <tr>
+            <th scope="row">다시 쓰기</th>
+            <td data-label="동아 디자인 스킬">한 번 설치하면 "동아 디자인"이라고만 말하면 돼요.</td>
+            <td data-label="가이드 HTML 46쪽">매번 파일을 붙이거나 주소를 알려 줘야 해요.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="cmp-card" aria-labelledby="cmp-size-title">
+      <h2 class="dc-h2 cmp-h2" id="cmp-size-title">AI가 읽는 양</h2>
+      <p class="cmp-sub">파일 크기로 어림한 값이에요. 막대가 짧을수록 토큰이 적게 들어요.</p>
+      <ul class="cmp-bars" id="cmp-bars"></ul>
+    </section>
+
+    <section class="cmp-card" aria-labelledby="cmp-how-title">
+      <h2 class="dc-h2 cmp-h2" id="cmp-how-title">이렇게 쓰면 좋아요</h2>
+      <ul class="cmp-tips">
+        <li class="cmp-tip">
+          <svg class="cmp-ic cmp-ic-ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <div>
+            <p class="cmp-tip-title">평소에는 스킬만 써요</p>
+            <p class="cmp-tip-body">결과가 고르고, 토큰도 훨씬 적게 들어요.</p>
+          </div>
+        </li>
+        <li class="cmp-tip">
+          <svg class="cmp-ic cmp-ic-warn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+          <div>
+            <p class="cmp-tip-title">둘을 같이 넣지 않아요</p>
+            <p class="cmp-tip-body">토큰이 두 배로 들고, 가이드의 디자인 지시와 스킬의 규칙이 부딪치면 AI가 어느 쪽을 따를지 흔들려요.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <p class="cmp-foot">양정고등학교 지리교사 김용현, 동아 디자인 v1.2.0 기준</p>
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById('app');
+
+  /* 로고 열림: 화면마다 한 번 */
+  var logo = root.querySelector('.dc-logo');
+  requestAnimationFrame(function () { logo.classList.add('is-open'); });
+
+  /* 자동, 밝게, 어둡게 (저장하지 않음) */
+  var segs = Array.prototype.slice.call(root.querySelectorAll('.cmp-seg'));
+  function setMode(btn) {
+    var mode = btn.getAttribute('data-mode');
+    if (mode === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    segs.forEach(function (b) {
+      var on = b === btn;
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  segs.forEach(function (b, i) {
+    b.tabIndex = i === 0 ? 0 : -1;
+    b.addEventListener('click', function () { setMode(b); });
+    b.addEventListener('keydown', function (e) {
+      var d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      var next = segs[(i + d + segs.length) % segs.length];
+      setMode(next); next.focus();
+    });
+  });
+
+  /* 읽는 양 막대 */
+  var data = [
+    { who: '스킬', what: '처음 읽는 SKILL.md', kb: 22, skill: true },
+    { who: '스킬', what: '참고 파일까지 모두', kb: 99, skill: true },
+    { who: '가이드', what: 'HTML에서 글만', kb: 207 },
+    { who: '가이드', what: 'HTML 파일 그대로', kb: 337 }
+  ];
+  var max = 337;
+  var list = root.querySelector('#cmp-bars');
+  data.forEach(function (d) {
+    var li = document.createElement('li');
+    li.className = 'cmp-bar-row';
+    var label = document.createElement('div');
+    label.className = 'cmp-bar-label';
+    var who = document.createElement('span');
+    who.className = 'cmp-bar-who' + (d.skill ? ' is-skill' : '');
+    who.textContent = d.who;
+    var what = document.createElement('span');
+    what.textContent = d.what;
+    label.appendChild(who); label.appendChild(what);
+    var track = document.createElement('div');
+    track.className = 'cmp-bar-track';
+    var fill = document.createElement('div');
+    fill.className = 'cmp-bar-fill' + (d.skill ? ' is-skill' : '');
+    fill.style.width = (d.kb / max * 100).toFixed(1) + '%';
+    track.appendChild(fill);
+    var val = document.createElement('span');
+    val.className = 'cmp-bar-val num';
+    val.textContent = d.kb + 'KB';
+    li.appendChild(label); li.appendChild(track); li.appendChild(val);
+    list.appendChild(li);
+  });
+})();
+</script>
+</body>
+</html>
