@@ -1,0 +1,1327 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f1f3f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:,">
+<title>2027 수능 감독 안내</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* ===== 당토 디자인 토큰 (숲) ===== */
+:root{
+  --accent-light:#0e8063;--on-accent-light:#fff;--accent-dark:#3fc79d;--on-accent-dark:#06231a;
+  --third-base:#f2c94c;
+  --gray-50:#f8f9fb;--gray-100:#f1f3f6;--gray-200:#e4e7ec;--gray-300:#d0d5dd;--gray-400:#a9b1bd;--gray-500:#868f9c;--gray-600:#646d7a;--gray-700:#4a5260;--gray-800:#2f3640;--gray-900:#1a1e25;
+  --bg:var(--gray-100);--surface:#fff;--surface-raised:#fff;--fill-subtle:var(--gray-100);
+  --text-strong:var(--gray-900);--text:var(--gray-700);--text-muted:var(--gray-600);--icon-muted:var(--gray-500);--text-disabled:var(--gray-400);
+  --line:rgba(16,24,40,.08);--line-strong:rgba(16,24,40,.16);--focus:#2a64d4;
+  --positive:#0b7a52;--positive-weak:#e6f5ee;--warning:#a0560a;--warning-weak:#fdf1e3;--critical:#c8293a;--critical-weak:#fdecee;--info:#2a64d4;--info-weak:#eaf1fd;
+  --accent:var(--accent-light);--on-accent:var(--on-accent-light);--third:var(--third-base);
+  --mark-bg:#fbe7a1;--mark-text:#3a2c00;
+  --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --fs-caption:.8125rem;--fs-small:.875rem;--fs-body:1rem;--fs-body-lg:1.0625rem;--fs-title-s:1.25rem;--fs-title:1.5rem;--fs-title-l:1.875rem;
+  --lh-body:1.5;--lh-title:1.35;--ls-title:-.025em;
+  --row-h:3.5rem;--touch:2.75rem;--page-x:1.25rem;--header-h:3.5rem;--tabbar-h:3.5rem;--rail-w:5.5rem;--content-max:40rem;
+  --sp-1:.25rem;--sp-2:.5rem;--sp-3:.75rem;--sp-4:1rem;--sp-5:1.25rem;--sp-6:1.5rem;--sp-8:2rem;--sp-10:2.5rem;--sp-12:3rem;
+  --r-badge:4px;--r-control:10px;--r-card:16px;--r-sheet:20px;
+  --dur-fast:150ms;--dur:250ms;--ease:cubic-bezier(.35,0,.35,1);--ease-enter:cubic-bezier(0,0,.15,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121418;--surface:#1b1e24;--surface-raised:#252930;--fill-subtle:#252930;
+  --text-strong:#eef0f3;--text:#c4cad3;--text-muted:#8e97a4;--icon-muted:#6b7380;--text-disabled:#5d6571;
+  --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.16);--focus:#7aa5ff;
+  --positive:#3ccf8e;--positive-weak:#15302a;--warning:#f0a24a;--warning-weak:#33281a;--critical:#ff6b74;--critical-weak:#3a1f23;--info:#7aa5ff;--info-weak:#1d2840;
+  --accent:var(--accent-dark);--on-accent:var(--on-accent-dark);
+  --mark-bg:#4a3d10;--mark-text:#ffe9a3;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121418;--surface:#1b1e24;--surface-raised:#252930;--fill-subtle:#252930;
+  --text-strong:#eef0f3;--text:#c4cad3;--text-muted:#8e97a4;--icon-muted:#6b7380;--text-disabled:#5d6571;
+  --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.16);--focus:#7aa5ff;
+  --positive:#3ccf8e;--positive-weak:#15302a;--warning:#f0a24a;--warning-weak:#33281a;--critical:#ff6b74;--critical-weak:#3a1f23;--info:#7aa5ff;--info-weak:#1d2840;
+  --accent:var(--accent-dark);--on-accent:var(--on-accent-dark);
+  --mark-bg:#4a3d10;--mark-text:#ffe9a3;
+  color-scheme:dark;
+}
+:root{--accent-weak:color-mix(in oklch,var(--accent) 10%,var(--surface));--accent-text:color-mix(in oklch,var(--accent) 88%,var(--text-strong))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--accent-weak:color-mix(in oklch,var(--accent) 16%,var(--surface))}}
+:root[data-theme="dark"]{--accent-weak:color-mix(in oklch,var(--accent) 16%,var(--surface))}
+@media (min-width:744px){:root{--page-x:1.5rem}}
+@media (min-width:1024px){:root{--page-x:2rem}}
+@media (pointer:coarse){:root{--touch:3rem}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:color-mix(in oklch,var(--text-strong) 22%,transparent) transparent;background:var(--bg)}
+*{scrollbar-width:thin}
+img,svg{max-width:100%}
+body{margin:0;font-family:var(--font);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--text-strong);background:var(--bg);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+h1,h2,h3{line-height:var(--lh-title);letter-spacing:var(--ls-title);margin:0}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+input[type="checkbox"]{accent-color:var(--accent)}
+summary{cursor:pointer}
+::selection{background:color-mix(in oklch,var(--accent) 24%,transparent)}
+.scroll-x{overflow-x:auto;overscroll-behavior-x:contain}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* ===== 이름 하이라이트 ===== */
+mark.me{background:var(--mark-bg);color:var(--mark-text);font-weight:700;padding:0 .2em;border-radius:var(--r-badge);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+/* ===== 틀 ===== */
+.app{min-height:100dvh;padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-8))}
+.wrap{width:100%;max-width:var(--content-max);margin:0 auto;padding:0 var(--page-x)}
+.top{padding-top:calc(env(safe-area-inset-top) + var(--sp-6))}
+.eyebrow-free{font-size:var(--fs-small);color:var(--text-muted);font-weight:500}
+.hero h1{font-size:1.625rem;font-weight:700;margin-top:var(--sp-2)}
+.hero .sub{font-size:var(--fs-body);color:var(--text);margin-top:var(--sp-2)}
+.facts{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-4)}
+.fact{display:inline-flex;align-items:center;gap:6px;height:2rem;padding:0 var(--sp-3);border-radius:var(--r-full,999px);background:var(--surface);font-size:var(--fs-small);color:var(--text);font-weight:500}
+.fact svg{width:16px;height:16px;color:var(--icon-muted)}
+
+section.view{display:none}
+section.view.on{display:block}
+
+.card{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-3)}
+.card + .card{margin-top:var(--sp-3)}
+.sec-title{font-size:var(--fs-title-s);font-weight:700;margin-top:var(--sp-8)}
+.sec-sub{font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-1)}
+
+/* 지금 카드 */
+.now{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-6)}
+.now .k{font-size:var(--fs-small);color:var(--text-muted);font-weight:500}
+.now .v{font-size:var(--fs-title);font-weight:700;letter-spacing:var(--ls-title);margin-top:var(--sp-1);line-height:var(--lh-title)}
+.now .d{font-size:var(--fs-body);color:var(--text);margin-top:var(--sp-2)}
+.bar{height:8px;border-radius:4px;background:var(--fill-subtle);margin-top:var(--sp-4);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px;width:0}
+.bar-ends{display:flex;justify-content:space-between;font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--sp-2)}
+
+/* 시간표 */
+.tl{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-2) 0;margin-top:var(--sp-3)}
+.tl li{display:grid;grid-template-columns:4.5rem minmax(0,1fr);gap:var(--sp-3);padding:var(--sp-3) var(--sp-5);position:relative}
+.tl li + li{box-shadow:inset 0 1px 0 var(--line)}
+.tl .tm{font-size:var(--fs-small);font-weight:600;color:var(--text-strong);font-variant-numeric:tabular-nums;line-height:1.4;padding-top:2px}
+.tl .tm span{display:block;font-weight:400;color:var(--text-muted)}
+.tl .w{min-width:0}
+.tl .ttl{font-size:var(--fs-body-lg);font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.tl .pl{font-size:var(--fs-body);color:var(--text);margin-top:2px}
+.tl .note{font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-1)}
+.tl li.off .tm,.tl li.off .ttl{color:var(--text-muted);font-weight:500}
+.tl li.off .ttl{font-size:var(--fs-body)}
+.tl li.past{opacity:.55}
+.tl li.cur{background:var(--accent-weak)}
+.tl li.cur .tm span,.tl li.cur .note,.tl li.cur .pl{color:var(--text)}
+.tl li.cur::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.badge{display:inline-flex;align-items:center;height:1.375rem;padding:0 6px;border-radius:var(--r-badge);font-size:var(--fs-caption);font-weight:600;line-height:1}
+.badge.now-b{background:var(--accent);color:var(--on-accent)}
+.badge.me-b{background:var(--mark-bg);color:var(--mark-text)}
+.badge.gray{background:var(--fill-subtle);color:var(--text-muted)}
+.total{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-3) var(--sp-5) var(--sp-2);font-size:var(--fs-small);color:var(--text-muted)}
+.total b{color:var(--text-strong);font-weight:600}
+
+/* 할 일 목록 */
+.todo{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3);padding:var(--sp-1) 0}
+.todo li{display:flex;gap:var(--sp-3);padding:var(--sp-3) var(--sp-5)}
+.todo li + li{box-shadow:inset 0 1px 0 var(--line)}
+.todo .ic{flex:none;width:2.25rem;height:2.25rem;border-radius:50%;background:var(--fill-subtle);color:var(--text);display:grid;place-items:center;margin-top:2px}
+.todo .ic svg{width:18px;height:18px}
+.todo .when{font-size:var(--fs-caption);color:var(--text-muted);font-weight:600;font-variant-numeric:tabular-nums}
+.todo .t{font-size:var(--fs-body);font-weight:600;color:var(--text-strong)}
+.todo .s{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+
+/* 체크 목록 */
+.check{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3);padding:var(--sp-1) 0}
+.check label{display:flex;gap:var(--sp-3);align-items:flex-start;padding:var(--sp-3) var(--sp-5);min-height:var(--row-h);cursor:pointer}
+.check li + li label{box-shadow:inset 0 1px 0 var(--line)}
+.check input{flex:none;width:22px;height:22px;margin:2px 0 0}
+.check .t{font-size:var(--fs-body);font-weight:600}
+.check .s{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+.check .cnt{margin-left:auto;flex:none;font-size:var(--fs-small);color:var(--text-muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.check input:checked ~ div .t{color:var(--text-muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.prog{display:flex;align-items:center;justify-content:space-between;font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-6)}
+.prog b{color:var(--text-strong)}
+
+/* 안내 상자 */
+.tip{display:flex;gap:var(--sp-3);background:var(--surface);border-radius:var(--r-card);padding:var(--sp-4) var(--sp-5);margin-top:var(--sp-3);font-size:var(--fs-small);color:var(--text);line-height:1.6}
+.tip svg{flex:none;width:18px;height:18px;color:var(--icon-muted);margin-top:2px}
+.tip b{color:var(--text-strong)}
+.dot-list li{position:relative;padding-left:14px}
+.dot-list li + li{margin-top:var(--sp-1)}
+.dot-list li::before{content:"";position:absolute;left:2px;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--icon-muted)}
+
+/* 배치도 */
+.floor{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-3)}
+.floor h3{font-size:var(--fs-body-lg);font-weight:700}
+.floor .fs{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(5.5rem,100%),1fr));gap:var(--sp-2);margin-top:var(--sp-4)}
+.room{border-radius:12px;background:var(--fill-subtle);padding:var(--sp-3);min-height:4.5rem;display:flex;flex-direction:column;justify-content:space-between}
+.room .no{font-size:var(--fs-title-s);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.room .no small{font-size:var(--fs-caption);font-weight:500;color:var(--text-muted);margin-left:2px}
+.room .cl{font-size:var(--fs-caption);color:var(--text-muted)}
+.room.etc{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.room.etc .no{font-size:var(--fs-small);font-weight:600;color:var(--text)}
+.room.mine{background:var(--accent-weak)}
+.room.mine .no{color:var(--accent-text)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-4);font-size:var(--fs-caption);color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--fill-subtle)}
+.legend i.m{background:var(--accent-weak);box-shadow:inset 0 0 0 1.5px var(--accent)}
+
+.ftable{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:var(--sp-3)}
+.ftable th,.ftable td{padding:var(--sp-2) var(--sp-2);text-align:left;vertical-align:top}
+.ftable tr + tr th,.ftable tr + tr td{box-shadow:inset 0 1px 0 var(--line)}
+.ftable th{width:3.25rem;color:var(--text-muted);font-weight:600;white-space:nowrap}
+.ftable tr.mine th,.ftable tr.mine td{background:var(--accent-weak)}
+.ftable tr.mine th{color:var(--accent-text)}
+
+/* 전체 안내 접기 */
+details.acc{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3)}
+details.acc > summary{list-style:none;display:flex;align-items:center;gap:var(--sp-3);min-height:var(--row-h);padding:var(--sp-3) var(--sp-5)}
+details.acc > summary::-webkit-details-marker{display:none}
+details.acc > summary .st{flex:1;min-width:0}
+details.acc > summary .t{font-size:var(--fs-body-lg);font-weight:600;display:block}
+details.acc > summary .s{font-size:var(--fs-small);color:var(--text-muted);display:block;margin-top:2px}
+details.acc > summary svg{flex:none;width:20px;height:20px;color:var(--icon-muted);transition:rotate var(--dur-fast) var(--ease)}
+details.acc[open] > summary svg{rotate:180deg}
+details.acc .body{padding:0 var(--sp-5) var(--sp-5);font-size:var(--fs-small);color:var(--text);line-height:1.65}
+details.acc .body h4{font-size:var(--fs-body);color:var(--text-strong);margin:var(--sp-5) 0 var(--sp-2);font-weight:600}
+details.acc .body h4:first-child{margin-top:0}
+details.acc .body p + p{margin-top:var(--sp-2)}
+details.acc .body b{color:var(--text-strong);font-weight:600}
+.tbl-wrap{margin:var(--sp-2) calc(var(--sp-5) * -1) 0;padding:0 var(--sp-5)}
+.tbl{border-collapse:collapse;font-size:var(--fs-caption);width:100%;min-width:max-content}
+.tbl th,.tbl td{padding:6px 8px;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl thead th{color:var(--text-muted);font-weight:600;box-shadow:inset 0 -1px 0 var(--line-strong)}
+.tbl tbody tr + tr td,.tbl tbody tr + tr th{box-shadow:inset 0 1px 0 var(--line)}
+.tbl td.wrap,.tbl th.wrap{white-space:normal;min-width:12rem}
+.tbl .mcol{background:var(--accent-weak);color:var(--text-strong);font-weight:600}
+.tbl .muted{color:var(--text-disabled)}
+.tbl tbody th{font-weight:600;color:var(--text-strong)}
+.tbl.sticky th:first-child,.tbl.sticky td:first-child{position:sticky;left:0;background:var(--surface);z-index:1}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-1) var(--sp-3)}
+.kv dt{color:var(--text-muted);font-weight:600;white-space:nowrap}
+.kv dd{margin:0}
+.foot{font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--sp-8);line-height:1.6}
+
+/* ===== 머리 막대 ===== */
+.appbar{position:sticky;top:0;z-index:9;background:var(--bg);padding-top:env(safe-area-inset-top);transition:box-shadow var(--dur-fast) var(--ease)}
+.appbar.scrolled{box-shadow:inset 0 -1px 0 var(--line)}
+.appbar .in{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2)}
+.appbar .logo{font-size:var(--fs-body);font-weight:700;color:var(--text-strong)}
+.icon-btn{width:var(--touch);height:var(--touch);display:grid;place-items:center;border:0;background:none;color:var(--text-strong);border-radius:var(--r-control);margin-right:calc(var(--sp-3) * -1);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.icon-btn:active{background:var(--fill-subtle)}
+.icon-btn svg{width:24px;height:24px}
+.hero{padding-top:var(--sp-2)}
+
+/* ===== 검색 ===== */
+.search{padding:0;border:0;margin:0;inset:0;width:100%;max-width:none;height:100dvh;max-height:none;border-radius:0;background:var(--surface-raised);color:var(--text-strong);flex-direction:column;overscroll-behavior:contain}
+.search[open]{display:flex}
+.search::backdrop{background:rgba(16,24,40,.42)}
+.search .sbar{display:flex;align-items:center;gap:var(--sp-2);padding:calc(env(safe-area-inset-top) + var(--sp-2)) var(--page-x) var(--sp-2)}
+.search .field{flex:1;min-width:0;position:relative}
+.search .field svg{position:absolute;left:.75rem;top:50%;translate:0 -50%;width:20px;height:20px;color:var(--icon-muted);pointer-events:none}
+.search input{width:100%;height:3rem;padding:0 var(--sp-3) 0 2.625rem;border:0;border-radius:var(--r-control);background:var(--fill-subtle);color:var(--text-strong);font:inherit;font-size:max(1rem,16px);caret-color:var(--accent)}
+.search input::placeholder{color:var(--text-muted);opacity:1}
+.search input:focus-visible{outline:2px solid var(--focus);outline-offset:0}
+.search .close{flex:none;min-width:var(--touch);height:var(--touch);padding:0 var(--sp-2);border:0;background:none;color:var(--text);font:inherit;font-weight:600;cursor:pointer;border-radius:var(--r-control)}
+.search .res{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-bottom:calc(env(safe-area-inset-bottom) + var(--sp-6))}
+.search .meta{padding:var(--sp-3) var(--page-x) var(--sp-1);font-size:var(--fs-small);color:var(--text-muted)}
+.search .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);padding:var(--sp-2) var(--page-x)}
+.search .chip{height:2.5rem;padding:0 var(--sp-4);border-radius:999px;border:0;background:var(--fill-subtle);color:var(--text);font:inherit;font-size:var(--fs-small);font-weight:500;cursor:pointer}
+.search .item{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit;padding:var(--sp-3) var(--page-x);cursor:pointer;min-height:var(--row-h)}
+.search .item + .item{box-shadow:inset 0 1px 0 var(--line)}
+.search .item:active{background:var(--fill-subtle)}
+@media (hover:hover){.search .item:hover,.search .chip:hover{background:var(--fill-subtle)}}
+.search .where{display:block;font-size:var(--fs-caption);color:var(--text-muted);font-weight:600}
+.search .snip{display:block;font-size:var(--fs-body);color:var(--text-strong);margin-top:2px}
+.search .empty{padding:var(--sp-8) var(--page-x);text-align:center;color:var(--text-muted);font-size:var(--fs-body)}
+.search .empty b{display:block;color:var(--text-strong);font-size:var(--fs-body-lg);margin-bottom:var(--sp-1)}
+mark.hl{background:var(--accent-weak);color:var(--accent-text);font-weight:700;padding:0 1px;border-radius:2px}
+html:has(.search[open]){overflow:hidden}
+@media (min-width:744px){
+  .search{margin:auto;width:min(36rem,calc(100% - 3rem));height:min(40rem,80dvh);border-radius:var(--r-sheet);box-shadow:0 12px 32px rgba(16,24,40,.12)}
+  .search .sbar{padding-top:var(--sp-4)}
+}
+.flash,.flash > td,.flash > th{background:var(--accent-weak)!important;transition:background var(--dur) var(--ease)}
+
+/* ===== 아래 탭 막대 / 왼쪽 막대 ===== */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);box-shadow:inset 0 1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.tabbar a{height:var(--tabbar-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-muted);text-decoration:none;font-size:var(--fs-caption);font-weight:500;-webkit-tap-highlight-color:transparent}
+.tabbar a svg{width:24px;height:24px;stroke-width:1.8}
+.tabbar a[aria-current="page"]{color:var(--text-strong);font-weight:700}
+.tabbar a[aria-current="page"] svg{stroke-width:2.3}
+@media (min-width:1024px){
+  .app{padding-bottom:var(--sp-12);padding-left:var(--rail-w)}
+  .tabbar{top:0;right:auto;width:var(--rail-w);display:flex;flex-direction:column;justify-content:flex-start;padding:var(--sp-6) 0;gap:var(--sp-2);box-shadow:inset -1px 0 0 var(--line)}
+  .tabbar a{height:4rem}
+}
+/* ===== 전체용 추가 ===== */
+.btn{display:flex;align-items:center;justify-content:center;gap:var(--sp-2);width:100%;height:3.25rem;border:0;border-radius:var(--r-control);background:var(--accent);color:var(--on-accent);font:inherit;font-size:var(--fs-body-lg);font-weight:600;cursor:pointer;margin-top:var(--sp-5)}
+.btn:active{background:color-mix(in oklch,var(--accent) 86%,black)}
+.btn svg{width:20px;height:20px}
+.chip-btn{display:inline-flex;align-items:center;gap:6px;height:2.5rem;padding:0 var(--sp-4);border:0;border-radius:999px;background:var(--surface);color:var(--text);font:inherit;font-size:var(--fs-small);font-weight:600;cursor:pointer;margin-top:var(--sp-4)}
+.chip-btn svg{width:16px;height:16px;color:var(--icon-muted)}
+.picker .grp{padding:var(--sp-3) var(--page-x) 0}
+.picker .grp h3{font-size:var(--fs-small);color:var(--text-muted);font-weight:600;letter-spacing:0}
+.picker .names{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2)}
+.picker .nm{height:2.75rem;padding:0 var(--sp-4);border:0;border-radius:999px;background:var(--fill-subtle);color:var(--text-strong);font:inherit;font-size:var(--fs-body);font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.picker .nm small{font-size:var(--fs-caption);color:var(--text-muted);font-weight:500}
+.picker .nm[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:700}
+.picker .nm[aria-pressed="true"] small{color:inherit}
+.picker .nm svg{width:16px;height:16px}
+.picker .clear{display:block;margin:var(--sp-6) var(--page-x) 0;padding:0;border:0;background:none;color:var(--text-muted);font:inherit;font-size:var(--fs-small);text-decoration:underline;text-underline-offset:3px;cursor:pointer;min-height:var(--touch)}
+@media (hover:hover){.picker .nm:not([aria-pressed="true"]):hover{background:var(--gray-200)}}
+.role{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-4) var(--sp-5);margin-top:var(--sp-3)}
+.role .when{font-size:var(--fs-caption);color:var(--text-muted);font-weight:600}
+.role h3{font-size:var(--fs-body-lg);font-weight:700;letter-spacing:0;margin-top:2px}
+.role ul{margin-top:var(--sp-2);font-size:var(--fs-body);color:var(--text)}
+.room .tag{font-size:var(--fs-caption);color:var(--warning);font-weight:600}
+.people li{display:grid;grid-template-columns:4rem minmax(0,1fr);gap:var(--sp-3);padding:var(--sp-2) 0}
+.people li + li{box-shadow:inset 0 1px 0 var(--line)}
+.people b{color:var(--text-strong)}
+.people button{all:unset;cursor:pointer;color:var(--text-strong);font-weight:600;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="appbar" id="appbar">
+    <div class="wrap in">
+      <span class="logo">2027 수능 감독 안내</span>
+      <button class="icon-btn" id="search-open" type="button" aria-label="안내문 검색" aria-haspopup="dialog" aria-controls="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <dialog class="search" id="search" aria-label="안내문 검색">
+    <div class="sbar">
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="이름, 시험실, 시간, 낱말" autocomplete="off" enterkeyhint="search" aria-label="찾을 말" aria-controls="sres">
+      </div>
+      <button class="close" type="button" data-close>닫기</button>
+    </div>
+    <div class="res" id="sres" role="region" aria-live="polite"></div>
+  </dialog>
+
+  <dialog class="search picker" id="picker" aria-label="이름 고르기">
+    <div class="sbar">
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="pq" type="search" placeholder="이름으로 찾기" autocomplete="off" aria-label="이름으로 찾기">
+      </div>
+      <button class="close" type="button" data-close>닫기</button>
+    </div>
+    <div class="res" id="plist"></div>
+  </dialog>
+
+  <div class="wrap hero" id="hero"></div>
+
+  <main class="wrap" id="main">
+
+    <section class="view on" id="v-day" aria-label="수능 당일 할 일">
+      <div class="now" id="now" aria-live="polite">
+        <p class="k" id="now-k"></p>
+        <p class="v" id="now-v"></p>
+        <p class="d" id="now-d"></p>
+        <div class="bar" id="now-bar" hidden><i></i></div>
+        <div class="bar-ends num" id="now-ends" hidden><span></span><span></span></div>
+      </div>
+      <div id="day-root"></div>
+    </section>
+
+    <section class="view" id="v-prep" aria-label="시험 전날 준비">
+      <div id="prep-root"></div>
+      <h2 class="sec-title">전날 일정</h2>
+      <ul class="todo">
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><p class="when num">11월 18일 수요일 11:00</p><p class="t">2027 수능 본부요원 회의</p></div></li>
+      </ul>
+      <h2 class="sec-title">감독관 회의 때 꼭 전할 것</h2>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <ul class="dot-list">
+          <li>시험 시간에 쓸 자료: 결시자 현황표, 교시별 확인표(체크리스트)</li>
+          <li>결시자 답안지 작성 방법</li>
+          <li>답안지 봉투 서명(또는 날인)</li>
+          <li>답안지 감독관 서명 때 필적확인란, 성명, 수험번호, 수험번호 마킹 확인. 고칠 일이 생기면 제1감독관이 시험관리본부에 와서 고쳐요.</li>
+          <li>바뀐 내용은 교육청 클라우드 공유방에서 수시로 확인해요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="view" id="v-map" aria-label="시험실 배치도">
+      <h2 class="sec-title">본관 시험실</h2>
+      <p class="sec-sub" id="map-sub">위 숫자는 시험실 번호, 아래는 평소 학급이에요.</p>
+      <div id="floors"></div>
+
+      <h2 class="sec-title">본관 1층</h2>
+      <div class="floor"><p>보건실, 휴게실, 전산실, 교무기획부, 연구기획부, 교감실, 교장실, 행정실, 법인사무실, 이사실</p>
+        <p class="sec-sub" style="margin-top:var(--sp-3)">시험실 30개와 예비시험실 1개. 5교시는 1~21실에서 봐요. 별관 3층과 본관 3층이 이어져요.</p></div>
+
+      <h2 class="sec-title">별관</h2>
+      <div class="floor">
+        <table class="ftable"><tbody>
+          <tr><th>5층</th><td><b>미선택자 대기실</b>, 외국어 교사실, 외국어 전용실</td></tr>
+          <tr><th>4층</th><td>자기주도학습실, 국어과, 수학과 교실</td></tr>
+          <tr><th>3층</th><td>사회과 교실, 교사 휴게실, 디지털교육부, 수학과 교실 (본관 3층과 연결)</td></tr>
+          <tr><th>2층</th><td>여교사 휴게실(1-8), 남교사 휴게실(1-7), 예체능부 교무실, 비품보관실</td></tr>
+          <tr><th>1층</th><td><b>감독교사 대기실</b>(학생식당), 교직원식당, 화장실(여)</td></tr>
+        </tbody></table>
+      </div>
+
+      <h2 class="sec-title">중고 연결회랑</h2>
+      <div class="floor">
+        <table class="ftable"><tbody>
+          <tr><th>위층</th><td>음악실(중학교 4층 쪽), 미술실(중학교 5층 쪽)</td></tr>
+          <tr><th>3층</th><td>컴퓨터실, 상담실, 진로활동실</td></tr>
+          <tr><th>2층</th><td>영어도서관, 국제교류부, 국제교류실, 어학실</td></tr>
+          <tr><th>1층</th><td>스튜디오, <b>방송실</b>, 창의체험부, 생활안전부, 인쇄실(중학교 1층 쪽)</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+
+    <section class="view" id="v-all" aria-label="전체 안내">
+      <h2 class="sec-title">안내문 전체</h2>
+      <p class="sec-sub">원문 순서대로 모았어요. 눌러서 펼쳐 보세요.</p>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">이름별 맡은 일</span><span class="s">원문에 나오는 36명. 이름을 누르면 그 사람 화면으로 바뀌어요</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body"><ul class="people" id="people"></ul></div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">학생지도 총괄, 복도감독관 시간표</span><span class="s">원문 32쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <p>표는 옆으로 밀어서 볼 수 있어요.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl sticky" id="bigtable"></table></div>
+          <h4>참고</h4>
+          <ul class="dot-list">
+            <li>정문 감독관: 06:30부터 차량 통제, 남문으로 안내</li>
+            <li>남문 감독관: 차량 진입과 주차 안내, 수험생 출입 통제, 정문으로 안내</li>
+            <li>수험생과 감독관 말고는 들어올 수 없어요</li>
+            <li>후문은 모든 고사가 끝난 뒤 16:37에 열어요</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">복도감독관 근무 요령</span><span class="s">원문 28쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <dl class="kv">
+            <dt>2층</dt><dd>박경록, 신영준 (+1명)</dd>
+            <dt>3층</dt><dd>여승철, 임한수 (+1명)</dd>
+            <dt>4층</dt><dd>이용기, 손준호 (+1명)</dd>
+            <dt>5층</dt><dd>노상우, 김용현 (+1명)</dd>
+          </dl>
+          <h4>근무 요령</h4>
+          <ul class="dot-list">
+            <li><b>1교시에 시험실 반입금지물품을 받아</b> 과학실험실에 보관해요(열쇠는 본부 관리). 1~21 시험실은 시험관리본부에 보관해요(5교시 보는 시험실). 22~30 시험실은 4교시가 끝난 뒤 각 시험실에 물품을 돌려줘요.</li>
+            <li>층별 수합 바구니와 금속탐지기는 본부에서 받고, 시험이 끝나면 본부에 돌려줘요.</li>
+            <li><b>매 교시 시험실별 결시자 현황표를 모아 시험관리본부에 넘겨요.</b> 4교시 한국사 결시자 현황표는 본부 확인 뒤 받아서 각 시험실에 다시 나눠 줘요.</li>
+            <li><b>3교시 듣기평가가 끝나면 이상 유무를 시험관리본부에 알려요.</b></li>
+            <li>외부인과 퇴실한 응시자가 시험실에 다가오지 못하게 막아요.</li>
+            <li>시험 중 화장실 이용자 검색(상하반신, 신발 등), 함께 가서 칸 지정, 휴대용 금속탐지기로 통신기기 점검.</li>
+            <li>시험실 감독관이 요청하면 그 교시가 끝난 직후 정한 곳이나 수험생을 검색해요.</li>
+            <li>모자란 답안지, 문제지는 옆 시험실 여유분이나 본부 보관분으로 전해요.</li>
+            <li>응급환자 등 급한 일은 시험장 책임자에게 연락해요.</li>
+            <li>1교시 미선택자를 시험실 감독관에게서 넘겨받아 정해진 대기실로 데려가요.</li>
+          </ul>
+          <h4>미선택자 대기실 이동</h4>
+          <ul class="dot-list">
+            <li>13실(4층): 1~4교시 모두</li>
+            <li>21실(3층): 2, 3, 5교시</li>
+            <li>30실(2층): 2, 3교시</li>
+            <li>그 밖에 시험실 감독관이 요청할 때</li>
+            <li>앞 교시가 끝난 쉬는 시간에 옮겨요(1교시는 물품을 거둔 뒤). 층마다 복도감독 1명이 모아 한꺼번에 별관 5층 대기실로 데려가요.</li>
+          </ul>
+          <h4>그 밖에</h4>
+          <ul class="dot-list">
+            <li>금속탐지기 대상: 감독관이 요청한 수험생, 시험 중 화장실 등을 드나드는 수험생, 시험장 책임자가 필요하다고 한 수험생. 소리가 나니 조심해요.</li>
+            <li>스마트안경 점검 요청은 본부에 연락하고, 시험 시작 전이나 끝난 뒤 스마트안경 점검요원과 함께 봐요.</li>
+            <li>옆 복도감독과 한 조로 움직이고, 자리를 비워야 하면 서로 맡아 줘요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">복도감독관 게시물 붙이기</span><span class="s">원문 16쪽. 복도감 1그룹 4명</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>담당</th><th>시험실</th><th class="wrap">미선택자 대기실 가는 길</th></tr></thead>
+            <tbody>
+              <tr><th>신영준 (2층)</th><td>25~30실</td><td class="wrap">4장, 2층 복도에 간격 맞춰</td></tr>
+              <tr><th>임한수 (3층)</th><td>17~24실</td><td class="wrap">5장, 3층 복도 4장, 3층 계단에서 출입문 쪽 1장</td></tr>
+              <tr><th>손준호 (4층)</th><td>8~16실, 예비시험실</td><td class="wrap">4장, 4층 복도에 간격 맞춰</td></tr>
+              <tr><th>김용현 (5층)</th><td>1~7실</td><td class="wrap">4장, 5층 복도에 간격 맞춰</td></tr>
+            </tbody>
+          </table></div>
+          <p style="margin-top:var(--sp-3)">공통: 시험실 팻말(학급 팻말에 끼움), 시험실 표시(앞문 눈높이), 뒷문 폐쇄 안내(뒷문 눈높이), 엘리베이터 사용금지(그 층 엘리베이터 문), 수험생 화장실 2장, 학교 전체 금연구역 2장(동편, 서편 학생용 화장실 앞). 모두 B4.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">운영요원, 행정요원</span><span class="s">원문 18쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>운영요원</h4>
+          <dl class="kv">
+            <dt>행정 박병홍</dt><dd>행정실 준비 사항 점검</dd>
+            <dt>총괄 조성기</dt><dd>외부감독관 교육 자료와 ppt 준비</dd>
+            <dt>운영 김기국</dt><dd>A형 게시판 4개(2개 1세트) 준비와 부착(시험실 배치도, 수험생 유의사항, 층별 시험실과 수험번호, 도시락 지참, 신분증 휴대 안내)</dd>
+            <dt>운영 정재복</dt><dd>외부감독관 인장 등록, 출근부, 명찰, 차량통행증, 감독관 유의사항 배부, 시험실별 문제지와 답안지 인수, 인계서 양식 미리 작성</dd>
+            <dt>고사계 유석진</dt><dd>건물, 시험실 배치도 배너 2장(감독관 대기실 시간표 옆), 시험실 배치도 배너(본부 본부석 앞), 시험관리본부 작은배너 2장(식당과 강당 사이 기둥, 본관과 강당 통로 왼쪽 유리문), 정문 출입통제와 후문 폐쇄 안내 배너 각 1장(정문, 후문 철문)</dd>
+            <dt>운영 김재현</dt><dd>시험실 견본 설치, 예비시험실 준비(1-10반 협조), 전체 시험실 준비 상황 점검</dd>
+            <dt>방송 허경식, 김기도</dt><dd>방송시설 점검 2회(12:00, 14:00). 비상용 CD 플레이어 4대 작동 확인 뒤 교무실 가운데 탁자에 둠</dd>
+            <dt>보건 김명숙</dt><dd>보건실과 안내 화살표(본부에서 보건실까지, 1층 복도). 응급환자 이송 계획, 비상용 CD 플레이어 1대 보건실에 둠</dd>
+          </dl>
+          <h4>행정요원</h4>
+          <dl class="kv">
+            <dt>차윤지</dt><dd>외부감독관 회의 준비 지원, 플래카드 제작</dd>
+            <dt>장규철</dt><dd>시험관리본부 책상과 의자 배열, A형 게시판 6개(본관 동, 서편 출입문 각 2개, 식당 2개), 풋말 8개, 화장실 에어타월 전원 빼기, 별관 3층에서 2층 내려가는 계단 막기, 본관 1층 통로 바리케이트(행정실 앞, 교무실 앞)</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">운영 관리요원</span><span class="s">원문 20쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <dl class="kv">
+            <dt>총괄 조성기</dt><dd>문제지, 답안지 수량 이상 유무 보고. 17시험지구 수능 상황실: 20시험장 담당 정은혜 장학사 02-2600-0853, 수능담당 장학사 김근희 02-2600-0841</dd>
+            <dt>운영 김기국, 정재복</dt><dd>교육청 보고 서류와 시험관리본부 준비 사항 점검, 수험표와 신분증 미지참자 처리</dd>
+            <dt>고사계 유석진</dt><dd>수능 감독 관련 게시물 점검</dd>
+            <dt>방송 허경식, 김기도</dt><dd>07:00 전 수능 방송 상태 점검</dd>
+            <dt>학생안전 김재현</dt><dd>미선택자 대기실 업무 지원, 시험포기자 관리와 인솔</dd>
+            <dt>보건 김명숙</dt><dd>보건실 관리, 응급 상황 대비 점검</dd>
+            <dt>협조 차윤지</dt><dd>시험실 감독관 반입 금지 물품 수거(시험이 끝나면 배부)</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">시험실 관리요원 (07:40부터)</span><span class="s">원문 20, 22쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <p>시험실별 문답지 인수, 인계와 확인. 1명이 시험실 2개를 맡아요. 응급 상황이면 맡는 시험실 수와 업무를 조정해요.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>시험실</th><th>담당</th><th>시험실</th><th>담당</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1~2</td><td>조상우</td><td class="num">17~18</td><td>이영신</td></tr>
+              <tr><td class="num">3~4</td><td>이승혁</td><td class="num">19~20</td><td>노유찬</td></tr>
+              <tr><td class="num">5~6</td><td>이지연</td><td class="num">21~22</td><td>정재훈</td></tr>
+              <tr><td class="num">7~8</td><td>김현석</td><td class="num">23~24</td><td>변은지</td></tr>
+              <tr><td class="num">9~10</td><td>엄채윤</td><td class="num">25~26</td><td>권백일</td></tr>
+              <tr><td class="num">11~12</td><td>안준용</td><td class="num">27~28</td><td>김지연</td></tr>
+              <tr><td class="num">13~14</td><td>류시은</td><td class="num">29~30</td><td>최춘기</td></tr>
+              <tr><td class="num">15~16</td><td>이동욱</td><td></td><td></td></tr>
+            </tbody>
+          </table></div>
+          <h4>문제지, 답안지 준비</h4>
+          <p>감독관 입실 10분 전에 시험장 도착 시험지 확인 담당자가 그 교시 문제지와 답안지를 시험실별로 나눠요.</p>
+          <h4>문제지, 답안지 인계</h4>
+          <ul class="dot-list">
+            <li>매 교시 끝나기 20분 전에 다음 교시를 준비해요(1교시는 07:50에 준비).</li>
+            <li>교시별 홀, 짝수형 문제지 각 1봉, 답안지 1봉. 4교시는 한국사 홀, 짝수형 각 1봉과 답안지 1봉, 탐구(사회, 과학) 단일형 문제지 2봉과 답안지 1봉.</li>
+            <li>시험실마다 탐구 선택 유형이 달라요. 1~12실 사탐 2봉, 13실 사탐 1봉, 14~23실 사탐 2봉과 과탐 2봉, 24~30실 사탐 2봉.</li>
+            <li>빠진 것은 시험실 감독관이 담당 감독관에게 따로 연락해 고쳐요.</li>
+            <li>홀, 짝수형 표기가 없으면 수험생 문제지 유형을 확인하고, 시험장 책임자 입회 아래 제1감독관이 고쳐요.</li>
+            <li><b>문제지는 수량만</b> 확인해요(수험번호순으로 정리하지 않아도 돼요).</li>
+            <li>4교시 한국사가 끝나고 탐구 1선택이 시작되면 제2감독관이 답안지를 시험관리본부에 내요.</li>
+            <li>4교시 탐구 문제지는 응시한 선택과목 문제지를 거둬 시간별로 문제지 봉투나 개인 문제지 보관용 봉투에 넣고, 응시하지 않은 <b>선택과목 문제지는 개인 문제지 보관용 봉투에 넣은 채로</b> 거둬서 시험관리본부에 넘겨요.</li>
+            <li>문제지 수험번호는 샤프나 연필로 써도 괜찮아요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">답안지 교차 검토, 문제지 정리</span><span class="s">원문 22쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>1~3교시</h4>
+          <p>매 교시 문제지를 나눈 뒤, 앞 교시 답안지 교차 검토를 옆 시험실 담당과 해요. 왼쪽 시험실 관리요원에게 넘기고, 맨 끝 요원은 첫 자리 요원에게 넘겨요.</p>
+          <h4>4~5교시</h4>
+          <ul class="dot-list">
+            <li>4교시 한국사 문제지를 나눈 뒤 1~3교시 답안지 2차 검토. 5, 6실 관리요원이 1, 2실을 검토해요(한 칸 건너 시험실).</li>
+            <li>4교시 탐구 시간에 한국사 답안지를 받아 왼쪽 요원에게 넘겨 1차 교차 검토, 다시 왼쪽으로 넘겨 2차 검토. 답안지 매수, 기재사항, 감독관 도장과 답안지 봉투 기재사항, 도장을 확인해요.</li>
+            <li>4교시 탐구가 끝나면 시험실 관리요원이 검토하고 이상이 없으면 감독관은 대기실로 가요. 이어서 1차, 2차 교차 검토 뒤 이상이 없으면 교무부장에게 보고해요(시험실 완료 퇴실 방송).</li>
+            <li>1~21 시험실은 5교시까지 하지만 5교시 응시포기자가 있을 수 있어 2차 교차 검토까지 해요. 21실은 대기실로, 22~30실은 복도감에게 안내해 하교해요.</li>
+            <li>4교시 탐구 답안지는 교차 검토만 하니 꼼꼼히 봐 주세요. 5교시도 4교시와 같고, 중도 포기 학생이 꼭 있으니 잘 확인해요.</li>
+          </ul>
+          <h4>거둔 문제지 정리</h4>
+          <p>답안지 교차 검토가 끝나면 시험장 도착 시험지 확인 담당자가 문제지를 상자에 담아 테이프로 붙이고, <b>강당 입구 옆 창고에 보관</b>해요.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">결시자 현황표 쓰는 법</span><span class="s">원문 24쪽, 서식29</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <ul class="dot-list">
+            <li>결시 수험생의 그 교시 칸에 동그라미(○)를 쳐요.</li>
+            <li>시험장 학교는 원본을 보관하고, 수능 정보시스템에서 결시자 현황 보고(서식30)를 뽑아 시험장 책임자 날인 뒤 답안지와 함께 시험지구 교육지원청에 내요.</li>
+            <li>4교시는 한국사와 탐구 영역을 나눠 적어요.</li>
+            <li><b>결시자 현황은 시험관리본부에서 수능 정보시스템에 교시마다 입력</b>하고, 제출하는 보고서와 입력 내용이 같은지 꼭 확인해요.</li>
+            <li>합계 아래 제1감독관 확인, 시험장 책임자 확인 칸에 날인 또는 서명해요.</li>
+            <li>결시자가 없는 시험실도 작성해서 보관해요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">유형별 답안지 처리</span><span class="s">원문 26쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>유형</th><th class="wrap">처리 방법</th></tr></thead>
+            <tbody>
+              <tr><th>미선택자</th><td class="wrap">답안지를 나눠 주지 않아요</td></tr>
+              <tr><th>결시자</th><td class="wrap">감독관이 답안지에 성명, 수험번호를 쓰고 수험번호란에 ● 표기. 결시자 확인란에 ● 표기. 결시자 현황표(서식29) 작성</td></tr>
+              <tr><th>백지 답안지 제출자</th><td class="wrap">수험생이 성명, 수험번호를 쓰고 마킹하게 해요(퇴실, 귀가로 못 하면 감독관이). 결시자 확인란은 비워요. 백지 답안지 제출자 현황표(서식33-1, 33-2) 작성</td></tr>
+              <tr><th>답안지 미제출자</th><td class="wrap">위와 같고, <b>따로 공문을 내요</b></td></tr>
+            </tbody>
+          </table></div>
+          <ul class="dot-list" style="margin-top:var(--sp-3)">
+            <li>백지 답안지: 성명, 답란 등을 전혀 쓰지 않은 답안지. 수험생 정보는 썼지만 답란에 표기가 없어도 백지로 처리해요.</li>
+            <li><b>자리에 없으면</b> 미선택자인지, 다른 시험실에서 응시 중인지 확인하고, 아니면 모두 결시자로 처리해요.</li>
+            <li>그 영역(과목) 포기자 답안지는 결시자 답안지와 같게 처리해요.</li>
+            <li><b>다른 시험실에서 응시</b>한 수험생 답안지는 원래 시험실 회수용 봉투의 그 수험번호 자리에 넣어요.</li>
+            <li><b>부정행위 퇴실자</b> 답안지는 「VI-7. 부정행위 발견 시 조치 절차(109쪽)」의 시험실 감독관 조치를 따라요.</li>
+            <li>결시자 답안지: 결시자 확인란 ● 표기, 성명과 수험번호 기재 및 마킹, 감독관 확인란 서명(날인). 백지 답안지: 결시자 확인란은 표기하지 않음.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">반입금지물품 보관 계획</span><span class="s">원문 30, 34쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>복도감</h4>
+          <dl class="kv">
+            <dt>1~21실</dt><dd>1교시 물품 거둘 때 시험실 감독관에게 받아 바구니에 담아 시험관리본부 강당 안으로 옮겨요(5교시 응시포기자 대비). <b>5교시 끝나기 10분 전</b> 본부에서 실별 물품을 옮기고 시험이 끝나면 나눠 줘요. 옮기는 동안 1명은 층에서 복도감 일을 해요.</dd>
+            <dt>22~30실</dt><dd>1교시 물품 거둘 때 받아 바구니에 담아 각 층 과학실험실에 보관하고, 4교시가 끝나면 각 시험실에 나눠 줘요.</dd>
+          </dl>
+          <h4>미선택자 물품 나눠 주기</h4>
+          <p>1~21실은 강당 보관, 22~30실은 각 층 과학실험실 보관.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>때</th><th>대상</th><th>담당</th><th class="wrap">요령</th></tr></thead>
+            <tbody>
+              <tr><td>한국사 끝난 뒤</td><td>13실 8명</td><td>김재현</td><td class="wrap">오전 중에 사탐 미응시자 물품만 따로 보관, 4교시에 미선택자 물품만 대기실에 전달, 배부는 대기실 감독관</td></tr>
+              <tr><td>4교시 끝난 뒤 ①</td><td>21실 21명</td><td>김재현</td><td class="wrap">오전 중에 5교시 미응시자 물품만 따로 보관, 5교시에 미선택자 물품만 대기실에 전달, 배부는 대기실 감독관</td></tr>
+              <tr><td>4교시 끝난 뒤 ②</td><td>1~21실</td><td class="wrap">유석진(1~5실), 정광주(6~10실), 김재현(11~15실), 김기도(16~21실), 정재복(업무 지원)</td><td class="wrap">프로젝트 화면으로 강당에 시험실별로 앉게 안내, 담당자가 응시 포기 확인서 서명을 먼저 받고, 서명한 순서대로 불러 물품 배부, 끝나면 함께 인솔해 귀가. 오전 중 수험번호순으로 5개씩 묶어 보관하는 방법도 고민해 주세요.</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">시험실 감독관 배치 방법</span><span class="s">원문 30쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <ul class="dot-list">
+            <li>고등학교 교사는 시험지구를 달리해 배치해요.</li>
+            <li>시험실 감독관은 시험실당 2명, 감독은 4개 교시를 넘지 않게 배정해요.</li>
+            <li>4교시는 시험실당 3명. 선택 과목이 1개인 시험실이나 응시자 14명 이하면 2명도 돼요.</li>
+            <li>같은 학교 출신 수험생이 40%를 넘는 22명 이상(28명 기준) 시험실은 감독관 1명을 더 둬요. 시험 집중을 방해할 수 있다고 시험장 책임자가 판단하면 일반 시험실처럼 운영할 수 있고, 이때 1명은 교대 근무나 복도 순찰로 대신해요.</li>
+            <li>가급적 제1감독관은 고등학교 교사로 배치해요.</li>
+            <li>매 교시 감독관을 바꾸고, 같은 조가 2번 이상 되지 않게 짜요.</li>
+            <li>감독관 배치표는 보안에 특히 주의하고, <b>감독관 입실 15분 전 시험관리본부와 감독관 대기실에 게시</b>해요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <p class="foot">원문: 2027 수능 본부요원회의 자료(11월 18일 수요일 11:00), 14~34쪽 중 짝수쪽.<br>원문의 이름 오타(&lsquo;김용형&rsquo;)는 &lsquo;김용현&rsquo;으로 고쳤어요. 교시별 과목 이름은 이해를 돕기 위해 붙였어요. 바뀐 내용은 교육청 클라우드 공유방에서 꼭 다시 확인해 주세요.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="주요 메뉴">
+    <a href="#day" data-v="v-day" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>당일 할 일</a>
+    <a href="#prep" data-v="v-prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>전날 준비</a>
+    <a href="#map" data-v="v-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg>배치도</a>
+    <a href="#all" data-v="v-all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>전체 안내</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  /* =================== 자료 =================== */
+  var COLS = ['김재현','남중권','정광주','박경록','신영준','여승철','임한수','이용기','손준호','노상우','김용현'];
+  var F = ['','','','2층 동편','2층 서편','3층 동편','3층 서편','4층 동편','4층 서편','5층 동편','5층 서편'];
+  function floors(a){ var x = F.slice(); for (var k in a) x[k] = a[k]; return x; }
+  var ROWS = [
+    ['정문남문지도','06:30','06:50','0:20',['정문','','','남문','','','','','','','']],
+    ['','06:50','07:15','0:25',['정문','','','','정문','','','남문','','','남문']],
+    ['','07:15','07:40','0:25',['','','','','','정문','남문','','남문','정문','']],
+    ['','07:40','08:00','0:20',['','남문','정문','','','','','','','','']],
+    ['입실완료','08:00','08:40','0:40',floors({0:'정문'})],
+    ['1교시①','08:40','09:20','0:40',floors({1:'대기실 감독'})],
+    ['1교시②','09:20','10:00','0:40',floors({1:'대기실 감독'})],
+    ['쉬는시간','10:00','10:20','0:20',['본부','','','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실','']],
+    ['2교시①','10:20','11:15','0:55',floors({2:'대기실 감독'})],
+    ['2교시②','11:15','12:10','0:55',floors({2:'대기실 감독'})],
+    ['점심시간','12:10','12:35','0:25',['','2~5층 순회','','','','','','','','','']],
+    ['점심시간','12:35','13:00','0:25',['','','2~5층 순회','','','','','','','','']],
+    ['3교시①','13:00','13:40','0:40',floors({1:'대기실 감독'})],
+    ['3교시②','13:40','14:20','0:40',floors({1:'대기실 감독'})],
+    ['쉬는시간','14:20','14:40','0:20',['본부','','','','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실']],
+    ['4교시①','14:40','15:20','0:40',floors({})],
+    ['4교시②','15:20','16:00','0:40',floors({0:'본부',2:'대기실 감독'})],
+    ['4교시③','16:00','16:37','0:37',floors({0:'본부',2:'대기실 감독'})],
+    ['쉬는시간','16:37','16:55','0:18',['본부','','본부','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실','']],
+    ['5교시①','16:55','17:20','0:25',['본부','대기실 감독','본부','','','','','','','','']],
+    ['5교시②','17:20','17:45','0:25',['본부','대기실 감독','','','','','','','','','']]
+  ];
+  var TOT = ['3:22','3:25','3:52','7:47','7:52','7:52','7:52','7:52','7:52','7:52','7:52'];
+  var PERIODS = [
+    {s:'06:30',e:'08:00',n:'등교 시간'},
+    {s:'08:00',e:'08:40',n:'입실 완료 시간'},
+    {s:'08:40',e:'10:00',n:'1교시 국어'},
+    {s:'10:00',e:'10:20',n:'쉬는 시간'},
+    {s:'10:20',e:'12:10',n:'2교시 수학'},
+    {s:'12:10',e:'13:00',n:'점심시간'},
+    {s:'13:00',e:'14:20',n:'3교시 영어'},
+    {s:'14:20',e:'14:40',n:'쉬는 시간'},
+    {s:'14:40',e:'16:37',n:'4교시 한국사, 탐구'},
+    {s:'16:37',e:'16:55',n:'쉬는 시간'},
+    {s:'16:55',e:'17:45',n:'5교시 제2외국어, 한문'}
+  ];
+  var HALL = {'박경록':[2,'동편'],'신영준':[2,'서편'],'여승철':[3,'동편'],'임한수':[3,'서편'],'이용기':[4,'동편'],'손준호':[4,'서편'],'노상우':[5,'동편'],'김용현':[5,'서편']};
+  var FLOOR = {
+    2:{range:'25~30', store:'25~30실 물품은 1교시에 받아 바구니에 담아 2층 과학실험실에 보관하고, 4교시가 끝나면 각 시험실에 나눠 줘요.', unsel:'30실은 2, 3교시에 미선택자가 대기실로 옮겨요.', late:false},
+    3:{range:'17~24', store:'17~21실 물품은 1교시에 받아 시험관리본부(강당)로 옮기고, 22~24실 물품은 3층 과학실험실에 보관해요. 22~24실은 4교시가 끝나면 나눠 줘요.', unsel:'21실은 2, 3, 5교시에 미선택자가 대기실로 옮겨요.', late:true},
+    4:{range:'8~16', store:'8~16실 물품은 1교시에 받아 바구니에 담아 시험관리본부(강당)로 옮겨요. 5교시를 보는 시험실이라 본부에 둬요.', unsel:'13실은 1~4교시 모두 미선택자가 대기실로 옮겨요.', late:true},
+    5:{range:'1~7', store:'1~7실 물품은 1교시에 받아 바구니에 담아 시험관리본부(강당)로 옮겨요. 5교시를 보는 시험실이라 본부에 둬요.', unsel:null, late:true}
+  };
+  var POSTER = {'신영준':{f:2,r:'25~30',n:'4장',w:'2층 복도에 간격을 맞춰서'},'임한수':{f:3,r:'17~24',n:'5장',w:'3층 복도에 4장, 3층 계단에서 출입문 쪽으로 1장'},'손준호':{f:4,r:'8~16, 예비시험실',n:'4장',w:'4층 복도에 간격을 맞춰서'},'김용현':{f:5,r:'1~7',n:'4장',w:'5층 복도에 간격을 맞춰서'}};
+  var MGR = {'조상우':[1,2],'이승혁':[3,4],'이지연':[5,6],'김현석':[7,8],'엄채윤':[9,10],'안준용':[11,12],'류시은':[13,14],'이동욱':[15,16],'이영신':[17,18],'노유찬':[19,20],'정재훈':[21,22],'변은지':[23,24],'권백일':[25,26],'김지연':[27,28],'최춘기':[29,30]};
+  var ROLES = {
+    '박병홍':[{w:'전날',r:'운영요원 (행정)',i:['행정실 준비 사항 점검']}],
+    '조성기':[{w:'전날',r:'운영요원 (총괄)',i:['외부감독관 교육 자료와 ppt 준비']},{w:'당일',r:'운영 관리요원 (총괄)',i:['문제지, 답안지 수량 이상 유무 보고','17시험지구 수능 상황실: 20시험장 담당 정은혜 장학사 02-2600-0853, 수능담당 장학사 김근희 02-2600-0841']}],
+    '김기국':[{w:'전날',r:'운영요원 (운영)',i:['A형 게시판 4개(2개 1세트) 준비와 부착: 시험실 배치도, 수험생 유의사항, 층별 시험실과 수험번호, 도시락 지참, 신분증 휴대 안내']},{w:'당일',r:'운영 관리요원 (운영)',i:['교육청 보고 서류와 시험관리본부 준비 사항 점검','수험표와 신분증 미지참자 처리']}],
+    '정재복':[{w:'전날',r:'운영요원 (운영)',i:['외부감독관 인장 등록, 출근부, 명찰, 차량통행증, 감독관 유의사항 배부','시험실별 문제지와 답안지 인수, 인계서 양식 미리 작성']},{w:'당일',r:'운영 관리요원 (운영)',i:['교육청 보고 서류와 시험관리본부 준비 사항 점검','수험표와 신분증 미지참자 처리']},{w:'4교시 끝난 뒤',r:'응시포기자 물품 배부',i:['1~21실 응시포기자 물품 배부 업무 지원']}],
+    '유석진':[{w:'전날',r:'운영요원 (고사계)',i:['건물, 시험실 배치도 배너 2장: 감독관 대기실 시간표 게시 공간 옆','시험실 배치도 배너: 시험관리본부 본부석 앞','시험관리본부 작은배너 2장: 식당과 강당 사이 기둥, 본관과 강당 통로 왼쪽 유리문','정문 출입통제 안내, 후문 폐쇄 안내 배너 각 1장: 정문, 후문 철문']},{w:'당일',r:'운영 관리요원 (고사계)',i:['수능 감독 관련 게시물 점검']},{w:'4교시 끝난 뒤',r:'응시포기자 물품 배부 (1~5실)',i:['프로젝트 화면으로 강당에 시험실별로 앉게 안내해요','응시 포기 확인서 서명을 먼저 한꺼번에 받아요','서명한 수험생을 차례로 부르며 물품을 나눠 줘요','다 나눠 주면 함께 인솔해 귀가시켜요']}],
+    '김재현':[{w:'전날',r:'운영요원 (운영)',i:['시험실 견본 설치','예비시험실 준비 (1-10반 협조)','전체 시험실 준비 상황 점검']},{w:'당일',r:'운영 관리요원 (학생안전)',i:['미선택자 대기실 업무 지원','시험포기자 관리와 인솔']},{w:'한국사 끝난 뒤',r:'미선택자 물품 (13실 8명)',i:['오전 중에 사탐 미응시자 물품만 따로 보관해요','4교시에 미선택자 물품만 대기실에 전해요. 나눠 주는 건 대기실 감독관이에요']},{w:'4교시 끝난 뒤 ①',r:'미선택자 물품 (21실 21명)',i:['오전 중에 5교시 미응시자 물품만 따로 보관해요','5교시에 미선택자 물품만 대기실에 전해요. 나눠 주는 건 대기실 감독관이에요']},{w:'4교시 끝난 뒤 ②',r:'응시포기자 물품 배부 (11~15실)',i:['강당에 시험실별로 앉게 하고, 응시 포기 확인서 서명을 먼저 받아요','서명한 차례대로 불러 물품을 나눠 주고, 끝나면 함께 인솔해 귀가시켜요']}],
+    '허경식':[{w:'전날',r:'운영요원 (방송1)',i:['방송시설 점검 2회 (12:00, 14:00)','비상용 CD 플레이어 4대 작동 확인 뒤 교무실 가운데 탁자에 두기']},{w:'당일',r:'운영 관리요원 (방송)',i:['07:00 전에 수능 방송 상태 점검']}],
+    '김기도':[{w:'전날',r:'운영요원 (방송2)',i:['방송시설 점검 2회 (12:00, 14:00)','비상용 CD 플레이어 4대 작동 확인 뒤 교무실 가운데 탁자에 두기']},{w:'당일',r:'운영 관리요원 (방송)',i:['07:00 전에 수능 방송 상태 점검']},{w:'4교시 끝난 뒤',r:'응시포기자 물품 배부 (16~21실)',i:['강당에 시험실별로 앉게 하고, 응시 포기 확인서 서명을 먼저 받아요','서명한 차례대로 불러 물품을 나눠 주고, 끝나면 함께 인솔해 귀가시켜요']}],
+    '김명숙':[{w:'전날',r:'운영요원 (보건)',i:['보건실과 안내 화살표 (시험관리본부에서 보건실까지, 1층 복도)','응급환자 이송 계획 세우기','비상용 CD 플레이어 1대 보건실에 두기']},{w:'당일',r:'운영 관리요원 (보건)',i:['보건실 관리, 응급 상황 대비 점검']}],
+    '차윤지':[{w:'전날',r:'행정요원',i:['외부감독관 회의 준비 업무 지원','플래카드 제작']},{w:'당일',r:'운영 관리요원 (협조)',i:['시험실 감독관 반입 금지 물품 수거 (시험이 끝나면 배부)']}],
+    '장규철':[{w:'전날',r:'행정요원',i:['시험관리본부 책상, 의자 배열','A형 게시판 6개: 본관 동, 서편 출입문 각 2개, 식당 2개','풋말 8개','화장실 에어타월 전원 빼기','별관 3층에서 2층 내려가는 계단 막기','본관 1층 통로 바리케이트 (행정실 앞, 교무실 앞)']}],
+    '정광주':[{w:'4교시 끝난 뒤',r:'응시포기자 물품 배부 (6~10실)',i:['강당에 시험실별로 앉게 하고, 응시 포기 확인서 서명을 먼저 받아요','서명한 차례대로 불러 물품을 나눠 주고, 끝나면 함께 인솔해 귀가시켜요']}]
+  };
+  var GROUPS = [
+    ['복도감독관', ['박경록','신영준','여승철','임한수','이용기','손준호','노상우','김용현']],
+    ['학생지도, 대기실', ['김재현','남중권','정광주']],
+    ['운영요원, 행정요원', ['조성기','박병홍','김기국','정재복','유석진','허경식','김기도','김명숙','차윤지','장규철']],
+    ['시험실 관리요원', Object.keys(MGR)]
+  ];
+  var ALL = []; GROUPS.forEach(function(g){ ALL = ALL.concat(g[1]); });
+  var FLOORMAP = {
+    5:[['지학실'],['준비실'],[1,'2-7'],[2,'2-6'],[3,'2-5'],[4,'2-4'],[5,'2-3'],['비품실'],['회의실'],['2학년 교무실'],[6,'2-2'],[7,'2-1']],
+    4:[['물리실'],['준비실'],[16,'2-8'],[15,'2-9'],[14,'2-10'],[13,'2-11'],[12,'2-12'],[11,'1-11'],[10,'1-3'],[9,'1-2'],[8,'1-1']],
+    3:[['생물실'],['준비실'],[17,'3-7'],[18,'3-8'],[19,'3-9'],[20,'3-10'],[21,'3-11'],['1학년 교무실'],[22,'1-4'],[23,'1-5'],[24,'1-6']],
+    2:[['화학실'],['준비실'],['예비','보건교육실'],[30,'3-6'],[29,'3-5'],[28,'3-4'],[27,'3-3'],[26,'3-2'],[25,'3-1'],['3학년 교무실①'],['3학년 교무실②']]
+  };
+  var UNSEL = {13:1, 21:1, 30:1};
+
+  /* =================== 도움 함수 =================== */
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function toMin(s){ var p = s.split(':'); return +p[0] * 60 + +p[1]; }
+  function fromMin(m){ var h = Math.floor(m / 60), mm = m % 60; return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm; }
+  function ko(s){ var m = toMin(s), h = Math.floor(m / 60), mm = m % 60; return (h < 12 ? '오전 ' : '오후 ') + (h > 12 ? h - 12 : h) + '시' + (mm ? ' ' + mm + '분' : ''); }
+  function hm(m){ var h = Math.floor(m / 60), mm = m % 60; return (h ? h + '시간 ' : '') + (mm || !h ? mm + '분' : ''); }
+  function kst(){ var d = new Date(Date.now() + 9 * 3600 * 1000); return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), min: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
+  function periodsIn(s, e){ var a = toMin(s), b = toMin(e); return PERIODS.filter(function(p){ return toMin(p.s) < b && toMin(p.e) > a; }).map(function(p){ return p.n; }); }
+  function roomFloor(n){ return n <= 7 ? 5 : n <= 16 ? 4 : n <= 24 ? 3 : 2; }
+  function tamgu(n){ return n <= 12 ? '사탐 2봉' : n === 13 ? '사탐 1봉' : n <= 23 ? '사탐 2봉, 과탐 2봉' : '사탐 2봉'; }
+  var IC = {
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    box:'<path d="M3 7h18l-2 13H5L3 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/>',
+    clip:'<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>',
+    ear:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2ZM3 15a2 2 0 0 0 2 2h1v-5H5a2 2 0 0 0-2 2Z"/>',
+    down:'<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>',
+    warn:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+    people:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+    car:'<rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 17v2M17 17v2M5 8l2-4h10l2 4"/>',
+    doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+    cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+    bld:'<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    swap:'<path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/>',
+    check:'<path d="m5 12 5 5L20 7"/>'
+  };
+  function svg(k, cls){ return '<svg' + (cls ? ' class="' + cls + '"' : '') + ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[k] + '</svg>'; }
+  function todo(items){
+    return '<ul class="todo">' + items.map(function(t){
+      return '<li><span class="ic">' + svg(t.ic || 'clip') + '</span><div>' + (t.when ? '<p class="when num">' + t.when + '</p>' : '') + '<p class="t">' + t.t + '</p>' + (t.s ? '<p class="s">' + t.s + '</p>' : '') + '</div></li>';
+    }).join('') + '</ul>';
+  }
+  function tip(ic, lis, html){
+    return '<div class="tip">' + svg(ic) + (html || '<ul class="dot-list">' + lis.map(function(l){ return '<li>' + l + '</li>'; }).join('') + '</ul>') + '</div>';
+  }
+  function roleCards(list){
+    return list.map(function(r){
+      return '<div class="role"><p class="when">' + esc(r.w) + '</p><h3>' + esc(r.r) + '</h3><ul class="dot-list">' + r.i.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  function sec(t, sub){ return '<h2 class="sec-title">' + t + '</h2>' + (sub ? '<p class="sec-sub">' + sub + '</p>' : ''); }
+
+  /* =================== 사람 정보 =================== */
+  function dutyLabel(v){
+    var m;
+    if (v === '정문' || v === '남문') return v + ' 지도';
+    if ((m = /^(\d)층 (동편|서편)$/.exec(v))) return '본관 ' + m[1] + '층 ' + m[2] + ' 복도';
+    if (/화장실$/.test(v)) return v + ' 점검';
+    if (v === '본부') return '시험관리본부';
+    return v;
+  }
+  function blocksFor(ci){
+    var out = [], last = null;
+    ROWS.forEach(function(r){
+      var v = r[4][ci] || '';
+      if (last && last.v === v) { last.e = r[2]; last.rows.push(r); return; }
+      last = { s: r[1], e: r[2], v: v, rows: [r] }; out.push(last);
+    });
+    while (out.length && !out[0].v) out.shift();   /* 첫 일 앞의 빈 시간은 빼기 */
+    return out;
+  }
+  function person(name){
+    if (!name) return null;
+    var p = { name: name, ci: COLS.indexOf(name), hall: HALL[name], poster: POSTER[name], mgr: MGR[name], roles: ROLES[name] || [] };
+    if (p.hall) {
+      var f = p.hall[0];
+      p.floor = f;
+      p.partner = Object.keys(HALL).filter(function(n){ return n !== name && HALL[n][0] === f; })[0];
+      p.head = '본관 ' + f + '층 ' + p.hall[1] + ' 복도감독이에요';
+      p.sub = f + '층 ' + FLOOR[f].range + ' 시험실을 <b>' + p.partner + '</b> 선생님(' + f + '층 ' + HALL[p.partner][1] + ')과 함께 맡아요.';
+    } else if (p.mgr) {
+      var a = p.mgr[0], b = p.mgr[1];
+      p.head = a + '~' + b + ' 시험실 관리요원이에요';
+      p.sub = '07:40부터 ' + a + '실과 ' + b + '실의 문제지와 답안지를 받고 넘기고 확인해요. 두 시험실 모두 본관 ' + roomFloor(a) + '층이에요.';
+    } else if (name === '김재현') {
+      p.head = '정문 지도, 본부, 학생안전을 맡아요';
+      p.sub = '전날 시험실 준비 점검, 당일 미선택자 대기실 지원과 시험포기자 인솔도 맡아요.';
+    } else if (name === '남중권' || name === '정광주') {
+      p.head = '대기실 감독과 학생지도를 맡아요';
+      p.sub = '등교 지도, 대기실 감독, 점심시간 2~5층 순회를 맡아요.';
+    } else {
+      var rs = p.roles.map(function(r){ return r.r.replace(/ \(.+\)$/, ''); }).filter(function(v, i, a){ return a.indexOf(v) === i; });
+      var main = (p.roles[0] && /\((.+)\)/.exec(p.roles[0].r) || [])[1];
+      p.head = (main ? main + ' 담당' : rs[0]) + '이에요';
+      if (name === '차윤지' || name === '장규철') p.head = '행정요원이에요';
+      if (name === '조성기') p.head = '총괄 운영요원이에요';
+      p.sub = '맡은 일: ' + rs.join(', ');
+    }
+    if (p.ci >= 0) {
+      p.blocks = blocksFor(p.ci);
+      p.total = TOT[p.ci];
+      var fb = p.blocks[0];
+      p.first = { s: fb.s, t: dutyLabel(fb.v) };
+    } else if (p.mgr) p.first = { s: '07:40', t: '시험실 관리' };
+    return p;
+  }
+
+  /* =================== 그리기: 머리 =================== */
+  var CUR = null;
+  function heroHTML(p){
+    if (!p) {
+      return '<h1>2027 수능, 누가 언제<br>무엇을 하는지 모았어요</h1>' +
+        '<p class="sub">이름을 고르면 그 선생님 할 일만 모아서 보여 줘요.</p>' +
+        '<div class="facts"><span class="fact num">' + svg('cal') + '11월 19일 목요일</span><span class="fact num">' + svg('clock') + '1교시 08:40</span><span class="fact">' + svg('bld') + '시험실 30개, 예비 1개</span></div>' +
+        '<button class="btn" type="button" data-pick>' + svg('user') + '내 이름 고르기</button>';
+    }
+    var facts = '<span class="fact num">' + svg('cal') + '11월 19일 목요일</span>';
+    if (p.total) facts += '<span class="fact num">' + svg('clock') + '감독 ' + p.total.replace(':', '시간 ') + '분</span>';
+    if (p.first) facts += '<span class="fact num">' + svg('bld') + '첫 일 ' + p.first.s.replace(/^0/, '') + ' ' + p.first.t.replace(/ 지도$/, '') + '</span>';
+    return '<h1><mark class="me">' + p.name + '</mark> 선생님은<br>' + p.head + '</h1><p class="sub">' + p.sub + '</p><div class="facts">' + facts + '</div>' +
+      '<button class="chip-btn" type="button" data-pick>' + svg('swap') + '다른 이름 보기</button>';
+  }
+
+  /* =================== 그리기: 당일 =================== */
+  function timelineHTML(items){
+    return '<ol class="tl" id="timeline">' + items.map(function(r, i){
+      return '<li id="r' + i + '" data-s="' + r.s + '" data-e="' + r.e + '"' + (r.off ? ' class="off"' : '') + '><div class="tm">' + r.s + '<span>' + r.e + '</span></div><div class="w"><p class="ttl">' + r.t +
+        (r.badge ? ' <span class="badge me-b">' + r.badge + '</span>' : '') + '</p>' + (r.p ? '<p class="pl">' + r.p + '</p>' : '') + (r.n ? '<p class="note">' + r.n + '</p>' : '') + '</div></li>';
+    }).join('') + '</ol>';
+  }
+  var ITEMS = [];
+  function itemsFor(p){
+    if (!p || p.ci < 0) {
+      return PERIODS.map(function(x){ return { s: x.s, e: x.e, t: x.n, n: x.s === '16:37' ? '모든 고사가 끝난 뒤 16:37에 후문을 열어요' : x.s === '06:30' ? '06:30부터 정문은 감독관 차량을 막고 남문으로 보내요' : '' , mine: true }; });
+    }
+    var ci = p.ci;
+    return p.blocks.map(function(b){
+      var per = periodsIn(b.s, b.e).filter(function(n){ return n !== '등교 시간' || /문$/.test(b.v); });
+      if (!b.v) {
+        var note = '';
+        if (p.hall) {
+          var pi = COLS.indexOf(p.partner), restroom = b.rows.map(function(r){ return r[4][pi]; }).filter(function(v){ return /화장실/.test(v); })[0];
+          if (restroom) note = restroom + '은 ' + p.partner + ' 선생님 차례';
+        }
+        return { s: b.s, e: b.e, t: per.join(', ') || '배정 없음', n: note || '배정 없음', off: true };
+      }
+      var n = [];
+      if (b.v === '남문') n.push('감독관 차량 주차 안내, 수험생은 정문으로');
+      if (b.v === '정문') n.push('감독관 차량은 남문으로 안내');
+      if (/층 (동|서)편/.test(b.v)) {
+        if (toMin(b.s) <= toMin('08:40') && toMin(b.e) > toMin('08:00')) n.push('1교시 반입금지물품 받기');
+        if (toMin(b.s) < toMin('14:20') && toMin(b.e) >= toMin('14:20') && toMin(b.s) >= toMin('13:00')) n.push('듣기평가 끝나면 이상 유무를 본부에 알리기');
+        if (toMin(b.s) <= toMin('14:40') && toMin(b.e) >= toMin('16:37')) n.push('한국사 결시자 현황표를 본부에서 받아 다시 나눠 주기');
+      }
+      if (/화장실/.test(b.v)) n.push('제가 화장실을 맡는 차례예요');
+      return { s: b.s, e: b.e, t: dutyLabel(b.v), p: per.join(', '), n: n.join('. '), badge: /화장실/.test(b.v) ? '내 차례' : '' };
+    });
+  }
+  function dayHTML(p){
+    var h = '';
+    if (!p) {
+      h += sec('11월 19일 시험 시간표', '이름을 고르면 내 시간표로 바뀌어요.');
+      h += timelineHTML(ITEMS);
+      h += sec('누가 어디에 있나요');
+      h += todo([
+        { ic: 'car', when: '06:30~08:00', t: '정문, 남문 지도', s: '김재현, 남중권, 정광주 선생님과 복도감독관 8명이 차례로 서요.' },
+        { ic: 'people', when: '08:00~17:45', t: '본관 복도', s: '2층 박경록, 신영준. 3층 여승철, 임한수. 4층 이용기, 손준호. 5층 노상우, 김용현.' },
+        { ic: 'clip', when: '07:40부터', t: '시험실 관리요원 15명', s: '1명이 시험실 2개씩 문제지와 답안지를 맡아요.' },
+        { ic: 'bld', when: '하루 종일', t: '시험관리본부, 대기실', s: '운영요원, 행정요원은 본부에서, 미선택자는 별관 5층 대기실에서 기다려요.' }
+      ]);
+      return h;
+    }
+    h += sec('11월 19일 내 시간표', p.ci >= 0 ? '굵은 줄이 맡은 시간이에요. 흐린 줄은 배정이 없어요.' : '');
+    if (p.ci >= 0) {
+      h += timelineHTML(ITEMS) + '<div class="total"><span>원문 기준 감독 시간</span><b class="num">' + p.total.replace(':', '시간 ') + '분</b></div>';
+    }
+    if (p.mgr) {
+      var a = p.mgr[0], b = p.mgr[1], late = a <= 21;
+      var ev = [
+        { ic: 'clock', when: '07:40', t: '시험실 관리 시작', s: a + '실, ' + b + '실 문답지를 받아 넘기고 확인해요.' },
+        { ic: 'doc', when: '07:50', t: '1교시 문제지, 답안지 준비', s: '홀, 짝수형 문제지 각 1봉, 답안지 1봉.' },
+        { ic: 'doc', when: '09:40 (1교시 끝나기 20분 전)', t: '2교시 준비', s: '문제지를 나눈 뒤 1교시 답안지를 옆 시험실 담당과 교차 검토해요.' },
+        { ic: 'doc', when: '11:50 (2교시 끝나기 20분 전)', t: '3교시 준비', s: '문제지를 나눈 뒤 2교시 답안지 교차 검토.' },
+        { ic: 'doc', when: '14:00 (3교시 끝나기 20분 전)', t: '4교시 준비', s: '한국사 홀, 짝수형 각 1봉과 답안지 1봉, 탐구 단일형 문제지와 답안지 1봉. 탐구 문제지는 ' + a + '실 ' + tamgu(a) + ', ' + b + '실 ' + tamgu(b) + '.' },
+        { ic: 'clip', when: '4교시', t: '1~3교시 답안지 2차 검토, 한국사 답안지 교차 검토', s: '한 칸 건너 시험실 답안지를 봐요. 답안지 매수, 기재사항, 감독관 도장, 봉투 기재사항과 도장을 확인해요.' }
+      ];
+      if (late) ev.push({ ic: 'doc', when: '16:17 (4교시 끝나기 20분 전)', t: '5교시 준비', s: (b > 21 ? a + '실만 5교시를 봐요. ' : '') + '중도 포기 학생이 꼭 있으니 잘 확인해요.' });
+      ev.push({ ic: 'check', when: '4교시 끝난 뒤', t: '탐구 답안지 검토, 교차 검토', s: '이상이 없으면 감독관은 대기실로 가요. 1차, 2차 교차 검토 뒤 교무부장에게 보고해요.' +
+        (b <= 20 ? ' 5교시 응시포기자가 있을 수 있어 2차 교차 검토까지 해요.' : '') + (a === 21 || b === 21 ? ' 21실은 대기실로 안내해요.' : '') + (b >= 22 ? ' ' + (a >= 22 ? a + '~' + b : b) + '실은 복도감에게 안내해 하교해요.' : '') });
+      ev.push({ ic: 'box', when: '교차 검토 뒤', t: '거둔 문제지 정리', s: '상자에 담아 테이프로 붙이고 강당 입구 옆 창고에 보관해요.' });
+      h += todo(ev);
+      h += sec('꼭 기억할 것');
+      h += tip('info', ['감독관 입실 10분 전에 그 교시 문제지와 답안지를 시험실별로 나눠요.', '<b>문제지는 수량만</b> 확인해요. 수험번호순으로 정리하지 않아도 돼요.', '홀, 짝수형 표기가 없으면 문제지 유형을 확인하고 시험장 책임자 앞에서 제1감독관이 고쳐요.', '4교시 한국사가 끝나고 탐구가 시작되면 제2감독관이 한국사 답안지를 본부에 내요.', '응시하지 않은 선택과목 문제지는 개인 문제지 보관용 봉투에 넣은 채로 거둬요.', '문제지 수험번호는 샤프나 연필로 써도 괜찮아요.']);
+    }
+    var dayRoles = p.roles.filter(function(r){ return r.w !== '전날'; });
+    if (dayRoles.length) h += sec('당일 맡은 일') + roleCards(dayRoles);
+    if (p.hall) {
+      var f = p.floor, FL = FLOOR[f];
+      var tasks = [
+        { ic: 'box', when: '시작 전', t: '층별 수합 바구니, 휴대용 금속탐지기 받기', s: '시험관리본부에서 받고, 시험이 끝나면 본부에 돌려줘요.' },
+        { ic: 'box', when: '1교시 물품 거둘 때', t: f + '층 시험실 반입금지물품 받기', s: FL.store + ' 옮기는 동안 1명은 층에 남아 복도감독을 해요.' },
+        { ic: 'clip', when: '매 교시', t: '시험실별 결시자 현황표 모아 본부에 넘기기', s: '4교시 한국사 결시자 현황표는 본부 확인 뒤 다시 받아 각 시험실에 나눠 줘요.' },
+        { ic: 'ear', when: '3교시 듣기평가 뒤', t: '이상이 있었는지 본부에 알리기' }
+      ];
+      if (FL.late) tasks.push({ ic: 'down', when: '17:35 무렵 (5교시 끝나기 10분 전)', t: '본부에서 물품 가져오기', s: '시험이 끝나면 각 시험실에 나눠 줘요.' + (f === 3 ? ' 17~21실 물품이에요.' : '') });
+      h += sec('시간마다 챙길 일') + todo(tasks);
+      h += sec('시험 중 복도에서') + tip('info', [
+        '외부인과 퇴실한 수험생이 시험실에 다가오지 못하게 막아요.',
+        '시험 중 화장실 가는 수험생은 상하반신, 신발까지 검색하고, 함께 가서 칸을 정해 줘요.',
+        '화장실 점검 때 휴대용 금속탐지기로 통신기기를 숨겼는지 봐요.',
+        '시험실 감독관이 부르면 그 교시가 끝난 직후 감독관이 정한 곳이나 수험생을 검색해요.',
+        '답안지, 문제지가 모자라면 옆 시험실 여유분이나 본부 보관분을 가져다줘요.',
+        '응급환자가 생기면 시험장 책임자에게 바로 연락해요.',
+        '스마트안경 점검 요청이 오면 본부에 연락해서, 시험 시작 전이나 끝난 뒤에 점검요원과 함께 봐요.',
+        '옆 복도감독(<b>' + p.partner + '</b> 선생님)과 한 조예요. 자리를 비워야 하면 서로 맡아 줘요.'
+      ]) + tip('warn', null, '<div><b>금속탐지기는 소리가 나요.</b> 시험실 감독관이 부탁한 수험생, 시험 중 화장실 등을 드나드는 수험생, 시험장 책임자가 필요하다고 한 수험생에게만 써요.</div>');
+      h += sec('미선택자 인솔', FL.unsel ? FL.unsel : f + '층에는 미선택자 시험실이 없어서, 시험실 감독관이 부탁할 때만 해요.');
+      h += tip('people', [
+        '미선택자는 앞 교시가 끝난 쉬는 시간에 옮겨요. 1교시는 물품을 거둔 뒤에 옮겨요.',
+        '층마다 복도감독 1명이 모아서 한꺼번에 <b>별관 5층 미선택자 대기실</b>로 데려가요.',
+        '데려가기 전에 대기실에서 시험 준비를 할 수 있다고 알려 주고, 학습 자료를 가지러 가면 잠깐 기다려요.'
+      ]);
+    }
+    if (p.ci >= 0) {
+      var gates = p.blocks.filter(function(b){ return /문$/.test(b.v); });
+      if (gates.length) {
+        var with_ = [], gv = [];
+        gates.forEach(function(g){
+          if (gv.indexOf(g.v) < 0) gv.push(g.v);
+          g.rows.forEach(function(r){ r[4].forEach(function(v, i){ if (i !== p.ci && /문$/.test(v)) with_.push(COLS[i] + '(' + v + ')'); }); });
+        });
+        with_ = with_.filter(function(v, i, a){ return a.indexOf(v) === i; });
+        h += sec(gv.join(', ') + ' 지도 (' + gates.map(function(g){ return g.s.replace(/^0/, '') + '~' + g.e.replace(/^0/, ''); }).join(', ') + ')');
+        h += tip('car', [
+          '정문은 06:30부터 감독관 차량을 막고 남문으로 보내요.',
+          '남문은 감독관 차량을 들여보내 주차를 안내하고, 수험생은 정문으로 보내요.',
+          '수험생과 감독관 말고는 들어올 수 없어요. 후문은 모든 시험이 끝난 뒤 16:37에 열어요.'
+        ].concat(with_.length ? ['같은 시간에 ' + with_.join(', ') + ' 선생님이 함께 서요.'] : []));
+      }
+      if (p.name === '남중권' || p.name === '정광주') {
+        h += sec('대기실 감독') + tip('people', ['미선택자는 별관 5층 대기실에서 기다려요.', '미선택자 물품은 김재현 선생님이 대기실로 전해 주고, 나눠 주는 건 대기실 감독관이 해요.']);
+      }
+    }
+    if (p.ci < 0 && !p.mgr && !dayRoles.length) h += '<p class="sec-sub" style="margin-top:var(--sp-4)">원문에는 당일 따로 맡은 일이 없어요.</p>';
+    return h;
+  }
+
+  /* =================== 그리기: 전날 =================== */
+  function prepHTML(p){
+    if (!p) {
+      var h = sec('전날 맡은 일 전체', '이름을 고르면 내 일만 체크 목록으로 보여 줘요.');
+      h += '<div class="floor"><table class="ftable"><tbody>' + Object.keys(POSTER).map(function(n){
+        var x = POSTER[n]; return '<tr><th>' + n + '</th><td>' + x.f + '층 게시물: ' + x.r + '실 팻말, 표시, 뒷문 폐쇄 안내, 엘리베이터 사용금지, 수험생 화장실, 금연구역, 대기실 가는 길 ' + x.n + '</td></tr>';
+      }).join('') + Object.keys(ROLES).filter(function(n){ return ROLES[n].some(function(r){ return r.w === '전날'; }); }).map(function(n){
+        return '<tr><th>' + n + '</th><td>' + ROLES[n].filter(function(r){ return r.w === '전날'; }).map(function(r){ return r.i.join(', '); }).join(', ') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+      return h;
+    }
+    var items = [];
+    if (p.poster) {
+      var x = p.poster, f = x.f;
+      items = [
+        [x.r + ' 시험실 팻말', '각 시험실 학급 팻말에 끼워요', 'B4'],
+        [x.r + ' 시험실 표시', '각 시험실 앞문에 눈높이로', 'B4'],
+        [x.r + ' 시험실 뒷문 폐쇄 안내', '교실 뒷문에 눈높이로', 'B4'],
+        [f + '층 엘리베이터 사용금지', f + '층 엘리베이터 문', 'B4'],
+        ['수험생 화장실', f + '층 동편, 서편 학생용 화장실 앞', '2장'],
+        ['학교 전체 금연구역', f + '층 동편, 서편 학생용 화장실 앞', '2장'],
+        ['미선택자 대기실 가는 길', x.w, x.n]
+      ];
+    }
+    p.roles.filter(function(r){ return r.w === '전날'; }).forEach(function(r){ r.i.forEach(function(t){ items.push([t, r.r, '']); }); });
+    if (!items.length) {
+      var note = '원문에는 전날 따로 맡은 일이 없어요.';
+      if (p.hall) { var pn = Object.keys(POSTER).filter(function(n){ return POSTER[n].f === p.floor; })[0]; note = p.floor + '층 게시물은 ' + pn + ' 선생님이 붙여요. 원문에는 전날 따로 맡은 일이 없어요.'; }
+      return sec('전날 맡은 일') + '<div class="tip">' + svg('info') + '<div>' + note + '</div></div>';
+    }
+    return sec(p.poster ? p.poster.f + '층 게시물 붙이기' : '전날 맡은 일', '끝낸 것을 눌러 표시해 두세요. 이 기기에만 저장돼요.') +
+      '<div class="prog"><span>끝낸 일</span><b class="num" id="prog">0 / ' + items.length + '</b></div>' +
+      '<ul class="check" id="checks">' + items.map(function(it, i){
+        return '<li><label><input type="checkbox" data-k="c' + i + '"><div><p class="t">' + esc(it[0]) + '</p><p class="s">' + esc(it[1]) + '</p></div>' + (it[2] ? '<span class="cnt num">' + it[2] + '</span>' : '') + '</label></li>';
+      }).join('') + '</ul>';
+  }
+  function bindChecks(p){
+    var boxes = document.querySelectorAll('#checks input'); if (!boxes.length) return;
+    var KEY = 'suneung2027-checks-' + p.name, saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+    function prog(){ var n = 0; boxes.forEach(function(b){ if (b.checked) n++; }); document.getElementById('prog').textContent = n + ' / ' + boxes.length; }
+    boxes.forEach(function(b){
+      b.checked = !!saved[b.dataset.k];
+      b.addEventListener('change', function(){ saved[b.dataset.k] = b.checked; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} prog(); });
+    });
+    prog();
+  }
+
+  /* =================== 그리기: 배치도 =================== */
+  function mineRooms(p){
+    var s = {};
+    if (!p) return s;
+    if (p.hall) FLOORMAP[p.floor].forEach(function(r){ if (typeof r[0] === 'number') s[r[0]] = 1; });
+    if (p.mgr) { s[p.mgr[0]] = 1; s[p.mgr[1]] = 1; }
+    if (p.name === '손준호') s['예비'] = 1;
+    return s;
+  }
+  function floorsHTML(p){
+    var mine = mineRooms(p), any = Object.keys(mine).length;
+    return [5, 4, 3, 2].map(function(f){
+      return '<div class="floor"><h3>본관 ' + f + '층</h3><p class="fs">' + { 5: '1~7실 (2학년 교실)', 4: '8~16실. 13실은 미선택자 시험실', 3: '17~24실. 21실은 미선택자 시험실', 2: '25~30실과 예비시험실. 30실은 미선택자 시험실' }[f] + '</p><div class="rooms">' +
+        FLOORMAP[f].map(function(r){
+          if (typeof r[0] !== 'number' && r[0] !== '예비') return '<div class="room etc"><span class="no">' + r[0] + '</span></div>';
+          var on = mine[r[0]];
+          var no = r[0] === '예비' ? '예비<small>시험실</small>' : r[0] + '<small>실</small>';
+          return '<div class="room' + (on ? ' mine' : '') + '"><span class="no num">' + no + '</span><span class="cl num">' + r[1] + (UNSEL[r[0]] ? ' <span class="tag">미선택자</span>' : '') + '</span></div>';
+        }).join('') + '</div></div>';
+    }).join('') + '<div class="legend">' + (any ? '<span><i class="m"></i>맡은 시험실</span>' : '') + '<span><i></i>시험실</span></div>';
+  }
+
+  /* =================== 전체 시간표, 이름 목록 =================== */
+  function bigTable(me){
+    var h = '<thead><tr><th>구분</th><th>시작</th><th>종료</th><th>시간</th>';
+    COLS.forEach(function(c, i){ h += '<th' + (i === me ? ' class="mcol"' : '') + '>' + c + '</th>'; });
+    h += '</tr></thead><tbody>';
+    ROWS.forEach(function(r){
+      h += '<tr><th>' + (r[0] || '<span class="muted">정문남문지도</span>') + '</th><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td>';
+      r[4].forEach(function(v, i){ h += '<td' + (i === me ? ' class="mcol"' : '') + '>' + (v || '<span class="muted">-</span>') + '</td>'; });
+      h += '</tr>';
+    });
+    h += '<tr><th>감독시간</th><td></td><td></td><td></td>';
+    TOT.forEach(function(v, i){ h += '<td class="num' + (i === me ? ' mcol' : '') + '">' + v + '</td>'; });
+    document.getElementById('bigtable').innerHTML = h + '</tr></tbody>';
+  }
+  function peopleList(){
+    document.getElementById('people').innerHTML = GROUPS.map(function(g){
+      return g[1].map(function(n){
+        var p = person(n), what = p.head.replace(/이에요$|예요$|을 맡아요$|를 맡아요$/, '');
+        return '<li><button type="button" data-name="' + n + '">' + n + '</button><span>' + what + '</span></li>';
+      }).join('');
+    }).join('');
+  }
+
+  /* =================== 이름 강조 =================== */
+  function markName(root, name){
+    root.querySelectorAll('mark.me').forEach(function(m){ m.replaceWith(document.createTextNode(m.textContent)); });
+    root.normalize();
+    if (!name) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n){
+      return n.nodeValue.indexOf(name) > -1 && !n.parentElement.closest('script, style, mark, button') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    } });
+    var nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+    nodes.forEach(function(n){
+      var parts = n.nodeValue.split(name), fr = document.createDocumentFragment();
+      parts.forEach(function(t, i){
+        if (i) { var m = document.createElement('mark'); m.className = 'me'; m.textContent = name; fr.appendChild(m); }
+        if (t) fr.appendChild(document.createTextNode(t));
+      });
+      n.replaceWith(fr);
+    });
+  }
+
+  /* =================== 전체 그리기 =================== */
+  function render(){
+    var p = CUR;
+    ITEMS = itemsFor(p);
+    document.getElementById('hero').innerHTML = heroHTML(p);
+    document.getElementById('day-root').innerHTML = dayHTML(p);
+    document.getElementById('prep-root').innerHTML = prepHTML(p);
+    document.getElementById('floors').innerHTML = floorsHTML(p);
+    document.getElementById('map-sub').textContent = p && Object.keys(mineRooms(p)).length ? '칠한 칸이 ' + p.name + ' 선생님이 맡은 시험실이에요.' : '위 숫자는 시험실 번호, 아래는 평소 학급이에요.';
+    bigTable(p ? p.ci : -1);
+    if (p) bindChecks(p);
+    markName(document.getElementById('main'), p && p.name);
+    document.title = p ? '2027 수능 ' + p.name + ' 감독 안내' : '2027 수능 감독 안내';
+    IDX = null;
+    tick();
+  }
+  function choose(name, keepScroll){
+    CUR = person(name);
+    try { if (name) localStorage.setItem('suneung2027-name', name); else localStorage.removeItem('suneung2027-name'); } catch (e) {}
+    var url = location.pathname + (name ? '?n=' + encodeURIComponent(name) : '') + location.hash;
+    history.replaceState(null, '', url);
+    render();
+    if (!keepScroll) window.scrollTo(0, 0);
+  }
+
+  /* =================== 지금 할 일 =================== */
+  function setNow(k, v, d){ document.getElementById('now-k').textContent = k; document.getElementById('now-v').textContent = v; document.getElementById('now-d').textContent = d; }
+  function tick(){
+    var t = kst(), key = t.y * 10000 + t.mo * 100 + t.d, EXAM = 20261119, p = CUR;
+    var bar = document.getElementById('now-bar'), ends = document.getElementById('now-ends'), ol = document.getElementById('timeline');
+    bar.hidden = true; ends.hidden = true;
+    if (ol) Array.prototype.forEach.call(ol.children, function(li){ li.classList.remove('cur', 'past'); var b = li.querySelector('.now-b'); if (b) b.remove(); });
+    var first = p && p.first ? p.first : null;
+    if (key < EXAM) {
+      var left = (Date.UTC(2026, 10, 19) - Date.UTC(t.y, t.mo - 1, t.d)) / 86400000;
+      var k = left === 1 ? '내일이 수능이에요' : '수능까지 ' + left + '일';
+      if (first) setNow(k, (left === 1 ? '내일 ' : '11월 19일 ') + ko(first.s) + ', ' + first.t + '부터 시작해요', p.roles.some(function(r){ return r.w === '전날'; }) || p.poster ? '전날 할 일은 전날 준비 탭에 체크 목록으로 모아 뒀어요.' : '맡은 일은 아래에 모아 뒀어요.');
+      else if (p) setNow(k, '11월 19일 목요일 오전 8시 40분, 1교시가 시작돼요', p.roles.some(function(r){ return r.w === '전날'; }) ? '전날 할 일은 아래 전날 준비 탭에서 확인할 수 있어요.' : '맡은 일은 아래에 모아 뒀어요.');
+      else setNow(k, '11월 19일 목요일 오전 8시 40분, 1교시가 시작돼요', '이름을 고르면 내 할 일만 모아 보여 줘요.');
+      return;
+    }
+    if (key > EXAM) { setNow('수능이 끝났어요', '수고 많으셨어요', '아래 내용은 기록으로 남겨 둘게요.'); markPast(24 * 60, ol); return; }
+    var now = t.min;
+    markPast(now, ol);
+    var cur = -1;
+    ITEMS.forEach(function(r, i){ if (now >= toMin(r.s) && now < toMin(r.e)) cur = i; });
+    if (p && p.ci >= 0) {
+      if (now < toMin(ITEMS[0].s)) { setNow('오늘 첫 일', ko(ITEMS[0].s) + ' ' + ITEMS[0].t + '까지 ' + hm(toMin(ITEMS[0].s) - now) + ' 남았어요', ITEMS[0].n || ''); return; }
+      if (cur < 0) { setNow('오늘 일정', '맡은 시간이 모두 끝났어요', p.hall ? '수합 바구니와 금속탐지기를 본부에 돌려줬는지 확인해 주세요.' : '수고 많으셨어요.'); return; }
+    } else if (cur < 0) {
+      var nx = ITEMS.filter(function(r){ return toMin(r.s) > now; })[0];
+      setNow('오늘', nx ? ko(nx.s) + ' ' + nx.t + '까지 ' + hm(toMin(nx.s) - now) + ' 남았어요' : '모든 시험이 끝났어요', p && p.mgr ? '07:40부터 시험실 관리를 시작해요.' : '');
+      return;
+    }
+    var r = ITEMS[cur], li = document.getElementById('r' + cur);
+    if (li) { li.classList.add('cur'); var b = document.createElement('span'); b.className = 'badge now-b'; b.textContent = '지금'; li.querySelector('.ttl').appendChild(b); }
+    var next = null;
+    for (var j = cur + 1; j < ITEMS.length; j++) if (!ITEMS[j].off) { next = ITEMS[j]; break; }
+    setNow('지금 ' + r.s + '~' + r.e, r.off ? r.t + ' (배정 없음)' : r.t + (r.p ? ', ' + r.p : ''),
+      (r.n && !r.off ? r.n + '. ' : r.off && r.n && r.n !== '배정 없음' ? r.n + '. ' : '') + (next ? '다음은 ' + next.s + ' ' + next.t + '이에요.' : p && p.ci >= 0 ? '이후 맡은 시간은 없어요.' : ''));
+    var s = toMin(r.s), e = toMin(r.e);
+    bar.hidden = false; ends.hidden = false;
+    bar.firstElementChild.style.width = Math.round((now - s) / (e - s) * 100) + '%';
+    ends.children[0].textContent = r.s; ends.children[1].textContent = (e - now) + '분 남음';
+  }
+  function markPast(now, ol){
+    if (!ol) return;
+    ITEMS.forEach(function(r, i){ if (now >= toMin(r.e)) { var li = document.getElementById('r' + i); if (li) li.classList.add('past'); } });
+  }
+
+  /* =================== 탭 =================== */
+  var tabs = document.querySelectorAll('.tabbar a');
+  var MAP = { day: 'v-day', prep: 'v-prep', map: 'v-map', all: 'v-all' };
+  var RMAP = { 'v-day': '#day', 'v-prep': '#prep', 'v-map': '#map', 'v-all': '#all' };
+  function show(id, scroll){
+    document.querySelectorAll('section.view').forEach(function(s){ s.classList.toggle('on', s.id === id); });
+    tabs.forEach(function(a){ if (a.dataset.v === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    if (scroll) window.scrollTo(0, 0);
+  }
+  tabs.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      history.replaceState(null, '', location.pathname + location.search + a.getAttribute('href'));
+      show(a.dataset.v, true);
+    });
+  });
+
+  /* =================== 이름 고르기 =================== */
+  var pk = document.getElementById('picker'), pq = document.getElementById('pq'), plist = document.getElementById('plist');
+  function renderPicker(){
+    var q = pq.value.replace(/\s+/g, '');
+    var html = GROUPS.map(function(g){
+      var names = g[1].filter(function(n){ return !q || n.indexOf(q) > -1 || (q === '김용형' && n === '김용현'); });
+      if (!names.length) return '';
+      return '<div class="grp"><h3>' + g[0] + '</h3><div class="names">' + names.map(function(n){
+        var on = CUR && CUR.name === n, sub = HALL[n] ? HALL[n][0] + '층' : MGR[n] ? MGR[n][0] + '~' + MGR[n][1] + '실' : '';
+        return '<button type="button" class="nm" data-name="' + n + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + (on ? svg('check') : '') + n + (sub ? ' <small>' + sub + '</small>' : '') + '</button>';
+      }).join('') + '</div></div>';
+    }).join('');
+    plist.innerHTML = (html || '<div class="empty"><b>&lsquo;' + esc(pq.value) + '&rsquo; 이름이 원문에 없어요</b>다른 이름으로 찾아보세요.</div>') +
+      (CUR ? '<button type="button" class="clear" data-name="">이름 고르지 않고 전체 보기</button>' : '');
+  }
+  function openPicker(){ if (pk.open) return; pq.value = ''; renderPicker(); pk.showModal(); if (matchMedia('(hover: hover)').matches) pq.focus(); }
+  pq.addEventListener('input', renderPicker);
+  pq.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter') return;
+    var b = plist.querySelector('.nm'); if (b) { e.preventDefault(); pk.close(); choose(b.dataset.name); }
+  });
+  pk.addEventListener('click', function(e){
+    if (e.target === pk || e.target.closest('[data-close]')) { pk.close(); return; }
+    var b = e.target.closest('[data-name]');
+    if (b) { pk.close(); choose(b.dataset.name || null); show('v-day', false); history.replaceState(null, '', location.pathname + location.search + '#day'); }
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.closest('[data-pick]')) { openPicker(); return; }
+    var b = e.target.closest('#people [data-name]');
+    if (b) { choose(b.dataset.name); show('v-day', false); history.replaceState(null, '', location.pathname + location.search + '#day'); }
+  });
+
+  /* =================== 머리 막대 선 =================== */
+  var bar0 = document.getElementById('appbar');
+  function onScroll(){ bar0.classList.toggle('scrolled', window.scrollY > 4); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* =================== 검색 =================== */
+  var SECN = { 'v-day': '당일 할 일', 'v-prep': '전날 준비', 'v-map': '배치도', 'v-all': '전체 안내' };
+  var SEL = 'li, tr, .kv dd, details .body > p, .room, .tip > div, .floor > .fs, .floor > p, .role';
+  var IDX = null;
+  function clean(s){ return s.replace(/\s+/g, ' ').trim(); }
+  function heading(el){
+    var d = el.closest('details');
+    if (d) return d.querySelector('summary .t').textContent;
+    var t = '';
+    el.closest('section.view').querySelectorAll('h2.sec-title, .floor h3').forEach(function(h){
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) t = h.textContent;
+    });
+    return clean(t);
+  }
+  function build(){
+    IDX = [];
+    var all = Array.prototype.slice.call(document.querySelectorAll('section.view')).reduce(function(a, s){
+      return a.concat(Array.prototype.slice.call(s.querySelectorAll(SEL)));
+    }, []);
+    var set = new Set(all);
+    all.forEach(function(el){
+      if (el.closest('#bigtable') || el.closest('thead') || el.closest('#people')) return;
+      var p = el.parentElement;
+      while (p && !p.matches('section.view')) { if (set.has(p)) return; p = p.parentElement; }
+      var txt = el.matches('dd') && el.previousElementSibling ? el.previousElementSibling.textContent + ' ' + el.textContent : el.textContent;
+      if (el.matches('tr')) txt = Array.prototype.map.call(el.cells, function(c){ return c.textContent; }).filter(Boolean).join(', ');
+      if (el.closest('.tl')) {
+        var tm = el.querySelector('.tm');
+        txt = tm.firstChild.textContent + '~' + tm.querySelector('span').textContent + ' ' + el.querySelector('.w').textContent;
+      }
+      txt = clean(txt);
+      if (txt) IDX.push({ el: el, sec: el.closest('section.view').id, where: heading(el), text: txt });
+    });
+    /* 사람별 요약: 누르면 그 사람 화면으로 */
+    ALL.forEach(function(n){
+      var p = person(n), txt = n + ' 선생님: ' + p.head.replace(/이에요$|예요$/, '');
+      if (p.ci >= 0) txt += '. ' + p.blocks.filter(function(b){ return b.v; }).map(function(b){ return b.s + '~' + b.e + ' ' + b.v; }).join(', ');
+      IDX.push({ name: n, sec: 'v-day', where: '이 선생님 화면 보기', text: txt });
+    });
+  }
+  function norm(s){ return s.replace(/\s+/g, '').toLowerCase(); }
+  function pattern(q){
+    return new RegExp(Array.prototype.map.call(norm(q), function(ch){ return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('\\s*'), 'i');
+  }
+  function snippet(text, re){
+    var m = re.exec(text); if (!m) return esc(text);
+    var a = m.index, b = a + m[0].length, L = 46;
+    var s = Math.max(0, a - L), e = Math.min(text.length, b + L + 30);
+    return (s > 0 ? '...' : '') + esc(text.slice(s, a)) + '<mark class="hl">' + esc(m[0]) + '</mark>' + esc(text.slice(b, e)) + (e < text.length ? '...' : '');
+  }
+  var dlg = document.getElementById('search'), qi = document.getElementById('q'), out = document.getElementById('sres');
+  var openBtn = document.getElementById('search-open');
+  var CHIPS = ['김재현', '13실', '화장실', '금속탐지기', '결시자', '미선택자', '14:20', '보건실'];
+  var HITS = [];
+  function renderSearch(){
+    var raw = qi.value.trim().replace(/김용형/g, '김용현');
+    if (!raw) {
+      out.innerHTML = '<p class="meta">이렇게 찾아보세요</p><div class="chips">' +
+        CHIPS.map(function(c){ return '<button type="button" class="chip" data-q="' + c + '">' + c + '</button>'; }).join('') + '</div>';
+      return;
+    }
+    if (!IDX) build();
+    var re = pattern(raw), nq = norm(raw);
+    HITS = IDX.filter(function(it){ return norm(it.text).indexOf(nq) > -1 || (!it.name && norm(it.where).indexOf(nq) > -1); });
+    HITS.sort(function(a, b){ return (b.name ? 1 : 0) - (a.name ? 1 : 0); });
+    if (!HITS.length) {
+      out.innerHTML = '<div class="empty"><b>&lsquo;' + esc(raw) + '&rsquo;와 맞는 내용이 없어요</b>이름, 시험실 번호, 시간으로 찾아보세요.</div>';
+      return;
+    }
+    out.innerHTML = '<p class="meta num">' + HITS.length + '곳에서 찾았어요</p>' + HITS.slice(0, 80).map(function(it, i){
+      return '<button type="button" class="item" data-i="' + i + '"><span class="where">' + (it.name ? '이름' : SECN[it.sec]) + (it.where ? ', ' + esc(it.where) : '') +
+        '</span><span class="snip">' + snippet(it.text, re) + '</span></button>';
+    }).join('');
+  }
+  function go(it){
+    dlg.close();
+    if (it.name) { choose(it.name); show('v-day', false); history.replaceState(null, '', location.pathname + location.search + '#day'); return; }
+    show(it.sec, false);
+    history.replaceState(null, '', location.pathname + location.search + RMAP[it.sec]);
+    var d = it.el.closest('details'); if (d) d.open = true;
+    var target = it.el;
+    requestAnimationFrame(function(){
+      target.scrollIntoView({ block: 'center', inline: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      target.classList.add('flash');
+      setTimeout(function(){ target.classList.remove('flash'); }, 1800);
+    });
+  }
+  function openSearch(){
+    if (dlg.open || pk.open) return;
+    dlg.showModal(); renderSearch();
+    qi.focus(); qi.select();
+    openBtn.setAttribute('aria-expanded', 'true');
+  }
+  openBtn.addEventListener('click', openSearch);
+  dlg.addEventListener('close', function(){ openBtn.setAttribute('aria-expanded', 'false'); });
+  qi.addEventListener('input', renderSearch);
+  qi.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && HITS.length && qi.value.trim()) { e.preventDefault(); go(HITS[0]); }
+  });
+  dlg.addEventListener('click', function(e){
+    if (e.target === dlg || e.target.closest('[data-close]')) { dlg.close(); return; }
+    var chip = e.target.closest('.chip');
+    if (chip) { qi.value = chip.dataset.q; renderSearch(); qi.focus(); return; }
+    var item = e.target.closest('.item');
+    if (item) go(HITS[+item.dataset.i]);
+  });
+  document.addEventListener('keydown', function(e){
+    var typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+    if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) { e.preventDefault(); openSearch(); }
+  });
+
+  /* =================== 시작 =================== */
+  peopleList();
+  var start = null;
+  try { start = new URLSearchParams(location.search).get('n'); } catch (e) {}
+  if (start === '김용형') start = '김용현';
+  if (!start || ALL.indexOf(start) < 0) { start = null; try { var s0 = localStorage.getItem('suneung2027-name'); if (ALL.indexOf(s0) > -1) start = s0; } catch (e) {} }
+  CUR = person(start);
+  if (start) history.replaceState(null, '', location.pathname + '?n=' + encodeURIComponent(start) + location.hash);
+  render();
+  var h0 = location.hash.slice(1);
+  if (MAP[h0]) show(MAP[h0], false);
+  else { var t0 = kst(); if (CUR && t0.y === 2026 && t0.mo === 11 && t0.d === 18 && document.getElementById('checks')) show('v-prep', false); }
+  setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>
