@@ -209,6 +209,47 @@ details.acc .body b{color:var(--text-strong);font-weight:600}
 .kv dd{margin:0}
 .foot{font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--sp-8);line-height:1.6}
 
+/* ===== 머리 막대 ===== */
+.appbar{position:sticky;top:0;z-index:9;background:var(--bg);padding-top:env(safe-area-inset-top);transition:box-shadow var(--dur-fast) var(--ease)}
+.appbar.scrolled{box-shadow:inset 0 -1px 0 var(--line)}
+.appbar .in{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2)}
+.appbar .logo{font-size:var(--fs-body);font-weight:700;color:var(--text-strong)}
+.icon-btn{width:var(--touch);height:var(--touch);display:grid;place-items:center;border:0;background:none;color:var(--text-strong);border-radius:var(--r-control);margin-right:calc(var(--sp-3) * -1);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.icon-btn:active{background:var(--fill-subtle)}
+.icon-btn svg{width:24px;height:24px}
+.hero{padding-top:var(--sp-2)}
+
+/* ===== 검색 ===== */
+.search{padding:0;border:0;margin:0;inset:0;width:100%;max-width:none;height:100dvh;max-height:none;border-radius:0;background:var(--surface-raised);color:var(--text-strong);flex-direction:column;overscroll-behavior:contain}
+.search[open]{display:flex}
+.search::backdrop{background:rgba(16,24,40,.42)}
+.search .sbar{display:flex;align-items:center;gap:var(--sp-2);padding:calc(env(safe-area-inset-top) + var(--sp-2)) var(--page-x) var(--sp-2)}
+.search .field{flex:1;min-width:0;position:relative}
+.search .field svg{position:absolute;left:.75rem;top:50%;translate:0 -50%;width:20px;height:20px;color:var(--icon-muted);pointer-events:none}
+.search input{width:100%;height:3rem;padding:0 var(--sp-3) 0 2.625rem;border:0;border-radius:var(--r-control);background:var(--fill-subtle);color:var(--text-strong);font:inherit;font-size:max(1rem,16px);caret-color:var(--accent)}
+.search input::placeholder{color:var(--text-muted);opacity:1}
+.search input:focus-visible{outline:2px solid var(--focus);outline-offset:0}
+.search .close{flex:none;min-width:var(--touch);height:var(--touch);padding:0 var(--sp-2);border:0;background:none;color:var(--text);font:inherit;font-weight:600;cursor:pointer;border-radius:var(--r-control)}
+.search .res{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding-bottom:calc(env(safe-area-inset-bottom) + var(--sp-6))}
+.search .meta{padding:var(--sp-3) var(--page-x) var(--sp-1);font-size:var(--fs-small);color:var(--text-muted)}
+.search .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);padding:var(--sp-2) var(--page-x)}
+.search .chip{height:2.5rem;padding:0 var(--sp-4);border-radius:999px;border:0;background:var(--fill-subtle);color:var(--text);font:inherit;font-size:var(--fs-small);font-weight:500;cursor:pointer}
+.search .item{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit;padding:var(--sp-3) var(--page-x);cursor:pointer;min-height:var(--row-h)}
+.search .item + .item{box-shadow:inset 0 1px 0 var(--line)}
+.search .item:active{background:var(--fill-subtle)}
+@media (hover:hover){.search .item:hover,.search .chip:hover{background:var(--fill-subtle)}}
+.search .where{display:block;font-size:var(--fs-caption);color:var(--text-muted);font-weight:600}
+.search .snip{display:block;font-size:var(--fs-body);color:var(--text-strong);margin-top:2px}
+.search .empty{padding:var(--sp-8) var(--page-x);text-align:center;color:var(--text-muted);font-size:var(--fs-body)}
+.search .empty b{display:block;color:var(--text-strong);font-size:var(--fs-body-lg);margin-bottom:var(--sp-1)}
+mark.hl{background:var(--accent-weak);color:var(--accent-text);font-weight:700;padding:0 1px;border-radius:2px}
+html:has(.search[open]){overflow:hidden}
+@media (min-width:744px){
+  .search{margin:auto;width:min(36rem,calc(100% - 3rem));height:min(40rem,80dvh);border-radius:var(--r-sheet);box-shadow:0 12px 32px rgba(16,24,40,.12)}
+  .search .sbar{padding-top:var(--sp-4)}
+}
+.flash,.flash > td,.flash > th{background:var(--accent-weak)!important;transition:background var(--dur) var(--ease)}
+
 /* ===== 아래 탭 막대 / 왼쪽 막대 ===== */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);box-shadow:inset 0 1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .tabbar a{height:var(--tabbar-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-muted);text-decoration:none;font-size:var(--fs-caption);font-weight:500;-webkit-tap-highlight-color:transparent}
@@ -225,8 +266,27 @@ details.acc .body b{color:var(--text-strong);font-weight:600}
 <body>
 <div class="app">
 
-  <header class="wrap top hero">
-    <p class="eyebrow-free">2027 대학수학능력시험 감독 안내</p>
+  <header class="appbar" id="appbar">
+    <div class="wrap in">
+      <span class="logo">2027 수능 감독 안내</span>
+      <button class="icon-btn" id="search-open" type="button" aria-label="안내문 검색" aria-haspopup="dialog" aria-controls="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <dialog class="search" id="search" aria-label="안내문 검색">
+    <div class="sbar">
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="이름, 시험실, 시간, 낱말" autocomplete="off" enterkeyhint="search" aria-label="찾을 말" aria-controls="sres">
+      </div>
+      <button class="close" type="button" data-close>닫기</button>
+    </div>
+    <div class="res" id="sres" role="region" aria-live="polite"></div>
+  </dialog>
+
+  <div class="wrap hero">
     <h1><mark class="me">김용현</mark> 선생님은<br>본관 5층 서편 복도감독이에요</h1>
     <p class="sub">5층 1~7 시험실을 <b>노상우</b> 선생님(5층 동편)과 함께 맡아요.</p>
     <div class="facts">
@@ -234,7 +294,7 @@ details.acc .body b{color:var(--text-strong);font-weight:600}
       <span class="fact num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>감독 7시간 52분</span>
       <span class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>첫 일 6:50 남문</span>
     </div>
-  </header>
+  </div>
 
   <main class="wrap">
 
@@ -816,6 +876,130 @@ details.acc .body b{color:var(--text-strong);font-weight:600}
     });
   });
   prog();
+
+  /* ----- 머리 막대 선 ----- */
+  var bar0 = document.getElementById('appbar');
+  function onScroll(){ bar0.classList.toggle('scrolled', window.scrollY > 4); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ----- 검색 ----- */
+  var SECN = { 'v-day': '내 일정', 'v-prep': '오늘 준비', 'v-map': '배치도', 'v-all': '전체 안내' };
+  var SEL = 'li, tr, .kv dd, details .body > p, .room, .tip > div, .floor > .fs';
+  var IDX = null;
+  function clean(s){ return s.replace(/\s+/g, ' ').trim(); }
+  function heading(el){
+    var d = el.closest('details');
+    if (d) return d.querySelector('summary .t').textContent;
+    var t = '';
+    el.closest('section.view').querySelectorAll('h2.sec-title, .floor h3').forEach(function(h){
+      if (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) t = h.textContent;
+    });
+    return clean(t);
+  }
+  function build(){
+    IDX = [];
+    var all = Array.prototype.slice.call(document.querySelectorAll('section.view')).reduce(function(a, s){
+      return a.concat(Array.prototype.slice.call(s.querySelectorAll(SEL)));
+    }, []);
+    var set = new Set(all);
+    all.forEach(function(el){
+      if (el.closest('#bigtable') || el.closest('thead')) return;
+      var p = el.parentElement;
+      while (p && !p.matches('section.view')) { if (set.has(p)) return; p = p.parentElement; }
+      var txt = el.matches('dd') && el.previousElementSibling ? el.previousElementSibling.textContent + ' ' + el.textContent : el.textContent;
+      if (el.matches('tr')) txt = Array.prototype.map.call(el.cells, function(c){ return c.textContent; }).filter(Boolean).join(', ');
+      if (el.closest('.tl')) {   /* 시간표 줄은 시각을 06:50~07:15처럼 */
+        var tm = el.querySelector('.tm');
+        txt = tm.firstChild.textContent + '~' + tm.querySelector('span').textContent + ' ' + el.querySelector('.w').textContent;
+      }
+      txt = clean(txt);
+      if (txt) IDX.push({ el: el, sec: el.closest('section.view').id, where: heading(el), text: txt });
+    });
+    /* 사람별 시간표 (전체 시간표 표에서) */
+    var bt = document.getElementById('bigtable'), at = -1;
+    IDX.forEach(function(it, i){ if (bt.closest('details').contains(it.el) && at < 0) at = i; });
+    var people = COLS.map(function(c, ci){
+      var parts = [], last = null;
+      ROWS.forEach(function(r){
+        var v = r[4][ci]; if (!v) { last = null; return; }
+        if (last && last.v === v && last.e === r[1]) { last.e = r[2]; return; }
+        last = { s: r[1], e: r[2], v: v }; parts.push(last);
+      });
+      var txt = c + ' 선생님 (감독 ' + TOT[ci] + '): ' + parts.map(function(p){ return p.s + '~' + p.e + ' ' + p.v; }).join(', ');
+      return { el: bt.querySelectorAll('thead th')[4 + ci], sec: 'v-all', where: '복도감독관 시간표', text: txt };
+    });
+    IDX.splice(at < 0 ? IDX.length : at, 0, ...people);
+  }
+  function esc(s){ return s.replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function norm(s){ return s.replace(/\s+/g, '').toLowerCase(); }
+  function pattern(q){
+    return new RegExp(Array.prototype.map.call(norm(q), function(ch){ return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('\\s*'), 'i');
+  }
+  function snippet(text, re){
+    var m = re.exec(text); if (!m) return esc(text);
+    var a = m.index, b = a + m[0].length, L = 46;
+    var s = Math.max(0, a - L), e = Math.min(text.length, b + L + 30);
+    return (s > 0 ? '...' : '') + esc(text.slice(s, a)) + '<mark class="hl">' + esc(m[0]) + '</mark>' + esc(text.slice(b, e)) + (e < text.length ? '...' : '');
+  }
+  var dlg = document.getElementById('search'), qi = document.getElementById('q'), out = document.getElementById('sres');
+  var openBtn = document.getElementById('search-open');
+  var CHIPS = ['노상우', '김재현', '13실', '화장실', '금속탐지기', '결시자', '미선택자', '14:20'];
+  var HITS = [];
+  function render(){
+    var raw = qi.value.trim().replace(/김용형/g, '김용현');
+    if (!raw) {
+      out.innerHTML = '<p class="meta">이렇게 찾아보세요</p><div class="chips">' +
+        CHIPS.map(function(c){ return '<button type="button" class="chip" data-q="' + c + '">' + c + '</button>'; }).join('') + '</div>';
+      return;
+    }
+    if (!IDX) build();
+    var re = pattern(raw), nq = norm(raw);
+    HITS = IDX.filter(function(it){ return norm(it.text).indexOf(nq) > -1 || norm(it.where).indexOf(nq) > -1; });
+    if (!HITS.length) {
+      out.innerHTML = '<div class="empty"><b>&lsquo;' + esc(raw) + '&rsquo;와 맞는 내용이 없어요</b>이름, 시험실 번호, 시간으로 찾아보세요.</div>';
+      return;
+    }
+    out.innerHTML = '<p class="meta num">' + HITS.length + '곳에서 찾았어요</p>' + HITS.slice(0, 80).map(function(it, i){
+      return '<button type="button" class="item" data-i="' + i + '"><span class="where">' + SECN[it.sec] + (it.where ? ', ' + esc(it.where) : '') +
+        '</span><span class="snip">' + snippet(it.text, re) + '</span></button>';
+    }).join('');
+  }
+  function go(it){
+    dlg.close();
+    show(it.sec, false);
+    var MAPR = { 'v-day': '#day', 'v-prep': '#prep', 'v-map': '#map', 'v-all': '#all' };
+    history.replaceState(null, '', MAPR[it.sec]);
+    var d = it.el.closest('details'); if (d) d.open = true;
+    var target = it.el;
+    requestAnimationFrame(function(){
+      target.scrollIntoView({ block: 'center', inline: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      target.classList.add('flash');
+      setTimeout(function(){ target.classList.remove('flash'); }, 1800);
+    });
+  }
+  function openSearch(){
+    if (dlg.open) return;
+    dlg.showModal(); render();
+    qi.focus(); qi.select();
+    openBtn.setAttribute('aria-expanded', 'true');
+  }
+  openBtn.addEventListener('click', openSearch);
+  dlg.addEventListener('close', function(){ openBtn.setAttribute('aria-expanded', 'false'); });
+  qi.addEventListener('input', render);
+  qi.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && HITS.length && qi.value.trim()) { e.preventDefault(); go(HITS[0]); }
+  });
+  dlg.addEventListener('click', function(e){
+    if (e.target === dlg || e.target.closest('[data-close]')) { dlg.close(); return; }
+    var chip = e.target.closest('.chip');
+    if (chip) { qi.value = chip.dataset.q; render(); qi.focus(); return; }
+    var item = e.target.closest('.item');
+    if (item) go(HITS[+item.dataset.i]);
+  });
+  document.addEventListener('keydown', function(e){
+    var typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+    if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) { e.preventDefault(); openSearch(); }
+  });
 })();
 </script>
 </body>
