@@ -1,0 +1,822 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f1f3f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:,">
+<title>2027 수능 김용현 감독 안내</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* ===== 당토 디자인 토큰 (숲) ===== */
+:root{
+  --accent-light:#0e8063;--on-accent-light:#fff;--accent-dark:#3fc79d;--on-accent-dark:#06231a;
+  --third-base:#f2c94c;
+  --gray-50:#f8f9fb;--gray-100:#f1f3f6;--gray-200:#e4e7ec;--gray-300:#d0d5dd;--gray-400:#a9b1bd;--gray-500:#868f9c;--gray-600:#646d7a;--gray-700:#4a5260;--gray-800:#2f3640;--gray-900:#1a1e25;
+  --bg:var(--gray-100);--surface:#fff;--surface-raised:#fff;--fill-subtle:var(--gray-100);
+  --text-strong:var(--gray-900);--text:var(--gray-700);--text-muted:var(--gray-600);--icon-muted:var(--gray-500);--text-disabled:var(--gray-400);
+  --line:rgba(16,24,40,.08);--line-strong:rgba(16,24,40,.16);--focus:#2a64d4;
+  --positive:#0b7a52;--positive-weak:#e6f5ee;--warning:#a0560a;--warning-weak:#fdf1e3;--critical:#c8293a;--critical-weak:#fdecee;--info:#2a64d4;--info-weak:#eaf1fd;
+  --accent:var(--accent-light);--on-accent:var(--on-accent-light);--third:var(--third-base);
+  --mark-bg:#fbe7a1;--mark-text:#3a2c00;
+  --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --fs-caption:.8125rem;--fs-small:.875rem;--fs-body:1rem;--fs-body-lg:1.0625rem;--fs-title-s:1.25rem;--fs-title:1.5rem;--fs-title-l:1.875rem;
+  --lh-body:1.5;--lh-title:1.35;--ls-title:-.025em;
+  --row-h:3.5rem;--touch:2.75rem;--page-x:1.25rem;--header-h:3.5rem;--tabbar-h:3.5rem;--rail-w:5.5rem;--content-max:40rem;
+  --sp-1:.25rem;--sp-2:.5rem;--sp-3:.75rem;--sp-4:1rem;--sp-5:1.25rem;--sp-6:1.5rem;--sp-8:2rem;--sp-10:2.5rem;--sp-12:3rem;
+  --r-badge:4px;--r-control:10px;--r-card:16px;--r-sheet:20px;
+  --dur-fast:150ms;--dur:250ms;--ease:cubic-bezier(.35,0,.35,1);--ease-enter:cubic-bezier(0,0,.15,1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121418;--surface:#1b1e24;--surface-raised:#252930;--fill-subtle:#252930;
+  --text-strong:#eef0f3;--text:#c4cad3;--text-muted:#8e97a4;--icon-muted:#6b7380;--text-disabled:#5d6571;
+  --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.16);--focus:#7aa5ff;
+  --positive:#3ccf8e;--positive-weak:#15302a;--warning:#f0a24a;--warning-weak:#33281a;--critical:#ff6b74;--critical-weak:#3a1f23;--info:#7aa5ff;--info-weak:#1d2840;
+  --accent:var(--accent-dark);--on-accent:var(--on-accent-dark);
+  --mark-bg:#4a3d10;--mark-text:#ffe9a3;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121418;--surface:#1b1e24;--surface-raised:#252930;--fill-subtle:#252930;
+  --text-strong:#eef0f3;--text:#c4cad3;--text-muted:#8e97a4;--icon-muted:#6b7380;--text-disabled:#5d6571;
+  --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.16);--focus:#7aa5ff;
+  --positive:#3ccf8e;--positive-weak:#15302a;--warning:#f0a24a;--warning-weak:#33281a;--critical:#ff6b74;--critical-weak:#3a1f23;--info:#7aa5ff;--info-weak:#1d2840;
+  --accent:var(--accent-dark);--on-accent:var(--on-accent-dark);
+  --mark-bg:#4a3d10;--mark-text:#ffe9a3;
+  color-scheme:dark;
+}
+:root{--accent-weak:color-mix(in oklch,var(--accent) 10%,var(--surface));--accent-text:color-mix(in oklch,var(--accent) 88%,var(--text-strong))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--accent-weak:color-mix(in oklch,var(--accent) 16%,var(--surface))}}
+:root[data-theme="dark"]{--accent-weak:color-mix(in oklch,var(--accent) 16%,var(--surface))}
+@media (min-width:744px){:root{--page-x:1.5rem}}
+@media (min-width:1024px){:root{--page-x:2rem}}
+@media (pointer:coarse){:root{--touch:3rem}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-color:color-mix(in oklch,var(--text-strong) 22%,transparent) transparent;background:var(--bg)}
+*{scrollbar-width:thin}
+img,svg{max-width:100%}
+body{margin:0;font-family:var(--font);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--text-strong);background:var(--bg);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+h1,h2,h3{line-height:var(--lh-title);letter-spacing:var(--ls-title);margin:0}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+input[type="checkbox"]{accent-color:var(--accent)}
+summary{cursor:pointer}
+::selection{background:color-mix(in oklch,var(--accent) 24%,transparent)}
+.scroll-x{overflow-x:auto;overscroll-behavior-x:contain}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* ===== 이름 하이라이트 ===== */
+mark.me{background:var(--mark-bg);color:var(--mark-text);font-weight:700;padding:0 .2em;border-radius:var(--r-badge);-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+/* ===== 틀 ===== */
+.app{min-height:100dvh;padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-8))}
+.wrap{width:100%;max-width:var(--content-max);margin:0 auto;padding:0 var(--page-x)}
+.top{padding-top:calc(env(safe-area-inset-top) + var(--sp-6))}
+.eyebrow-free{font-size:var(--fs-small);color:var(--text-muted);font-weight:500}
+.hero h1{font-size:1.625rem;font-weight:700;margin-top:var(--sp-2)}
+.hero .sub{font-size:var(--fs-body);color:var(--text);margin-top:var(--sp-2)}
+.facts{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-4)}
+.fact{display:inline-flex;align-items:center;gap:6px;height:2rem;padding:0 var(--sp-3);border-radius:var(--r-full,999px);background:var(--surface);font-size:var(--fs-small);color:var(--text);font-weight:500}
+.fact svg{width:16px;height:16px;color:var(--icon-muted)}
+
+section.view{display:none}
+section.view.on{display:block}
+
+.card{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-3)}
+.card + .card{margin-top:var(--sp-3)}
+.sec-title{font-size:var(--fs-title-s);font-weight:700;margin-top:var(--sp-8)}
+.sec-sub{font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-1)}
+
+/* 지금 카드 */
+.now{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-6)}
+.now .k{font-size:var(--fs-small);color:var(--text-muted);font-weight:500}
+.now .v{font-size:var(--fs-title);font-weight:700;letter-spacing:var(--ls-title);margin-top:var(--sp-1);line-height:var(--lh-title)}
+.now .d{font-size:var(--fs-body);color:var(--text);margin-top:var(--sp-2)}
+.bar{height:8px;border-radius:4px;background:var(--fill-subtle);margin-top:var(--sp-4);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px;width:0}
+.bar-ends{display:flex;justify-content:space-between;font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--sp-2)}
+
+/* 시간표 */
+.tl{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-2) 0;margin-top:var(--sp-3)}
+.tl li{display:grid;grid-template-columns:4.5rem minmax(0,1fr);gap:var(--sp-3);padding:var(--sp-3) var(--sp-5);position:relative}
+.tl li + li{box-shadow:inset 0 1px 0 var(--line)}
+.tl .tm{font-size:var(--fs-small);font-weight:600;color:var(--text-strong);font-variant-numeric:tabular-nums;line-height:1.4;padding-top:2px}
+.tl .tm span{display:block;font-weight:400;color:var(--text-muted)}
+.tl .w{min-width:0}
+.tl .ttl{font-size:var(--fs-body-lg);font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.tl .pl{font-size:var(--fs-body);color:var(--text);margin-top:2px}
+.tl .note{font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-1)}
+.tl li.off .tm,.tl li.off .ttl{color:var(--text-muted);font-weight:500}
+.tl li.off .ttl{font-size:var(--fs-body)}
+.tl li.past{opacity:.55}
+.tl li.cur{background:var(--accent-weak)}
+.tl li.cur::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.badge{display:inline-flex;align-items:center;height:1.375rem;padding:0 6px;border-radius:var(--r-badge);font-size:var(--fs-caption);font-weight:600;line-height:1}
+.badge.now-b{background:var(--accent);color:var(--on-accent)}
+.badge.me-b{background:var(--mark-bg);color:var(--mark-text)}
+.badge.gray{background:var(--fill-subtle);color:var(--text-muted)}
+.total{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-3) var(--sp-5) var(--sp-2);font-size:var(--fs-small);color:var(--text-muted)}
+.total b{color:var(--text-strong);font-weight:600}
+
+/* 할 일 목록 */
+.todo{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3);padding:var(--sp-1) 0}
+.todo li{display:flex;gap:var(--sp-3);padding:var(--sp-3) var(--sp-5)}
+.todo li + li{box-shadow:inset 0 1px 0 var(--line)}
+.todo .ic{flex:none;width:2.25rem;height:2.25rem;border-radius:50%;background:var(--fill-subtle);color:var(--text);display:grid;place-items:center;margin-top:2px}
+.todo .ic svg{width:18px;height:18px}
+.todo .when{font-size:var(--fs-caption);color:var(--text-muted);font-weight:600;font-variant-numeric:tabular-nums}
+.todo .t{font-size:var(--fs-body);font-weight:600;color:var(--text-strong)}
+.todo .s{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+
+/* 체크 목록 */
+.check{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3);padding:var(--sp-1) 0}
+.check label{display:flex;gap:var(--sp-3);align-items:flex-start;padding:var(--sp-3) var(--sp-5);min-height:var(--row-h);cursor:pointer}
+.check li + li label{box-shadow:inset 0 1px 0 var(--line)}
+.check input{flex:none;width:22px;height:22px;margin:2px 0 0}
+.check .t{font-size:var(--fs-body);font-weight:600}
+.check .s{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+.check .cnt{margin-left:auto;flex:none;font-size:var(--fs-small);color:var(--text-muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.check input:checked ~ div .t{color:var(--text-muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.prog{display:flex;align-items:center;justify-content:space-between;font-size:var(--fs-small);color:var(--text-muted);margin-top:var(--sp-6)}
+.prog b{color:var(--text-strong)}
+
+/* 안내 상자 */
+.tip{display:flex;gap:var(--sp-3);background:var(--surface);border-radius:var(--r-card);padding:var(--sp-4) var(--sp-5);margin-top:var(--sp-3);font-size:var(--fs-small);color:var(--text);line-height:1.6}
+.tip svg{flex:none;width:18px;height:18px;color:var(--icon-muted);margin-top:2px}
+.tip b{color:var(--text-strong)}
+.dot-list li{position:relative;padding-left:14px}
+.dot-list li + li{margin-top:var(--sp-1)}
+.dot-list li::before{content:"";position:absolute;left:2px;top:.68em;width:4px;height:4px;border-radius:50%;background:var(--icon-muted)}
+
+/* 배치도 */
+.floor{background:var(--surface);border-radius:var(--r-card);padding:var(--sp-5);margin-top:var(--sp-3)}
+.floor h3{font-size:var(--fs-body-lg);font-weight:700}
+.floor .fs{font-size:var(--fs-small);color:var(--text-muted);margin-top:2px}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(5.5rem,100%),1fr));gap:var(--sp-2);margin-top:var(--sp-4)}
+.room{border-radius:12px;background:var(--fill-subtle);padding:var(--sp-3);min-height:4.5rem;display:flex;flex-direction:column;justify-content:space-between}
+.room .no{font-size:var(--fs-title-s);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.room .no small{font-size:var(--fs-caption);font-weight:500;color:var(--text-muted);margin-left:2px}
+.room .cl{font-size:var(--fs-caption);color:var(--text-muted)}
+.room.etc{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.room.etc .no{font-size:var(--fs-small);font-weight:600;color:var(--text)}
+.room.mine{background:var(--accent-weak)}
+.room.mine .no{color:var(--accent-text)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--sp-4);margin-top:var(--sp-4);font-size:var(--fs-caption);color:var(--text-muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--fill-subtle)}
+.legend i.m{background:var(--accent-weak);box-shadow:inset 0 0 0 1.5px var(--accent)}
+
+.ftable{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:var(--sp-3)}
+.ftable th,.ftable td{padding:var(--sp-2) var(--sp-2);text-align:left;vertical-align:top}
+.ftable tr + tr th,.ftable tr + tr td{box-shadow:inset 0 1px 0 var(--line)}
+.ftable th{width:3.25rem;color:var(--text-muted);font-weight:600;white-space:nowrap}
+.ftable tr.mine th,.ftable tr.mine td{background:var(--accent-weak)}
+.ftable tr.mine th{color:var(--accent-text)}
+
+/* 전체 안내 접기 */
+details.acc{background:var(--surface);border-radius:var(--r-card);margin-top:var(--sp-3)}
+details.acc > summary{list-style:none;display:flex;align-items:center;gap:var(--sp-3);min-height:var(--row-h);padding:var(--sp-3) var(--sp-5)}
+details.acc > summary::-webkit-details-marker{display:none}
+details.acc > summary .st{flex:1;min-width:0}
+details.acc > summary .t{font-size:var(--fs-body-lg);font-weight:600;display:block}
+details.acc > summary .s{font-size:var(--fs-small);color:var(--text-muted);display:block;margin-top:2px}
+details.acc > summary svg{flex:none;width:20px;height:20px;color:var(--icon-muted);transition:rotate var(--dur-fast) var(--ease)}
+details.acc[open] > summary svg{rotate:180deg}
+details.acc .body{padding:0 var(--sp-5) var(--sp-5);font-size:var(--fs-small);color:var(--text);line-height:1.65}
+details.acc .body h4{font-size:var(--fs-body);color:var(--text-strong);margin:var(--sp-5) 0 var(--sp-2);font-weight:600}
+details.acc .body h4:first-child{margin-top:0}
+details.acc .body p + p{margin-top:var(--sp-2)}
+details.acc .body b{color:var(--text-strong);font-weight:600}
+.tbl-wrap{margin:var(--sp-2) calc(var(--sp-5) * -1) 0;padding:0 var(--sp-5)}
+.tbl{border-collapse:collapse;font-size:var(--fs-caption);width:100%;min-width:max-content}
+.tbl th,.tbl td{padding:6px 8px;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl thead th{color:var(--text-muted);font-weight:600;box-shadow:inset 0 -1px 0 var(--line-strong)}
+.tbl tbody tr + tr td,.tbl tbody tr + tr th{box-shadow:inset 0 1px 0 var(--line)}
+.tbl td.wrap,.tbl th.wrap{white-space:normal;min-width:12rem}
+.tbl .mcol{background:var(--accent-weak);color:var(--text-strong);font-weight:600}
+.tbl .muted{color:var(--text-disabled)}
+.tbl tbody th{font-weight:600;color:var(--text-strong)}
+.tbl.sticky th:first-child,.tbl.sticky td:first-child{position:sticky;left:0;background:var(--surface);z-index:1}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--sp-1) var(--sp-3)}
+.kv dt{color:var(--text-muted);font-weight:600;white-space:nowrap}
+.kv dd{margin:0}
+.foot{font-size:var(--fs-caption);color:var(--text-muted);margin-top:var(--sp-8);line-height:1.6}
+
+/* ===== 아래 탭 막대 / 왼쪽 막대 ===== */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);box-shadow:inset 0 1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.tabbar a{height:var(--tabbar-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-muted);text-decoration:none;font-size:var(--fs-caption);font-weight:500;-webkit-tap-highlight-color:transparent}
+.tabbar a svg{width:24px;height:24px;stroke-width:1.8}
+.tabbar a[aria-current="page"]{color:var(--text-strong);font-weight:700}
+.tabbar a[aria-current="page"] svg{stroke-width:2.3}
+@media (min-width:1024px){
+  .app{padding-bottom:var(--sp-12);padding-left:var(--rail-w)}
+  .tabbar{top:0;right:auto;width:var(--rail-w);display:flex;flex-direction:column;justify-content:flex-start;padding:var(--sp-6) 0;gap:var(--sp-2);box-shadow:inset -1px 0 0 var(--line)}
+  .tabbar a{height:4rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="wrap top hero">
+    <p class="eyebrow-free">2027 대학수학능력시험 감독 안내</p>
+    <h1><mark class="me">김용현</mark> 선생님은<br>본관 5층 서편 복도감독이에요</h1>
+    <p class="sub">5층 1~7 시험실을 <b>노상우</b> 선생님(5층 동편)과 함께 맡아요.</p>
+    <div class="facts">
+      <span class="fact num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>11월 19일 목요일</span>
+      <span class="fact num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>감독 7시간 52분</span>
+      <span class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>첫 일 6:50 남문</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ========== 1. 내 일정 ========== -->
+    <section class="view on" id="v-day" aria-label="수능 당일 내 일정">
+      <div class="now" id="now" aria-live="polite">
+        <p class="k" id="now-k">수능 당일</p>
+        <p class="v" id="now-v">오전 6시 50분, 남문에서 시작해요</p>
+        <p class="d" id="now-d">감독관 차량 주차를 안내하고 수험생은 정문으로 보내요.</p>
+        <div class="bar" id="now-bar" hidden><i></i></div>
+        <div class="bar-ends num" id="now-ends" hidden><span></span><span></span></div>
+      </div>
+
+      <h2 class="sec-title">11월 19일 내 시간표</h2>
+      <p class="sec-sub">굵은 줄이 제가 맡은 시간이에요. 흐린 줄은 배정이 없어요.</p>
+      <ol class="tl" id="timeline"></ol>
+
+      <h2 class="sec-title">시간마다 챙길 일</h2>
+      <ul class="todo">
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-2 13H5L3 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/></svg></span>
+          <div><p class="when">시작 전</p><p class="t">층별 수합 바구니, 휴대용 금속탐지기 받기</p><p class="s">시험관리본부에서 받고, 시험이 끝나면 본부에 돌려줘요.</p></div></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 12h6M12 9v6"/></svg></span>
+          <div><p class="when">1교시 물품 거둘 때</p><p class="t">1~7 시험실 반입금지물품 받아서 본부로 옮기기</p><p class="s">시험실 감독관에게 받아 바구니에 담고 시험관리본부(강당)에 보관해요. 1~21 시험실은 5교시를 보는 시험실이라 본부에 둬요. 옮기는 동안 1명은 층에 남아 복도감독을 해요.</p></div></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg></span>
+          <div><p class="when">매 교시</p><p class="t">시험실별 결시자 현황표 모아 본부에 넘기기</p><p class="s">4교시 한국사 결시자 현황표는 본부 확인 뒤 다시 받아서 각 시험실에 나눠 줘요.</p></div></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2ZM3 15a2 2 0 0 0 2 2h1v-5H5a2 2 0 0 0-2 2Z"/></svg></span>
+          <div><p class="when">3교시 듣기평가 뒤</p><p class="t">이상이 있었는지 본부에 알리기</p></div></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+          <div><p class="when num">17:35 무렵 (5교시 끝나기 10분 전)</p><p class="t">본부에서 1~7 시험실 물품 가져오기</p><p class="s">시험이 끝나면 각 시험실에 나눠 줘요.</p></div></li>
+      </ul>
+
+      <h2 class="sec-title">시험 중 복도에서</h2>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+        <ul class="dot-list">
+          <li>외부인과 퇴실한 수험생이 시험실에 다가오지 못하게 막아요.</li>
+          <li>시험 중 화장실 가는 수험생은 상하반신, 신발까지 검색하고, 함께 가서 칸을 정해 줘요.</li>
+          <li>화장실 점검 때 휴대용 금속탐지기로 통신기기를 숨겼는지 봐요.</li>
+          <li>시험실 감독관이 부르면 그 교시가 끝난 직후 감독관이 정한 곳이나 수험생을 검색해요.</li>
+          <li>답안지, 문제지가 모자라면 옆 시험실 여유분이나 본부 보관분을 가져다줘요.</li>
+          <li>응급환자가 생기면 시험장 책임자에게 바로 연락해요.</li>
+          <li>시험실 감독관이 스마트안경 점검을 부탁하면 본부에 연락해서, 시험 시작 전이나 끝난 뒤에 스마트안경 점검요원과 함께 봐요.</li>
+          <li>옆 복도감독(<b>노상우</b> 선생님)과 한 조예요. 자리를 비워야 하면 서로 맡아 줘요.</li>
+        </ul>
+      </div>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <div><b>금속탐지기는 소리가 나요.</b> 시험실 감독관이 부탁한 수험생, 시험 중 화장실 등을 드나드는 수험생, 시험장 책임자가 필요하다고 한 수험생에게만 써요.</div>
+      </div>
+
+      <h2 class="sec-title">미선택자 인솔</h2>
+      <p class="sec-sub">5층에는 미선택자 시험실이 없어서, 시험실 감독관이 부탁할 때만 해요.</p>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <ul class="dot-list">
+          <li>미선택자는 앞 교시가 끝난 쉬는 시간에 옮겨요. 1교시는 물품을 거둔 뒤에 옮겨요.</li>
+          <li>층마다 복도감독 1명이 모아서 한꺼번에 <b>별관 5층 미선택자 대기실</b>로 데려가요.</li>
+          <li>데려가기 전에 대기실에서 시험 준비를 할 수 있다고 알려 주고, 학습 자료를 가지러 가면 잠깐 기다려요.</li>
+          <li>정해진 이동: 13실(4층)은 1~4교시, 21실(3층)은 2, 3, 5교시, 30실(2층)은 2, 3교시.</li>
+        </ul>
+      </div>
+
+      <h2 class="sec-title">남문 지도 (6:50~7:15)</h2>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 17v2M17 17v2M5 8l2-4h10l2 4"/></svg>
+        <ul class="dot-list">
+          <li>남문은 감독관 차량을 들여보내고 주차를 안내해요.</li>
+          <li>수험생은 남문으로 들어오지 못하게 하고 정문으로 안내해요.</li>
+          <li>정문은 6:30부터 감독관 차량을 막고 남문으로 보내요.</li>
+          <li>수험생과 감독관 말고는 들어올 수 없어요. 후문은 모든 시험이 끝난 뒤 16:37에 열어요.</li>
+          <li>같은 시간 정문은 <b>김재현</b>, <b>신영준</b> 선생님, 남문은 <b>이용기</b> 선생님이 함께 서요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ========== 2. 오늘 준비 ========== -->
+    <section class="view" id="v-prep" aria-label="시험 전날 준비">
+      <h2 class="sec-title">5층 게시물 붙이기</h2>
+      <p class="sec-sub">복도감 1그룹 중 <mark class="me">김용현</mark> 선생님 몫이에요. 붙인 것을 눌러 표시해 두세요. 이 기기에만 저장돼요.</p>
+      <div class="prog"><span>붙인 게시물</span><b class="num" id="prog">0 / 7</b></div>
+      <ul class="check" id="checks">
+        <li><label><input type="checkbox" data-k="c1"><div><p class="t">1~7 시험실 팻말</p><p class="s">각 시험실 학급 팻말에 끼워요</p></div><span class="cnt">B4</span></label></li>
+        <li><label><input type="checkbox" data-k="c2"><div><p class="t">1~7 시험실 표시</p><p class="s">각 시험실 앞문에 눈높이로</p></div><span class="cnt">B4</span></label></li>
+        <li><label><input type="checkbox" data-k="c3"><div><p class="t">1~7 시험실 뒷문 폐쇄 안내</p><p class="s">교실 뒷문에 눈높이로</p></div><span class="cnt">B4</span></label></li>
+        <li><label><input type="checkbox" data-k="c4"><div><p class="t">5층 엘리베이터 사용금지</p><p class="s">5층 엘리베이터 문</p></div><span class="cnt">B4</span></label></li>
+        <li><label><input type="checkbox" data-k="c5"><div><p class="t">수험생 화장실</p><p class="s">5층 동편, 서편 학생용 화장실 앞</p></div><span class="cnt num">2장</span></label></li>
+        <li><label><input type="checkbox" data-k="c6"><div><p class="t">학교 전체 금연구역</p><p class="s">5층 동편, 서편 학생용 화장실 앞</p></div><span class="cnt num">2장</span></label></li>
+        <li><label><input type="checkbox" data-k="c7"><div><p class="t">미선택자 대기실 가는 길</p><p class="s">5층 복도에 간격을 맞춰서</p></div><span class="cnt num">4장</span></label></li>
+      </ul>
+
+      <h2 class="sec-title">오늘 일정</h2>
+      <ul class="todo">
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <div><p class="when num">11월 18일 수요일 11:00</p><p class="t">2027 수능 본부요원 회의</p></div></li>
+      </ul>
+
+      <h2 class="sec-title">감독관 회의 때 꼭 전할 것</h2>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <ul class="dot-list">
+          <li>시험 시간에 쓸 자료: 결시자 현황표, 교시별 확인표(체크리스트)</li>
+          <li>결시자 답안지 작성 방법</li>
+          <li>답안지 봉투 서명(또는 날인)</li>
+          <li>답안지 감독관 서명 때 필적확인란, 성명, 수험번호, 수험번호 마킹 확인. 고칠 일이 생기면 제1감독관이 시험관리본부에 와서 고쳐요.</li>
+          <li>바뀐 내용은 교육청 클라우드 공유방에서 수시로 확인해요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ========== 3. 배치도 ========== -->
+    <section class="view" id="v-map" aria-label="시험실 배치도">
+      <h2 class="sec-title">본관 5층, 제 구역</h2>
+      <p class="sec-sub">위 숫자는 시험실 번호, 아래는 평소 학급이에요.</p>
+      <div class="floor">
+        <h3>본관 5층</h3>
+        <p class="fs">1~7 시험실 (2학년 교실). 5교시도 보는 시험실이에요.</p>
+        <div class="rooms">
+          <div class="room etc"><span class="no">지학실</span></div>
+          <div class="room etc"><span class="no">준비실</span></div>
+          <div class="room mine"><span class="no num">1<small>실</small></span><span class="cl num">2-7</span></div>
+          <div class="room mine"><span class="no num">2<small>실</small></span><span class="cl num">2-6</span></div>
+          <div class="room mine"><span class="no num">3<small>실</small></span><span class="cl num">2-5</span></div>
+          <div class="room mine"><span class="no num">4<small>실</small></span><span class="cl num">2-4</span></div>
+          <div class="room mine"><span class="no num">5<small>실</small></span><span class="cl num">2-3</span></div>
+          <div class="room etc"><span class="no">비품실</span></div>
+          <div class="room etc"><span class="no">회의실</span></div>
+          <div class="room etc"><span class="no">2학년 교무실</span></div>
+          <div class="room mine"><span class="no num">6<small>실</small></span><span class="cl num">2-2</span></div>
+          <div class="room mine"><span class="no num">7<small>실</small></span><span class="cl num">2-1</span></div>
+        </div>
+        <div class="legend"><span><i class="m"></i>제가 맡은 시험실</span><span><i></i>그 밖의 방</span></div>
+      </div>
+
+      <h2 class="sec-title">본관 전체</h2>
+      <div class="floor">
+        <table class="ftable">
+          <tbody>
+            <tr class="mine"><th>5층</th><td>1~7실 (2-7, 2-6, 2-5, 2-4, 2-3, 2-2, 2-1), 지학실, 2학년 교무실</td></tr>
+            <tr><th>4층</th><td>8~16실 (1-1, 1-2, 1-3, 1-11, 2-12, 2-11, 2-10, 2-9, 2-8), 물리실. <b>13실은 미선택자 시험실</b></td></tr>
+            <tr><th>3층</th><td>17~24실 (3-7, 3-8, 3-9, 3-10, 3-11, 1-4, 1-5, 1-6), 생물실, 1학년 교무실. <b>21실은 미선택자 시험실</b></td></tr>
+            <tr><th>2층</th><td>25~30실 (3-1, 3-2, 3-3, 3-4, 3-5, 3-6), 예비시험실(보건교육실), 화학실, 3학년 교무실. <b>30실은 미선택자 시험실</b></td></tr>
+            <tr><th>1층</th><td>보건실, 휴게실, 전산실, 교무기획부, 연구기획부, 교감실, 교장실, 행정실, 법인사무실, 이사실</td></tr>
+          </tbody>
+        </table>
+        <p class="sec-sub" style="margin-top:var(--sp-3)">시험실 30개와 예비시험실 1개. 5교시는 1~21실에서 봐요. 별관 3층과 본관 3층이 이어져요.</p>
+      </div>
+
+      <h2 class="sec-title">별관</h2>
+      <div class="floor">
+        <table class="ftable">
+          <tbody>
+            <tr><th>5층</th><td><b>미선택자 대기실</b>, 외국어 교사실, 외국어 전용실</td></tr>
+            <tr><th>4층</th><td>자기주도학습실, 국어과, 수학과 교실</td></tr>
+            <tr><th>3층</th><td>사회과 교실, 교사 휴게실, 디지털교육부, 수학과 교실 (본관 3층과 연결)</td></tr>
+            <tr><th>2층</th><td>여교사 휴게실(1-8), 남교사 휴게실(1-7), 예체능부 교무실, 비품보관실</td></tr>
+            <tr><th>1층</th><td><b>감독교사 대기실</b>(학생식당), 교직원식당, 화장실(여)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="sec-title">중고 연결회랑</h2>
+      <div class="floor">
+        <table class="ftable">
+          <tbody>
+            <tr><th>위층</th><td>음악실(중학교 4층 쪽), 미술실(중학교 5층 쪽)</td></tr>
+            <tr><th>3층</th><td>컴퓨터실, 상담실, 진로활동실</td></tr>
+            <tr><th>2층</th><td>영어도서관, 국제교류부, 국제교류실, 어학실</td></tr>
+            <tr><th>1층</th><td>스튜디오, <b>방송실</b>, 창의체험부, 생활안전부, 인쇄실(중학교 1층 쪽)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========== 4. 전체 안내 ========== -->
+    <section class="view" id="v-all" aria-label="전체 안내">
+      <h2 class="sec-title">안내문 전체</h2>
+      <p class="sec-sub">다른 선생님 업무까지 원문 순서대로 모았어요. 눌러서 펼쳐 보세요.</p>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">학생지도 총괄, 복도감독관 시간표</span><span class="s">원문 32쪽. 제 칸을 칠해 뒀어요</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <p>표는 옆으로 밀어서 볼 수 있어요.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl sticky" id="bigtable"></table></div>
+          <h4>참고</h4>
+          <ul class="dot-list">
+            <li>정문 감독관: 06:30부터 차량 통제, 남문으로 안내</li>
+            <li>남문 감독관: 차량 진입과 주차 안내, 수험생 출입 통제, 정문으로 안내</li>
+            <li>수험생과 감독관 말고는 들어올 수 없어요</li>
+            <li>후문은 모든 고사가 끝난 뒤 16:37에 열어요</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">복도감독관 근무 요령</span><span class="s">원문 28쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <dl class="kv">
+            <dt>2층</dt><dd>박경록, 신영준 (+1명)</dd>
+            <dt>3층</dt><dd>여승철, 임한수 (+1명)</dd>
+            <dt>4층</dt><dd>이용기, 손준호 (+1명)</dd>
+            <dt>5층</dt><dd>노상우, <mark class="me">김용현</mark> (+1명)</dd>
+          </dl>
+          <h4>근무 요령</h4>
+          <ul class="dot-list">
+            <li><b>1교시에 시험실 반입금지물품을 받아</b> 과학실험실에 보관해요(열쇠는 본부 관리). 1~21 시험실은 시험관리본부에 보관해요(5교시 보는 시험실). 22~30 시험실은 4교시가 끝난 뒤 각 시험실에 물품을 돌려줘요.</li>
+            <li>층별 수합 바구니와 금속탐지기는 본부에서 받고, 시험이 끝나면 본부에 돌려줘요.</li>
+            <li><b>매 교시 시험실별 결시자 현황표를 모아 시험관리본부에 넘겨요.</b> 4교시 한국사 결시자 현황표는 본부 확인 뒤 받아서 각 시험실에 다시 나눠 줘요.</li>
+            <li><b>3교시 듣기평가가 끝나면 이상 유무를 시험관리본부에 알려요.</b></li>
+            <li>외부인과 퇴실한 응시자가 시험실에 다가오지 못하게 막아요.</li>
+            <li>시험 중 화장실 이용자 검색(상하반신, 신발 등), 함께 가서 칸 지정, 휴대용 금속탐지기로 통신기기 점검.</li>
+            <li>시험실 감독관이 요청하면 그 교시가 끝난 직후 정한 곳이나 수험생을 검색해요.</li>
+            <li>모자란 답안지, 문제지는 옆 시험실 여유분이나 본부 보관분으로 전해요.</li>
+            <li>응급환자 등 급한 일은 시험장 책임자에게 연락해요.</li>
+            <li>1교시 미선택자를 시험실 감독관에게서 넘겨받아 정해진 대기실로 데려가요.</li>
+          </ul>
+          <h4>미선택자 대기실 이동</h4>
+          <ul class="dot-list">
+            <li>13실(4층): 1~4교시 모두</li>
+            <li>21실(3층): 2, 3, 5교시</li>
+            <li>30실(2층): 2, 3교시</li>
+            <li>그 밖에 시험실 감독관이 요청할 때</li>
+            <li>앞 교시가 끝난 쉬는 시간에 옮겨요(1교시는 물품을 거둔 뒤). 층마다 복도감독 1명이 모아 한꺼번에 별관 5층 대기실로 데려가요.</li>
+          </ul>
+          <h4>그 밖에</h4>
+          <ul class="dot-list">
+            <li>금속탐지기 대상: 감독관이 요청한 수험생, 시험 중 화장실 등을 드나드는 수험생, 시험장 책임자가 필요하다고 한 수험생. 소리가 나니 조심해요.</li>
+            <li>스마트안경 점검 요청은 본부에 연락하고, 시험 시작 전이나 끝난 뒤 스마트안경 점검요원과 함께 봐요.</li>
+            <li>옆 복도감독과 한 조로 움직이고, 자리를 비워야 하면 서로 맡아 줘요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">복도감독관 게시물 붙이기</span><span class="s">원문 16쪽. 복도감 1그룹 4명</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>담당</th><th>시험실</th><th class="wrap">미선택자 대기실 가는 길</th></tr></thead>
+            <tbody>
+              <tr><th>신영준 (2층)</th><td>25~30실</td><td class="wrap">4장, 2층 복도에 간격 맞춰</td></tr>
+              <tr><th>임한수 (3층)</th><td>17~24실</td><td class="wrap">5장, 3층 복도 4장, 3층 계단에서 출입문 쪽 1장</td></tr>
+              <tr><th>손준호 (4층)</th><td>8~16실, 예비시험실</td><td class="wrap">4장, 4층 복도에 간격 맞춰</td></tr>
+              <tr><th class="mcol"><mark class="me">김용현</mark> (5층)</th><td class="mcol">1~7실</td><td class="wrap mcol">4장, 5층 복도에 간격 맞춰</td></tr>
+            </tbody>
+          </table></div>
+          <p style="margin-top:var(--sp-3)">공통: 시험실 팻말(학급 팻말에 끼움), 시험실 표시(앞문 눈높이), 뒷문 폐쇄 안내(뒷문 눈높이), 엘리베이터 사용금지(그 층 엘리베이터 문), 수험생 화장실 2장, 학교 전체 금연구역 2장(동편, 서편 학생용 화장실 앞). 모두 B4.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">운영요원, 행정요원</span><span class="s">원문 18쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>운영요원</h4>
+          <dl class="kv">
+            <dt>행정 박병홍</dt><dd>행정실 준비 사항 점검</dd>
+            <dt>총괄 조성기</dt><dd>외부감독관 교육 자료와 ppt 준비</dd>
+            <dt>운영 김기국</dt><dd>A형 게시판 4개(2개 1세트) 준비와 부착(시험실 배치도, 수험생 유의사항, 층별 시험실과 수험번호, 도시락 지참, 신분증 휴대 안내)</dd>
+            <dt>운영 정재복</dt><dd>외부감독관 인장 등록, 출근부, 명찰, 차량통행증, 감독관 유의사항 배부, 시험실별 문제지와 답안지 인수, 인계서 양식 미리 작성</dd>
+            <dt>고사계 유석진</dt><dd>건물, 시험실 배치도 배너 2장(감독관 대기실 시간표 옆), 시험실 배치도 배너(본부 본부석 앞), 시험관리본부 작은배너 2장(식당과 강당 사이 기둥, 본관과 강당 통로 왼쪽 유리문), 정문 출입통제와 후문 폐쇄 안내 배너 각 1장(정문, 후문 철문)</dd>
+            <dt>운영 김재현</dt><dd>시험실 견본 설치, 예비시험실 준비(1-10반 협조), 전체 시험실 준비 상황 점검</dd>
+            <dt>방송 허경식, 김기도</dt><dd>방송시설 점검 2회(12:00, 14:00). 비상용 CD 플레이어 4대 작동 확인 뒤 교무실 가운데 탁자에 둠</dd>
+            <dt>보건 김명숙</dt><dd>보건실과 안내 화살표(본부에서 보건실까지, 1층 복도). 응급환자 이송 계획, 비상용 CD 플레이어 1대 보건실에 둠</dd>
+          </dl>
+          <h4>행정요원</h4>
+          <dl class="kv">
+            <dt>차윤지</dt><dd>외부감독관 회의 준비 지원, 플래카드 제작</dd>
+            <dt>장규철</dt><dd>시험관리본부 책상과 의자 배열, A형 게시판 6개(본관 동, 서편 출입문 각 2개, 식당 2개), 풋말 8개, 화장실 에어타월 전원 빼기, 별관 3층에서 2층 내려가는 계단 막기, 본관 1층 통로 바리케이트(행정실 앞, 교무실 앞)</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">운영 관리요원</span><span class="s">원문 20쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <dl class="kv">
+            <dt>총괄 조성기</dt><dd>문제지, 답안지 수량 이상 유무 보고. 17시험지구 수능 상황실: 20시험장 담당 정은혜 장학사 02-2600-0853, 수능담당 장학사 김근희 02-2600-0841</dd>
+            <dt>운영 김기국, 정재복</dt><dd>교육청 보고 서류와 시험관리본부 준비 사항 점검, 수험표와 신분증 미지참자 처리</dd>
+            <dt>고사계 유석진</dt><dd>수능 감독 관련 게시물 점검</dd>
+            <dt>방송 허경식, 김기도</dt><dd>07:00 전 수능 방송 상태 점검</dd>
+            <dt>학생안전 김재현</dt><dd>미선택자 대기실 업무 지원, 시험포기자 관리와 인솔</dd>
+            <dt>보건 김명숙</dt><dd>보건실 관리, 응급 상황 대비 점검</dd>
+            <dt>협조 차윤지</dt><dd>시험실 감독관 반입 금지 물품 수거(시험이 끝나면 배부)</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">시험실 관리요원 (07:40부터)</span><span class="s">원문 20, 22쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <p>시험실별 문답지 인수, 인계와 확인. 1명이 시험실 2개를 맡아요. 응급 상황이면 맡는 시험실 수와 업무를 조정해요.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>시험실</th><th>담당</th><th>시험실</th><th>담당</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1~2</td><td>조상우</td><td class="num">17~18</td><td>이영신</td></tr>
+              <tr><td class="num">3~4</td><td>이승혁</td><td class="num">19~20</td><td>노유찬</td></tr>
+              <tr><td class="num">5~6</td><td>이지연</td><td class="num">21~22</td><td>정재훈</td></tr>
+              <tr><td class="num">7~8</td><td>김현석</td><td class="num">23~24</td><td>변은지</td></tr>
+              <tr><td class="num">9~10</td><td>엄채윤</td><td class="num">25~26</td><td>권백일</td></tr>
+              <tr><td class="num">11~12</td><td>안준용</td><td class="num">27~28</td><td>김지연</td></tr>
+              <tr><td class="num">13~14</td><td>류시은</td><td class="num">29~30</td><td>최춘기</td></tr>
+              <tr><td class="num">15~16</td><td>이동욱</td><td></td><td></td></tr>
+            </tbody>
+          </table></div>
+          <h4>문제지, 답안지 준비</h4>
+          <p>감독관 입실 10분 전에 시험장 도착 시험지 확인 담당자가 그 교시 문제지와 답안지를 시험실별로 나눠요.</p>
+          <h4>문제지, 답안지 인계</h4>
+          <ul class="dot-list">
+            <li>매 교시 끝나기 20분 전에 다음 교시를 준비해요(1교시는 07:50에 준비).</li>
+            <li>교시별 홀, 짝수형 문제지 각 1봉, 답안지 1봉. 4교시는 한국사 홀, 짝수형 각 1봉과 답안지 1봉, 탐구(사회, 과학) 단일형 문제지 2봉과 답안지 1봉.</li>
+            <li>시험실마다 탐구 선택 유형이 달라요. 1~12실 사탐 2봉, 13실 사탐 1봉, 14~23실 사탐 2봉과 과탐 2봉, 24~30실 사탐 2봉.</li>
+            <li>빠진 것은 시험실 감독관이 담당 감독관에게 따로 연락해 고쳐요.</li>
+            <li>홀, 짝수형 표기가 없으면 수험생 문제지 유형을 확인하고, 시험장 책임자 입회 아래 제1감독관이 고쳐요.</li>
+            <li><b>문제지는 수량만</b> 확인해요(수험번호순으로 정리하지 않아도 돼요).</li>
+            <li>4교시 한국사가 끝나고 탐구 1선택이 시작되면 제2감독관이 답안지를 시험관리본부에 내요.</li>
+            <li>4교시 탐구 문제지는 응시한 선택과목 문제지를 거둬 시간별로 문제지 봉투나 개인 문제지 보관용 봉투에 넣고, 응시하지 않은 <b>선택과목 문제지는 개인 문제지 보관용 봉투에 넣은 채로</b> 거둬서 시험관리본부에 넘겨요.</li>
+            <li>문제지 수험번호는 샤프나 연필로 써도 괜찮아요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">답안지 교차 검토, 문제지 정리</span><span class="s">원문 22쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>1~3교시</h4>
+          <p>매 교시 문제지를 나눈 뒤, 앞 교시 답안지 교차 검토를 옆 시험실 담당과 해요. 왼쪽 시험실 관리요원에게 넘기고, 맨 끝 요원은 첫 자리 요원에게 넘겨요.</p>
+          <h4>4~5교시</h4>
+          <ul class="dot-list">
+            <li>4교시 한국사 문제지를 나눈 뒤 1~3교시 답안지 2차 검토. 5, 6실 관리요원이 1, 2실을 검토해요(한 칸 건너 시험실).</li>
+            <li>4교시 탐구 시간에 한국사 답안지를 받아 왼쪽 요원에게 넘겨 1차 교차 검토, 다시 왼쪽으로 넘겨 2차 검토. 답안지 매수, 기재사항, 감독관 도장과 답안지 봉투 기재사항, 도장을 확인해요.</li>
+            <li>4교시 탐구가 끝나면 시험실 관리요원이 검토하고 이상이 없으면 감독관은 대기실로 가요. 이어서 1차, 2차 교차 검토 뒤 이상이 없으면 교무부장에게 보고해요(시험실 완료 퇴실 방송).</li>
+            <li>1~21 시험실은 5교시까지 하지만 5교시 응시포기자가 있을 수 있어 2차 교차 검토까지 해요. 21실은 대기실로, 22~30실은 복도감에게 안내해 하교해요.</li>
+            <li>4교시 탐구 답안지는 교차 검토만 하니 꼼꼼히 봐 주세요. 5교시도 4교시와 같고, 중도 포기 학생이 꼭 있으니 잘 확인해요.</li>
+          </ul>
+          <h4>거둔 문제지 정리</h4>
+          <p>답안지 교차 검토가 끝나면 시험장 도착 시험지 확인 담당자가 문제지를 상자에 담아 테이프로 붙이고, <b>강당 입구 옆 창고에 보관</b>해요.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">결시자 현황표 쓰는 법</span><span class="s">원문 24쪽, 서식29</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <ul class="dot-list">
+            <li>결시 수험생의 그 교시 칸에 동그라미(○)를 쳐요.</li>
+            <li>시험장 학교는 원본을 보관하고, 수능 정보시스템에서 결시자 현황 보고(서식30)를 뽑아 시험장 책임자 날인 뒤 답안지와 함께 시험지구 교육지원청에 내요.</li>
+            <li>4교시는 한국사와 탐구 영역을 나눠 적어요.</li>
+            <li><b>결시자 현황은 시험관리본부에서 수능 정보시스템에 교시마다 입력</b>하고, 제출하는 보고서와 입력 내용이 같은지 꼭 확인해요.</li>
+            <li>합계 아래 제1감독관 확인, 시험장 책임자 확인 칸에 날인 또는 서명해요.</li>
+            <li>결시자가 없는 시험실도 작성해서 보관해요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">유형별 답안지 처리</span><span class="s">원문 26쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>유형</th><th class="wrap">처리 방법</th></tr></thead>
+            <tbody>
+              <tr><th>미선택자</th><td class="wrap">답안지를 나눠 주지 않아요</td></tr>
+              <tr><th>결시자</th><td class="wrap">감독관이 답안지에 성명, 수험번호를 쓰고 수험번호란에 ● 표기. 결시자 확인란에 ● 표기. 결시자 현황표(서식29) 작성</td></tr>
+              <tr><th>백지 답안지 제출자</th><td class="wrap">수험생이 성명, 수험번호를 쓰고 마킹하게 해요(퇴실, 귀가로 못 하면 감독관이). 결시자 확인란은 비워요. 백지 답안지 제출자 현황표(서식33-1, 33-2) 작성</td></tr>
+              <tr><th>답안지 미제출자</th><td class="wrap">위와 같고, <b>따로 공문을 내요</b></td></tr>
+            </tbody>
+          </table></div>
+          <ul class="dot-list" style="margin-top:var(--sp-3)">
+            <li>백지 답안지: 성명, 답란 등을 전혀 쓰지 않은 답안지. 수험생 정보는 썼지만 답란에 표기가 없어도 백지로 처리해요.</li>
+            <li><b>자리에 없으면</b> 미선택자인지, 다른 시험실에서 응시 중인지 확인하고, 아니면 모두 결시자로 처리해요.</li>
+            <li>그 영역(과목) 포기자 답안지는 결시자 답안지와 같게 처리해요.</li>
+            <li><b>다른 시험실에서 응시</b>한 수험생 답안지는 원래 시험실 회수용 봉투의 그 수험번호 자리에 넣어요.</li>
+            <li><b>부정행위 퇴실자</b> 답안지는 「VI-7. 부정행위 발견 시 조치 절차(109쪽)」의 시험실 감독관 조치를 따라요.</li>
+            <li>결시자 답안지: 결시자 확인란 ● 표기, 성명과 수험번호 기재 및 마킹, 감독관 확인란 서명(날인). 백지 답안지: 결시자 확인란은 표기하지 않음.</li>
+            <li>손글씨 메모: 없으면 문제지 확인 뒤 마킹</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">반입금지물품 보관 계획</span><span class="s">원문 30, 34쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <h4>복도감</h4>
+          <dl class="kv">
+            <dt>1~21실</dt><dd>1교시 물품 거둘 때 시험실 감독관에게 받아 바구니에 담아 시험관리본부 강당 안으로 옮겨요(5교시 응시포기자 대비). <b>5교시 끝나기 10분 전</b> 본부에서 실별 물품을 옮기고 시험이 끝나면 나눠 줘요. 옮기는 동안 1명은 층에서 복도감 일을 해요.</dd>
+            <dt>22~30실</dt><dd>1교시 물품 거둘 때 받아 바구니에 담아 각 층 과학실험실에 보관하고, 4교시가 끝나면 각 시험실에 나눠 줘요.</dd>
+          </dl>
+          <h4>미선택자 물품 나눠 주기</h4>
+          <p>1~21실은 강당 보관, 22~30실은 각 층 과학실험실 보관.</p>
+          <div class="scroll-x tbl-wrap"><table class="tbl">
+            <thead><tr><th>때</th><th>대상</th><th>담당</th><th class="wrap">요령</th></tr></thead>
+            <tbody>
+              <tr><td>한국사 끝난 뒤</td><td>13실 8명</td><td>김재현</td><td class="wrap">오전 중에 사탐 미응시자 물품만 따로 보관, 4교시에 미선택자 물품만 대기실에 전달, 배부는 대기실 감독관</td></tr>
+              <tr><td>4교시 끝난 뒤 ①</td><td>21실 21명</td><td>김재현</td><td class="wrap">오전 중에 5교시 미응시자 물품만 따로 보관, 5교시에 미선택자 물품만 대기실에 전달, 배부는 대기실 감독관</td></tr>
+              <tr><td>4교시 끝난 뒤 ②</td><td>1~21실</td><td class="wrap">유석진(1~5실), 정광주(6~10실), 김재현(11~15실), 김기도(16~21실), 정재복(업무 지원)</td><td class="wrap">프로젝트 화면으로 강당에 시험실별로 앉게 안내, 담당자가 응시 포기 확인서 서명을 먼저 받고, 서명한 순서대로 불러 물품 배부, 끝나면 함께 인솔해 귀가. 오전 중 수험번호순으로 5개씩 묶어 보관하는 방법도 고민해 주세요.</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary><span class="st"><span class="t">시험실 감독관 배치 방법</span><span class="s">원문 30쪽</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="body">
+          <ul class="dot-list">
+            <li>고등학교 교사는 시험지구를 달리해 배치해요.</li>
+            <li>시험실 감독관은 시험실당 2명, 감독은 4개 교시를 넘지 않게 배정해요.</li>
+            <li>4교시는 시험실당 3명. 선택 과목이 1개인 시험실이나 응시자 14명 이하면 2명도 돼요.</li>
+            <li>같은 학교 출신 수험생이 40%를 넘는 22명 이상(28명 기준) 시험실은 감독관 1명을 더 둬요. 시험 집중을 방해할 수 있다고 시험장 책임자가 판단하면 일반 시험실처럼 운영할 수 있고, 이때 1명은 교대 근무나 복도 순찰로 대신해요.</li>
+            <li>가급적 제1감독관은 고등학교 교사로 배치해요.</li>
+            <li>매 교시 감독관을 바꾸고, 같은 조가 2번 이상 되지 않게 짜요.</li>
+            <li>감독관 배치표는 보안에 특히 주의하고, <b>감독관 입실 15분 전 시험관리본부와 감독관 대기실에 게시</b>해요.</li>
+          </ul>
+        </div>
+      </details>
+
+      <p class="foot">원문: 2027 수능 본부요원회의 자료(11월 18일 수요일 11:00), 14~34쪽 중 짝수쪽.<br>원문에 &lsquo;김용형&rsquo;으로 잘못 적힌 곳(16, 28, 32쪽)은 모두 &lsquo;김용현&rsquo;으로 고쳤어요. 변경 사항은 교육청 클라우드 공유방에서 꼭 다시 확인해 주세요.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="주요 메뉴">
+    <a href="#day" data-v="v-day" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>내 일정</a>
+    <a href="#prep" data-v="v-prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>오늘 준비</a>
+    <a href="#map" data-v="v-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg>배치도</a>
+    <a href="#all" data-v="v-all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>전체 안내</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  /* ----- 내 시간표 ----- */
+  var MY = [
+    {s:'06:50',e:'07:15',t:'남문 지도',p:'남문',n:'감독관 차량 주차 안내, 수험생은 정문으로',m:1},
+    {s:'07:15',e:'08:00',t:'배정 없음',n:'정문, 남문은 다른 선생님 차례'},
+    {s:'08:00',e:'08:40',t:'입실 완료 시간',p:'본관 5층 서편',n:'1교시 반입금지물품 받아 본부로',m:1},
+    {s:'08:40',e:'10:00',t:'1교시 국어',p:'본관 5층 서편',m:1},
+    {s:'10:00',e:'10:20',t:'쉬는 시간',n:'5층 화장실은 노상우 선생님 차례'},
+    {s:'10:20',e:'12:10',t:'2교시 수학',p:'본관 5층 서편',m:1},
+    {s:'12:10',e:'13:00',t:'점심시간',n:'배정 없음. 2~5층 순회는 남중권, 정광주 선생님'},
+    {s:'13:00',e:'14:20',t:'3교시 영어',p:'본관 5층 서편',n:'듣기평가 끝나면 이상 유무를 본부에 알리기',m:1},
+    {s:'14:20',e:'14:40',t:'쉬는 시간',p:'5층 화장실',n:'제가 화장실을 맡는 차례예요',m:1,me:1},
+    {s:'14:40',e:'16:37',t:'4교시 한국사, 탐구',p:'본관 5층 서편',n:'한국사 결시자 현황표를 본부에서 받아 시험실에 다시 나눠 주기',m:1},
+    {s:'16:37',e:'16:55',t:'쉬는 시간',n:'5층 화장실은 노상우 선생님 차례'},
+    {s:'16:55',e:'17:45',t:'5교시 제2외국어, 한문',n:'배정 없음. 17:35 무렵 본부에서 1~7실 물품 가져와 시험 끝나면 나눠 주기'}
+  ];
+  var ol = document.getElementById('timeline');
+  MY.forEach(function(r, i){
+    var li = document.createElement('li');
+    li.id = 'r' + i;
+    if (!r.m) li.className = 'off';
+    li.innerHTML = '<div class="tm">' + r.s + '<span>' + r.e + '</span></div><div class="w"><p class="ttl">' + r.t +
+      (r.me ? ' <span class="badge me-b">내 차례</span>' : '') + '</p>' +
+      (r.p ? '<p class="pl">' + r.p + '</p>' : '') + (r.n ? '<p class="note">' + r.n + '</p>' : '') + '</div>';
+    ol.appendChild(li);
+  });
+  var tot = document.createElement('div');
+  tot.className = 'total';
+  tot.innerHTML = '<span>원문 기준 감독 시간</span><b class="num">7시간 52분</b>';
+  ol.after(tot);
+
+  /* ----- 전체 시간표 ----- */
+  var COLS = ['김재현','남중권','정광주','박경록','신영준','여승철','임한수','이용기','손준호','노상우','김용현'];
+  var F = ['','','','2층 동편','2층 서편','3층 동편','3층 서편','4층 동편','4층 서편','5층 동편','5층 서편'];
+  function floors(a){ var x = F.slice(); for (var k in a) x[k] = a[k]; return x; }
+  var ROWS = [
+    ['정문남문지도','06:30','06:50','0:20',['정문','','','남문','','','','','','','']],
+    ['','06:50','07:15','0:25',['정문','','','','정문','','','남문','','','남문']],
+    ['','07:15','07:40','0:25',['','','','','','정문','남문','','남문','정문','']],
+    ['','07:40','08:00','0:20',['','남문','정문','','','','','','','','']],
+    ['입실완료','08:00','08:40','0:40',floors({0:'정문'})],
+    ['1교시①','08:40','09:20','0:40',floors({1:'대기실 감독'})],
+    ['1교시②','09:20','10:00','0:40',floors({1:'대기실 감독'})],
+    ['쉬는시간','10:00','10:20','0:20',['본부','','','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실','']],
+    ['2교시①','10:20','11:15','0:55',floors({2:'대기실 감독'})],
+    ['2교시②','11:15','12:10','0:55',floors({2:'대기실 감독'})],
+    ['점심시간','12:10','12:35','0:25',['','2~5층 순회','','','','','','','','','']],
+    ['점심시간','12:35','13:00','0:25',['','','2~5층 순회','','','','','','','','']],
+    ['3교시①','13:00','13:40','0:40',floors({1:'대기실 감독'})],
+    ['3교시②','13:40','14:20','0:40',floors({1:'대기실 감독'})],
+    ['쉬는시간','14:20','14:40','0:20',['본부','','','','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실']],
+    ['4교시①','14:40','15:20','0:40',floors({})],
+    ['4교시②','15:20','16:00','0:40',floors({0:'본부',2:'대기실 감독'})],
+    ['4교시③','16:00','16:37','0:37',floors({0:'본부',2:'대기실 감독'})],
+    ['쉬는시간','16:37','16:55','0:18',['본부','','본부','2층 화장실','','3층 화장실','','4층 화장실','','5층 화장실','']],
+    ['5교시①','16:55','17:20','0:25',['본부','대기실 감독','본부','','','','','','','','']],
+    ['5교시②','17:20','17:45','0:25',['본부','대기실 감독','','','','','','','','','']]
+  ];
+  var TOT = ['3:22','3:25','3:52','7:47','7:52','7:52','7:52','7:52','7:52','7:52','7:52'];
+  var ME = 10;
+  var h = '<thead><tr><th>구분</th><th>시작</th><th>종료</th><th>시간</th>';
+  COLS.forEach(function(c, i){ h += '<th' + (i === ME ? ' class="mcol"' : '') + '>' + (i === ME ? '<mark class="me">' + c + '</mark>' : c) + '</th>'; });
+  h += '</tr></thead><tbody>';
+  ROWS.forEach(function(r){
+    h += '<tr><th>' + (r[0] || '<span class="muted">정문남문지도</span>') + '</th><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td>';
+    r[4].forEach(function(v, i){ h += '<td' + (i === ME ? ' class="mcol"' : '') + '>' + (v || '<span class="muted">-</span>') + '</td>'; });
+    h += '</tr>';
+  });
+  h += '<tr><th>감독시간</th><td></td><td></td><td></td>';
+  TOT.forEach(function(v, i){ h += '<td class="num' + (i === ME ? ' mcol' : '') + '">' + v + '</td>'; });
+  h += '</tr></tbody>';
+  document.getElementById('bigtable').innerHTML = h;
+
+  /* ----- 지금 할 일 (한국 시각) ----- */
+  function kst(){
+    var d = new Date(Date.now() + 9 * 3600 * 1000);
+    return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), min: d.getUTCHours() * 60 + d.getUTCMinutes() };
+  }
+  function toMin(s){ var p = s.split(':'); return +p[0] * 60 + +p[1]; }
+  function hm(m){ var hh = Math.floor(m / 60), mm = m % 60; return (hh ? hh + '시간 ' : '') + (mm ? mm + '분' : (hh ? '' : '0분')); }
+  function setNow(k, v, d){ document.getElementById('now-k').textContent = k; document.getElementById('now-v').textContent = v; document.getElementById('now-d').textContent = d; }
+  function tick(){
+    var t = kst(), key = t.y * 10000 + t.mo * 100 + t.d, EXAM = 20261119;
+    var bar = document.getElementById('now-bar'), ends = document.getElementById('now-ends');
+    bar.hidden = true; ends.hidden = true;
+    Array.prototype.forEach.call(ol.children, function(li){ li.classList.remove('cur', 'past'); var b = li.querySelector('.now-b'); if (b) b.remove(); });
+    if (key < EXAM) {
+      var left = (Date.UTC(2026, 10, 19) - Date.UTC(t.y, t.mo - 1, t.d)) / 86400000;
+      setNow(left === 1 ? '내일이 수능이에요' : '수능까지 ' + left + '일',
+        (left === 1 ? '내일 ' : '11월 19일 ') + '오전 6시 50분, 남문에서 시작해요',
+        '오늘은 5층 게시물 7가지를 붙여요. 아래 오늘 준비 탭에서 확인할 수 있어요.');
+      return;
+    }
+    if (key > EXAM) { setNow('수능이 끝났어요', '수고 많으셨어요', '아래 시간표는 기록으로 남겨 둘게요.'); markPast(24 * 60); return; }
+    var now = t.min, curIdx = -1;
+    MY.forEach(function(r, i){ if (now >= toMin(r.s) && now < toMin(r.e)) curIdx = i; });
+    markPast(now);
+    if (now < toMin(MY[0].s)) {
+      setNow('오늘 첫 일', '6시 50분 남문 지도까지 ' + hm(toMin(MY[0].s) - now) + ' 남았어요', '감독관 차량 주차를 안내하고 수험생은 정문으로 보내요.');
+      return;
+    }
+    if (curIdx < 0) { setNow('오늘 일정', '모든 시험이 끝났어요', '수합 바구니와 금속탐지기를 본부에 돌려줬는지 확인해 주세요.'); return; }
+    var r = MY[curIdx], li = document.getElementById('r' + curIdx);
+    li.classList.add('cur');
+    var ttl = li.querySelector('.ttl'), b = document.createElement('span');
+    b.className = 'badge now-b'; b.textContent = '지금'; ttl.appendChild(b);
+    var next = null;
+    for (var j = curIdx + 1; j < MY.length; j++) if (MY[j].m) { next = MY[j]; break; }
+    setNow('지금 ' + r.s + '~' + r.e,
+      r.m ? r.t + (r.p ? ', ' + r.p : '') : r.t + ' (배정 없음)',
+      (r.n ? r.n + '. ' : '') + (next ? '다음은 ' + next.s + ' ' + next.t + (next.p ? ', ' + next.p : '') + '이에요.' : '이후 맡은 시간은 없어요.'));
+    var s = toMin(r.s), e = toMin(r.e);
+    bar.hidden = false; ends.hidden = false;
+    bar.firstElementChild.style.width = Math.round((now - s) / (e - s) * 100) + '%';
+    ends.children[0].textContent = r.s; ends.children[1].textContent = (e - now) + '분 남음';
+  }
+  function markPast(now){
+    MY.forEach(function(r, i){ if (now >= toMin(r.e)) document.getElementById('r' + i).classList.add('past'); });
+  }
+  tick(); setInterval(tick, 30000);
+
+  /* ----- 탭 ----- */
+  var tabs = document.querySelectorAll('.tabbar a');
+  function show(id, scroll){
+    document.querySelectorAll('section.view').forEach(function(s){ s.classList.toggle('on', s.id === id); });
+    tabs.forEach(function(a){ if (a.dataset.v === id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    if (scroll) window.scrollTo(0, 0);
+  }
+  var MAP = { day: 'v-day', prep: 'v-prep', map: 'v-map', all: 'v-all' };
+  tabs.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var id = a.dataset.v;
+      history.replaceState(null, '', a.getAttribute('href'));
+      show(id, true);
+    });
+  });
+  var h0 = location.hash.slice(1);
+  if (MAP[h0]) show(MAP[h0], false);
+  else {
+    var t0 = kst();
+    if (t0.y === 2026 && t0.mo === 11 && t0.d === 18) show('v-prep', false);
+  }
+
+  /* ----- 체크 목록 (이 기기에만 저장) ----- */
+  var KEY = 'suneung2027-kyh-checks';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  var boxes = document.querySelectorAll('#checks input');
+  function prog(){
+    var n = 0; boxes.forEach(function(b){ if (b.checked) n++; });
+    document.getElementById('prog').textContent = n + ' / ' + boxes.length;
+  }
+  boxes.forEach(function(b){
+    b.checked = !!saved[b.dataset.k];
+    b.addEventListener('change', function(){
+      saved[b.dataset.k] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      prog();
+    });
+  });
+  prog();
+})();
+</script>
+</body>
+</html>
