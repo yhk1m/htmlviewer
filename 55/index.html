@@ -1,0 +1,124 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>동아 디자인 색 조합 시안</title>
+<meta name="robots" content="noindex">
+<style>
+  @font-face { font-family: "Pretendard"; font-weight: 400; font-display: swap; src: url("/51/assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 600; font-display: swap; src: url("/51/assets/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 700; font-display: swap; src: url("/51/assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+  body { margin: 0; background: #e5e8eb; color: #191f28; font-family: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; word-break: keep-all; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .lead { font-size: 1rem; line-height: 1.6; color: #4e5968; margin: 0 0 20px; }
+  .pal { display: grid; gap: 16px; }
+  @media (min-width: 760px) { .pal { grid-template-columns: repeat(3, 1fr); } }
+  .set { border-radius: 16px; overflow: hidden; background: #fff; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #e5e8eb; font-size: 0.8125rem; color: #6b7684; }
+  .top img { height: 26px; display: block; }
+  .body { padding: 16px; background: #f2f4f6; }
+  h2 { margin: 0 0 4px; font-size: 1.25rem; letter-spacing: -0.02em; }
+  .d { font-size: 0.9375rem; line-height: 1.5; color: #4e5968; margin: 0 0 14px; }
+  .chips { display: flex; gap: 8px; margin-bottom: 12px; }
+  .chip { padding: 9px 14px; border-radius: 10px; background: #fff; font-size: 0.9375rem; font-weight: 600; color: #4e5968; }
+  .chip.on { background: var(--aw); color: var(--a); box-shadow: inset 0 0 0 2px var(--a); }
+  .card { background: #fff; border-radius: 14px; padding: 14px; }
+  .leg { display: flex; gap: 16px; font-size: 0.9375rem; font-weight: 600; margin-bottom: 10px; color: #333d4b; }
+  .leg i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+  .pyr { display: grid; grid-template-columns: 1fr auto 1fr; gap: 3px 6px; align-items: center; }
+  .pyr .l { display: flex; justify-content: flex-end; }
+  .pyr .age { font-size: 0.75rem; color: #8b95a1; text-align: center; min-width: 2.2em; }
+  .pyr span { height: 14px; display: block; }
+  .lbl { font-size: 0.8125rem; color: #6b7684; margin: 14px 0 6px; }
+  .series { display: flex; gap: 6px; }
+  .series span { flex: 1; height: 22px; border-radius: 4px; }
+  .btn { margin-top: 14px; padding: 15px; border-radius: 10px; background: var(--a); color: #fff; font-weight: 700; font-size: 1.0625rem; text-align: center; }
+  .sw { display: flex; gap: 6px; margin-top: 12px; font-size: 0.75rem; color: #4e5968; flex-wrap: wrap; }
+  .sw code { background: #fff; padding: 3px 7px; border-radius: 4px; font-family: inherit; }
+  .note { margin-top: 20px; font-size: 0.9375rem; line-height: 1.6; color: #4e5968; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>콘텐츠 안 색 조합 시안 3가지</h1>
+  <p class="lead">첫 화면과 맨 위 띠의 동아출판 로고는 그대로 둡니다. 그 아래 버튼, 선택 표시, 그래프 색만 바뀝니다. 남녀처럼 두 무리를 견주는 색은 빨강과 검정, 파랑과 분홍을 모두 피했습니다.</p>
+
+  <div class="pal">
+
+    <section class="set" style="--a:#2457c5;--aw:#eaf0fc">
+      <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
+      <div class="body">
+        <h2>A. 바다</h2>
+        <p class="d">주색은 교과서에서 익숙한 차분한 파랑. 두 무리는 청록과 주황.</p>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card">
+          <div class="leg"><span><i style="background:#0e7c86"></i>남자</span><span><i style="background:#d0701c"></i>여자</span></div>
+          <div class="pyr" style="--m:#0e7c86;--f:#d0701c">
+            <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:70%;background:var(--m)"></span></div><div class="age">20</div><div><span style="width:67%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
+          </div>
+          <div class="lbl">그래프 계열 색</div>
+          <div class="series"><span style="background:#2457c5"></span><span style="background:#0e7c86"></span><span style="background:#d0701c"></span><span style="background:#7a5cc7"></span><span style="background:#8b95a1"></span></div>
+        </div>
+        <div class="btn">정답 확인하기</div>
+        <div class="sw"><code>주색 #2457c5</code><code>청록 #0e7c86</code><code>주황 #d0701c</code><code>보라 #7a5cc7</code></div>
+      </div>
+    </section>
+
+    <section class="set" style="--a:#1d7a55;--aw:#e7f4ee">
+      <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
+      <div class="body">
+        <h2>B. 숲</h2>
+        <p class="d">주색은 지리, 환경 자료와 어울리는 초록. 두 무리는 보라와 겨자.</p>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card">
+          <div class="leg"><span><i style="background:#6f4fc4"></i>남자</span><span><i style="background:#c08a00"></i>여자</span></div>
+          <div class="pyr" style="--m:#6f4fc4;--f:#c08a00">
+            <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:70%;background:var(--m)"></span></div><div class="age">20</div><div><span style="width:67%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
+          </div>
+          <div class="lbl">그래프 계열 색</div>
+          <div class="series"><span style="background:#1d7a55"></span><span style="background:#6f4fc4"></span><span style="background:#c08a00"></span><span style="background:#2b7bb9"></span><span style="background:#8b95a1"></span></div>
+        </div>
+        <div class="btn">정답 확인하기</div>
+        <div class="sw"><code>주색 #1d7a55</code><code>보라 #6f4fc4</code><code>겨자 #c08a00</code><code>하늘 #2b7bb9</code></div>
+      </div>
+    </section>
+
+    <section class="set" style="--a:#4b4fc8;--aw:#eeeffc">
+      <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
+      <div class="body">
+        <h2>C. 쪽빛</h2>
+        <p class="d">주색은 파랑보다 개성 있는 남보라. 두 무리는 청록과 호박색.</p>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card">
+          <div class="leg"><span><i style="background:#13887c"></i>남자</span><span><i style="background:#b8780a"></i>여자</span></div>
+          <div class="pyr" style="--m:#13887c;--f:#b8780a">
+            <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:70%;background:var(--m)"></span></div><div class="age">20</div><div><span style="width:67%;background:var(--f)"></span></div>
+            <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
+          </div>
+          <div class="lbl">그래프 계열 색</div>
+          <div class="series"><span style="background:#4b4fc8"></span><span style="background:#13887c"></span><span style="background:#b8780a"></span><span style="background:#2b7bb9"></span><span style="background:#8b95a1"></span></div>
+        </div>
+        <div class="btn">정답 확인하기</div>
+        <div class="sw"><code>주색 #4b4fc8</code><code>청록 #13887c</code><code>호박 #b8780a</code><code>하늘 #2b7bb9</code></div>
+      </div>
+    </section>
+
+  </div>
+  <p class="note">색값은 첫 시안입니다. 방향이 정해지면 다크 모드 값, 색약 학생도 구별되는지, 글자 대비를 계산해서 다듬습니다.</p>
+</div>
+</body>
+</html>
