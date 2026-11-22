@@ -1,0 +1,141 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전자칠판 글자 시안</title>
+<meta name="robots" content="noindex">
+<style>
+  @font-face { font-family: "Pretendard"; font-weight: 400; font-display: swap; src: url("/51/assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 600; font-display: swap; src: url("/51/assets/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 700; font-display: swap; src: url("/51/assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+  @font-face { font-family: "KoddiUD"; font-weight: 400; font-display: swap; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Regular.woff") format("woff"); }
+  @font-face { font-family: "KoddiUD"; font-weight: 700; font-display: swap; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Bold.woff") format("woff"); }
+  @font-face { font-family: "NanumSquareNeo"; font-weight: 400; font-display: swap; src: url("https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-bRg.woff") format("woff"); }
+  @font-face { font-family: "NanumSquareNeo"; font-weight: 700; font-display: swap; src: url("https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-cBd.woff") format("woff"); }
+
+  body { margin: 0; background: #e5e8eb; color: #191f28; font-family: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; word-break: keep-all; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; letter-spacing: -0.025em; margin: 0 0 8px; }
+  h2 { font-size: 1.1875rem; letter-spacing: -0.02em; margin: 32px 0 6px; }
+  .lead, .p { font-size: 1rem; line-height: 1.6; color: #4e5968; margin: 0 0 12px; }
+  .tip { background: #fff; border-radius: 14px; padding: 14px 16px; margin: 0 0 16px; font-size: 0.9375rem; line-height: 1.6; color: #333d4b; }
+  .tip b { color: #191f28; }
+  .grid { display: grid; gap: 18px; }
+  @media (min-width: 900px) { .grid.two { grid-template-columns: 1fr 1fr; } }
+  figure { margin: 0; }
+  figcaption { font-size: 0.9375rem; font-weight: 600; margin: 0 0 6px; color: #333d4b; }
+  figcaption span { font-weight: 400; color: #6b7684; }
+  .frame { background: #1b1d22; border-radius: 10px; padding: 6px; }
+  .holder { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 4px; background: #fff; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 14px; overflow: hidden; font-size: 0.9375rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  th { background: #f9fafb; font-weight: 600; color: #4e5968; }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .scroll { overflow-x: auto; border-radius: 14px; }
+
+  /* 1920 x 1080 무대 (전자칠판 화면 한 장) */
+  .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: #f2f4f6; color: #191f28;
+           --a: #057176; --aw: #e3f6f7; --m: #088187; --f: #be7a05; display: grid; grid-template-rows: auto 1fr; font-weight: var(--w-body); }
+  .stage .bar { display: flex; align-items: center; gap: 28px; padding: 0 56px; height: var(--bar); background: #fff; }
+  .stage .bar img { height: calc(var(--bar) * 0.5); }
+  .stage .bar b { font-size: var(--t-title); letter-spacing: -0.02em; font-weight: 700; }
+  .stage .main { display: grid; grid-template-columns: 60fr 40fr; gap: 40px; padding: 40px 56px; min-height: 0; }
+  .stage .chart { background: #fff; border-radius: 24px; padding: 32px 36px; display: flex; flex-direction: column; min-height: 0; }
+  .stage .leg { display: flex; gap: 36px; font-size: var(--t-label); font-weight: 700; margin-bottom: 16px; }
+  .stage .leg i { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 4px; margin-right: 0.35em; vertical-align: -0.05em; }
+  .stage .pyr { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px 14px; align-content: center; }
+  .stage .pyr .l { display: flex; justify-content: flex-end; }
+  .stage .pyr span { display: block; height: 100%; min-height: 26px; }
+  .stage .pyr .age { font-size: var(--t-axis); color: #4e5968; text-align: center; min-width: 2.6em; align-self: center; font-variant-numeric: tabular-nums; }
+  .stage .axis { display: flex; justify-content: space-between; font-size: var(--t-axis); color: #4e5968; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .stage .side { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+  .stage .q { background: #fff; border-radius: 24px; padding: 32px 36px; }
+  .stage .q .k { font-size: var(--t-label); color: #4e5968; margin-bottom: 10px; font-weight: 700; }
+  .stage .q p { margin: 0; font-size: var(--t-q); line-height: 1.4; letter-spacing: -0.02em; font-weight: 700; }
+  .stage .q small { display: block; margin-top: 14px; font-size: var(--t-body); line-height: 1.5; color: #333d4b; font-weight: var(--w-body); }
+  .stage .chips { display: flex; gap: 14px; flex-wrap: wrap; }
+  .stage .chip { padding: 0.5em 0.9em; border-radius: 14px; background: #fff; font-size: var(--t-body); font-weight: 700; color: #4e5968; }
+  .stage .chip.on { background: var(--aw); color: var(--a); box-shadow: inset 0 0 0 4px var(--a); }
+  .stage .btn { margin-top: auto; padding: 0.7em; border-radius: 18px; background: var(--a); color: #fff; font-weight: 700; font-size: var(--t-btn); text-align: center; }
+
+  .now   { --bar: 64px;  --t-title: 24px; --t-q: 20px; --t-body: 16px; --t-label: 15px; --t-axis: 13px; --t-btn: 17px; --w-body: 400; }
+  .board { --bar: 112px; --t-title: 48px; --t-q: 46px; --t-body: 34px; --t-label: 32px; --t-axis: 30px; --t-btn: 40px; --w-body: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>전자칠판 글자 시안</h1>
+  <p class="lead">교실 75인치 전자칠판(화면 1920 x 1080)에 인구 피라미드 자료를 띄운 모습입니다. 색은 A. 보색 시안으로 그렸습니다.</p>
+  <div class="tip"><b>뒷자리에서 보는 크기 그대로 보는 법:</b> 휴대폰을 눈에서 25~30cm 떨어뜨리고 아래 칠판 그림을 보세요. 75인치 칠판을 약 8m 떨어진 교실 맨 뒷자리에서 볼 때와 거의 같은 크기로 보입니다. (넓은 화면에서는 그림이 더 크게 나오니 휴대폰으로 보는 것이 정확합니다.)</div>
+
+  <h2>1. 지금 크기와 칠판 모드</h2>
+  <div class="grid two">
+    <figure><figcaption>지금 크기 <span>본문 16px, 그래프 숫자 13px</span></figcaption><div class="frame"><div class="holder" data-mode="now" data-font="Pretendard"></div></div></figure>
+    <figure><figcaption>칠판 모드 <span>본문 34px, 질문 46px, 그래프 숫자 30px</span></figcaption><div class="frame"><div class="holder" data-mode="board" data-font="Pretendard"></div></div></figure>
+  </div>
+
+  <h2>2. 서체 비교 (칠판 모드)</h2>
+  <p class="p">모두 상업적 이용과 웹 탑재가 허용된 무료 서체입니다. 같은 크기로 넣었습니다.</p>
+  <div class="grid two">
+    <figure><figcaption>Pretendard <span>지금 쓰는 서체</span></figcaption><div class="frame"><div class="holder" data-mode="board" data-font="Pretendard"></div></div></figure>
+    <figure><figcaption>KoddiUD 온고딕 <span>한국장애인개발원, 읽기 쉬운 유니버설 디자인 서체</span></figcaption><div class="frame"><div class="holder" data-mode="board" data-font="KoddiUD"></div></div></figure>
+    <figure><figcaption>나눔스퀘어 네오 <span>네이버, 넓적하고 또렷한 발표용 서체</span></figcaption><div class="frame"><div class="holder" data-mode="board" data-font="NanumSquareNeo"></div></div></figure>
+  </div>
+
+  <h2>3. 칠판 모드 글자 크기 (1920 x 1080 화면 기준)</h2>
+  <div class="scroll"><table>
+    <tr><th>쓰는 곳</th><th>지금</th><th>칠판 모드</th><th>75인치에서 실제 글자 높이</th></tr>
+    <tr><td>질문, 정답</td><td class="n">20px</td><td class="n">46px</td><td class="n">약 3.4cm</td></tr>
+    <tr><td>본문, 선택 버튼</td><td class="n">16px</td><td class="n">34px</td><td class="n">약 2.5cm</td></tr>
+    <tr><td>그래프 숫자, 축</td><td class="n">13px</td><td class="n">30px</td><td class="n">약 2.2cm</td></tr>
+    <tr><td>가장 작은 글자</td><td class="n">12px</td><td class="n">28px</td><td class="n">약 2.1cm</td></tr>
+  </table></div>
+  <p class="p" style="margin-top:12px">본문 굵기도 400에서 500으로 올립니다. 밝은 칠판에서는 가는 획이 번져 보이기 때문입니다. 그래프 선은 3px 이상으로 그립니다.</p>
+</div>
+
+<template id="tpl">
+  <div class="stage">
+    <div class="bar"><img src="/55/donga-ci.svg" alt=""><b>우리나라 인구 피라미드 변화</b></div>
+    <div class="main">
+      <div class="chart">
+        <div class="leg"><span><i style="background:var(--m)"></i>남자</span><span><i style="background:var(--f)"></i>여자</span></div>
+        <div class="pyr"></div>
+        <div class="axis"><span>40만 명</span><span>20</span><span>0</span><span>20</span><span>40만 명</span></div>
+      </div>
+      <div class="side">
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교하기</span></div>
+        <div class="q"><div class="k">질문 1</div><p>2050년에 가장 많은 연령층은 어디일까요?</p><small>그래프에서 막대가 가장 긴 줄을 찾아보세요.</small></div>
+        <div class="btn">정답 확인하기</div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+(function () {
+  var rows = [[80, 30, 42], [70, 48, 56], [60, 70, 72], [50, 84, 82], [40, 78, 76], [30, 66, 63], [20, 55, 52], [10, 46, 44], [0, 38, 36]];
+  var tpl = document.getElementById('tpl');
+  var holders = document.querySelectorAll('.holder');
+  holders.forEach(function (h) {
+    var st = tpl.content.firstElementChild.cloneNode(true);
+    st.classList.add(h.getAttribute('data-mode'));
+    st.style.fontFamily = '"' + h.getAttribute('data-font') + '", Pretendard, sans-serif';
+    var pyr = st.querySelector('.pyr');
+    rows.forEach(function (r) {
+      var l = document.createElement('div'); l.className = 'l';
+      var a = document.createElement('span'); a.style.width = r[1] + '%'; a.style.background = 'var(--m)'; l.appendChild(a);
+      var g = document.createElement('div'); g.className = 'age'; g.textContent = r[0] === 80 ? '80+' : String(r[0]);
+      var rr = document.createElement('div');
+      var b = document.createElement('span'); b.style.width = r[2] + '%'; b.style.background = 'var(--f)'; rr.appendChild(b);
+      pyr.appendChild(l); pyr.appendChild(g); pyr.appendChild(rr);
+    });
+    h.appendChild(st);
+  });
+  function fit() { holders.forEach(function (h) { h.firstElementChild.style.transform = 'scale(' + (h.clientWidth / 1920) + ')'; }); }
+  fit();
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.body); else window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>
