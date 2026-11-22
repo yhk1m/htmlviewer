@@ -13,15 +13,19 @@
   body { margin: 0; background: #e5e8eb; color: #191f28; font-family: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; word-break: keep-all; }
   .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
   h1 { font-size: 1.5rem; letter-spacing: -0.025em; margin: 0 0 8px; }
-  .lead { font-size: 1rem; line-height: 1.6; color: #4e5968; margin: 0 0 20px; }
+  .lead { font-size: 1rem; line-height: 1.6; color: #4e5968; margin: 0 0 12px; }
+  .rule { background: #fff; border-radius: 14px; padding: 14px 16px; margin: 0 0 20px; font-size: 0.9375rem; line-height: 1.6; color: #333d4b; }
+  .rule b { color: #191f28; }
   .pal { display: grid; gap: 16px; }
   @media (min-width: 760px) { .pal { grid-template-columns: repeat(3, 1fr); } }
   .set { border-radius: 16px; overflow: hidden; background: #fff; }
   .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #e5e8eb; font-size: 0.8125rem; color: #6b7684; }
   .top img { height: 26px; display: block; }
   .body { padding: 16px; background: #f2f4f6; }
+  .head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .head svg { flex: none; width: 92px; height: 92px; }
   h2 { margin: 0 0 4px; font-size: 1.25rem; letter-spacing: -0.02em; }
-  .d { font-size: 0.9375rem; line-height: 1.5; color: #4e5968; margin: 0 0 14px; }
+  .d { font-size: 0.9375rem; line-height: 1.5; color: #4e5968; margin: 0; }
   .chips { display: flex; gap: 8px; margin-bottom: 12px; }
   .chip { padding: 9px 14px; border-radius: 10px; background: #fff; font-size: 0.9375rem; font-weight: 600; color: #4e5968; }
   .chip.on { background: var(--aw); color: var(--a); box-shadow: inset 0 0 0 2px var(--a); }
@@ -43,20 +47,23 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>콘텐츠 안 색 조합 시안 3가지</h1>
-  <p class="lead">첫 화면과 맨 위 띠의 동아출판 로고는 그대로 둡니다. 그 아래 버튼, 선택 표시, 그래프 색만 바뀝니다. 남녀처럼 두 무리를 견주는 색은 빨강과 검정, 파랑과 분홍을 모두 피했습니다.</p>
+  <h1>CI에서 뽑은 색 조합 시안 3가지</h1>
+  <p class="lead">첫 화면과 맨 위 띠의 동아출판 로고는 그대로 둡니다. 그 아래 버튼, 선택 표시, 그래프 색만 바뀝니다.</p>
+  <div class="rule"><b>CI와 이어지는 방법:</b> 세 조합 모두 CI 빨강(#ec1940)을 색상환 위의 출발점으로 삼았습니다. 빨강에서 정해진 각도만큼 돌린 자리의 색을 쓰고, 선명한 정도도 CI 빨강에 맞췄습니다. 회색 계열은 CI 먹(#333333)을 그대로 씁니다. 왼쪽 동그라미가 CI 빨강(큰 점)과 뽑아 쓴 색의 자리입니다. 남녀처럼 두 무리를 견주는 색은 빨강과 검정, 파랑과 분홍을 모두 피했습니다.</div>
 
   <div class="pal">
 
-    <section class="set" style="--a:#2457c5;--aw:#eaf0fc">
+    <section class="set" style="--a:#057176;--aw:#e3f6f7">
       <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
       <div class="body">
-        <h2>A. 바다</h2>
-        <p class="d">주색은 교과서에서 익숙한 차분한 파랑. 두 무리는 청록과 주황.</p>
+        <div class="head">
+          <svg data-hues="200.5:#057176,70.5:#be7a05" viewBox="0 0 92 92" aria-hidden="true"></svg>
+          <div><h2>A. 보색</h2><p class="d">CI 빨강의 정반대 자리인 청록이 주색. 두 무리는 청록과 호박색(빨강 옆 따뜻한 색).</p></div>
+        </div>
         <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
         <div class="card">
-          <div class="leg"><span><i style="background:#0e7c86"></i>남자</span><span><i style="background:#d0701c"></i>여자</span></div>
-          <div class="pyr" style="--m:#0e7c86;--f:#d0701c">
+          <div class="leg"><span><i style="background:#088187"></i>남자</span><span><i style="background:#be7a05"></i>여자</span></div>
+          <div class="pyr" style="--m:#088187;--f:#be7a05">
             <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
             <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
             <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
@@ -64,22 +71,24 @@
             <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
           </div>
           <div class="lbl">그래프 계열 색</div>
-          <div class="series"><span style="background:#2457c5"></span><span style="background:#0e7c86"></span><span style="background:#d0701c"></span><span style="background:#7a5cc7"></span><span style="background:#8b95a1"></span></div>
+          <div class="series"><span style="background:#057176"></span><span style="background:#be7a05"></span><span style="background:#333333"></span><span style="background:#8b95a1"></span></div>
         </div>
         <div class="btn">정답 확인하기</div>
-        <div class="sw"><code>주색 #2457c5</code><code>청록 #0e7c86</code><code>주황 #d0701c</code><code>보라 #7a5cc7</code></div>
+        <div class="sw"><code>주색 #057176</code><code>청록 #088187</code><code>호박 #be7a05</code><code>먹 #333333</code></div>
       </div>
     </section>
 
-    <section class="set" style="--a:#1d7a55;--aw:#e7f4ee">
+    <section class="set" style="--a:#1b57bb;--aw:#ebf2fe">
       <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
       <div class="body">
-        <h2>B. 숲</h2>
-        <p class="d">주색은 지리, 환경 자료와 어울리는 초록. 두 무리는 보라와 겨자.</p>
+        <div class="head">
+          <svg data-hues="260.5:#1b57bb,140.5:#388628" viewBox="0 0 92 92" aria-hidden="true"></svg>
+          <div><h2>B. 삼각</h2><p class="d">CI 빨강과 정삼각형을 이루는 두 색. 주색은 남색, 두 무리는 초록과 남색.</p></div>
+        </div>
         <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
         <div class="card">
-          <div class="leg"><span><i style="background:#6f4fc4"></i>남자</span><span><i style="background:#c08a00"></i>여자</span></div>
-          <div class="pyr" style="--m:#6f4fc4;--f:#c08a00">
+          <div class="leg"><span><i style="background:#388628"></i>남자</span><span><i style="background:#275ebd"></i>여자</span></div>
+          <div class="pyr" style="--m:#388628;--f:#275ebd">
             <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
             <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
             <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
@@ -87,22 +96,24 @@
             <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
           </div>
           <div class="lbl">그래프 계열 색</div>
-          <div class="series"><span style="background:#1d7a55"></span><span style="background:#6f4fc4"></span><span style="background:#c08a00"></span><span style="background:#2b7bb9"></span><span style="background:#8b95a1"></span></div>
+          <div class="series"><span style="background:#1b57bb"></span><span style="background:#388628"></span><span style="background:#333333"></span><span style="background:#8b95a1"></span></div>
         </div>
         <div class="btn">정답 확인하기</div>
-        <div class="sw"><code>주색 #1d7a55</code><code>보라 #6f4fc4</code><code>겨자 #c08a00</code><code>하늘 #2b7bb9</code></div>
+        <div class="sw"><code>주색 #1b57bb</code><code>초록 #388628</code><code>남색 #275ebd</code><code>먹 #333333</code></div>
       </div>
     </section>
 
-    <section class="set" style="--a:#4b4fc8;--aw:#eeeffc">
+    <section class="set" style="--a:#93202d;--aw:#feeded">
       <div class="top"><img src="donga-ci.svg" alt="동아출판"><span>로고는 CI 그대로</span></div>
       <div class="body">
-        <h2>C. 쪽빛</h2>
-        <p class="d">주색은 파랑보다 개성 있는 남보라. 두 무리는 청록과 호박색.</p>
+        <div class="head">
+          <svg data-hues="20.5:#93202d,250.5:#3e6084,80.5:#b58202" viewBox="0 0 92 92" aria-hidden="true"></svg>
+          <div><h2>C. 와인</h2><p class="d">CI 빨강을 어둡고 차분하게 누른 와인색이 주색(버튼에만). 그래프의 두 무리는 먹빛 남색과 겨자.</p></div>
+        </div>
         <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
         <div class="card">
-          <div class="leg"><span><i style="background:#13887c"></i>남자</span><span><i style="background:#b8780a"></i>여자</span></div>
-          <div class="pyr" style="--m:#13887c;--f:#b8780a">
+          <div class="leg"><span><i style="background:#3e6084"></i>남자</span><span><i style="background:#b58202"></i>여자</span></div>
+          <div class="pyr" style="--m:#3e6084;--f:#b58202">
             <div class="l"><span style="width:40%;background:var(--m)"></span></div><div class="age">80+</div><div><span style="width:50%;background:var(--f)"></span></div>
             <div class="l"><span style="width:62%;background:var(--m)"></span></div><div class="age">60</div><div><span style="width:66%;background:var(--f)"></span></div>
             <div class="l"><span style="width:82%;background:var(--m)"></span></div><div class="age">40</div><div><span style="width:78%;background:var(--f)"></span></div>
@@ -110,15 +121,33 @@
             <div class="l"><span style="width:50%;background:var(--m)"></span></div><div class="age">0</div><div><span style="width:48%;background:var(--f)"></span></div>
           </div>
           <div class="lbl">그래프 계열 색</div>
-          <div class="series"><span style="background:#4b4fc8"></span><span style="background:#13887c"></span><span style="background:#b8780a"></span><span style="background:#2b7bb9"></span><span style="background:#8b95a1"></span></div>
+          <div class="series"><span style="background:#3e6084"></span><span style="background:#b58202"></span><span style="background:#333333"></span><span style="background:#8b95a1"></span></div>
         </div>
         <div class="btn">정답 확인하기</div>
-        <div class="sw"><code>주색 #4b4fc8</code><code>청록 #13887c</code><code>호박 #b8780a</code><code>하늘 #2b7bb9</code></div>
+        <div class="sw"><code>주색 #93202d</code><code>먹빛 남색 #3e6084</code><code>겨자 #b58202</code><code>먹 #333333</code></div>
       </div>
     </section>
 
   </div>
-  <p class="note">색값은 첫 시안입니다. 방향이 정해지면 다크 모드 값, 색약 학생도 구별되는지, 글자 대비를 계산해서 다듬습니다.</p>
+  <p class="note">세 조합 모두 적록 색약 학생이 보아도 두 무리가 구별되는지 계산으로 확인했고, 버튼 글자 대비는 5.7 이상입니다. C는 빨강 계열이 버튼에 남아 있어 CI와 가장 가깝지만, "빨강은 강조"라는 느낌이 조금 남을 수 있습니다. 방향이 정해지면 다크 모드 값까지 다듬습니다.</p>
 </div>
+<script>
+document.querySelectorAll('svg[data-hues]').forEach(function (svg) {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
+  el('circle', { cx: 46, cy: 46, r: 34, fill: 'none', stroke: '#d1d6db', 'stroke-width': 2 });
+  function pt(h, r) { var t = (h - 90) * Math.PI / 180; return [46 + r * Math.cos(t), 46 + r * Math.sin(t)]; }
+  var ci = pt(20.5, 34);
+  svg.getAttribute('data-hues').split(',').forEach(function (s) {
+    var p = s.split(':'), q = pt(+p[0], 34);
+    el('line', { x1: ci[0], y1: ci[1], x2: q[0], y2: q[1], stroke: '#d1d6db', 'stroke-width': 1.5, 'stroke-dasharray': '3 3' });
+  });
+  el('circle', { cx: ci[0], cy: ci[1], r: 10, fill: '#ec1940', stroke: '#fff', 'stroke-width': 2 });
+  svg.getAttribute('data-hues').split(',').forEach(function (s) {
+    var p = s.split(':'), q = pt(+p[0], 34);
+    el('circle', { cx: q[0], cy: q[1], r: 7, fill: p[1], stroke: '#fff', 'stroke-width': 2 });
+  });
+});
+</script>
 </body>
 </html>
