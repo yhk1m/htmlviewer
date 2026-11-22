@@ -1,0 +1,363 @@
+<!-- © 2026 김용현 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>동아 디자인 색과 글자 수정안</title>
+<meta name="robots" content="noindex">
+<style>
+  @font-face { font-family: "Pretendard"; font-weight: 400; font-display: block; src: url("/51/assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 500; font-display: block; src: url("/51/assets/fonts/Pretendard-Medium.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 600; font-display: block; src: url("/51/assets/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 700; font-display: block; src: url("/51/assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+  @font-face { font-family: "KoddiUD"; font-weight: 400; font-display: block; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Regular.woff") format("woff"); }
+  @font-face { font-family: "KoddiUD"; font-weight: 700; font-display: block; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Bold.woff") format("woff"); }
+  @font-face { font-family: "NanumSquareNeo"; font-weight: 400; font-display: block; src: url("https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-bRg.woff") format("woff"); }
+  @font-face { font-family: "NanumSquareNeo"; font-weight: 700; font-display: block; src: url("https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareNeo/NanumSquareNeoTTF-cBd.woff") format("woff"); }
+
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; background: #d1d6db; color: #191f28; font-family: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; word-break: keep-all; }
+
+  /* 화면 위 막대 */
+  .toolbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: #fff; box-shadow: 0 1px 0 #e5e8eb; }
+  .toolbar p { margin: 0; font-size: 0.875rem; color: #4e5968; line-height: 1.4; }
+  .toolbar button { flex: none; min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #057176; color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; }
+  .toolbar button:focus-visible { outline: 3px solid #191f28; outline-offset: 2px; }
+
+  .sheets { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px 0 40px; }
+  .sheet { zoom: var(--z, 1); width: 794px; height: 1123px; background: #fff; padding: 64px 60px 56px; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .sheet .foot { position: absolute; left: 60px; right: 60px; bottom: 26px; display: flex; justify-content: space-between; font-size: 11px; color: #8b95a1; }
+  .sheet .foot img { height: 16px; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheets { padding: 0; gap: 0; display: block; }
+    .sheet { zoom: 1 !important; width: 210mm; height: 297mm; box-shadow: none; break-after: page; }
+    .sheet:last-child { break-after: auto; }
+  }
+
+  /* 글 */
+  .kicker { font-size: 13px; font-weight: 600; color: #057176; margin: 0 0 8px; }
+  h1 { font-size: 30px; line-height: 1.3; letter-spacing: -0.03em; margin: 0 0 14px; }
+  h2 { font-size: 22px; letter-spacing: -0.025em; margin: 0 0 6px; }
+  h3 { font-size: 15px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .sub { font-size: 14px; line-height: 1.65; color: #4e5968; margin: 0 0 20px; }
+  p, li { font-size: 13.5px; line-height: 1.7; color: #333d4b; }
+  ul { margin: 0; padding-left: 18px; }
+  .box { background: #f2f4f6; border-radius: 12px; padding: 16px 18px; }
+  .gap { height: 18px; flex: none; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e5e8eb; vertical-align: top; line-height: 1.5; }
+  th { font-weight: 600; color: #4e5968; background: #f9fafb; }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+
+  /* 표지 요약 */
+  .cover-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 56px; }
+  .cover-top img { height: 34px; }
+  .cover-top span { font-size: 12px; color: #8b95a1; }
+  .req { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .req .box h3 { font-size: 14px; }
+  .req .box p { margin: 0; font-size: 13px; }
+  .num { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: #191f28; color: #fff; font-size: 12px; font-weight: 700; align-items: center; justify-content: center; margin-right: 8px; vertical-align: 1px; }
+  .ans { display: grid; gap: 12px; }
+  .ans > div { border: 1px solid #e5e8eb; border-radius: 12px; padding: 16px 18px; }
+  .ans p { margin: 0; }
+  .keep { display: flex; align-items: center; gap: 16px; }
+  .keep img { height: 44px; flex: none; }
+
+  /* 색 시안 */
+  .pal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .set { border-radius: 12px; background: #f2f4f6; padding: 14px; display: flex; flex-direction: column; }
+  .set .head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .set svg { flex: none; width: 58px; height: 58px; }
+  .set h3 { font-size: 16px; margin: 0 0 2px; }
+  .set .rel { font-size: 11.5px; color: #4e5968; line-height: 1.45; margin: 0; }
+  .chips { display: flex; gap: 5px; margin-bottom: 8px; }
+  .chip { padding: 5px 8px; border-radius: 7px; background: #fff; font-size: 11px; font-weight: 600; color: #4e5968; }
+  .chip.on { background: var(--aw); color: var(--a); box-shadow: inset 0 0 0 1.5px var(--a); }
+  .card { background: #fff; border-radius: 10px; padding: 10px; }
+  .leg { display: flex; gap: 10px; font-size: 11px; font-weight: 600; margin-bottom: 6px; color: #333d4b; }
+  .leg i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; }
+  .pyr { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2px 4px; align-items: center; }
+  .pyr .l { display: flex; justify-content: flex-end; }
+  .pyr .age { font-size: 9px; color: #8b95a1; text-align: center; min-width: 2.2em; }
+  .pyr span { height: 9px; display: block; }
+  .series { display: flex; gap: 4px; margin-top: 8px; }
+  .series span { flex: 1; height: 12px; border-radius: 3px; }
+  .set .btn { margin-top: 10px; padding: 9px; border-radius: 8px; background: var(--a); color: #fff; font-weight: 700; font-size: 12.5px; text-align: center; }
+  .hex { margin-top: 8px; font-size: 10.5px; color: #4e5968; line-height: 1.6; font-variant-numeric: tabular-nums; }
+
+  /* 칠판 무대 (1920 x 1080) */
+  .holder { position: relative; flex: none; width: 460px; height: 259px; overflow: hidden; border-radius: 4px; background: #fff; border: 5px solid #1b1d22; box-sizing: content-box; }
+  .mode { display: grid; grid-template-columns: 470px 1fr; gap: 18px; align-items: center; flex: none; }
+  .mode h3 { font-size: 15px; margin: 0 0 6px; }
+  .mode p { margin: 0; font-size: 12.5px; line-height: 1.65; color: #4e5968; }
+  .mode p b { color: #191f28; font-variant-numeric: tabular-nums; }
+  .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: #f2f4f6; color: #191f28;
+           --a: #057176; --aw: #e3f6f7; --m: #088187; --f: #be7a05; display: grid; grid-template-rows: auto 1fr; font-weight: var(--w-body); }
+  .stage .bar { display: flex; align-items: center; gap: 28px; padding: 0 56px; height: var(--bar); background: #fff; }
+  .stage .bar img { height: calc(var(--bar) * 0.5); }
+  .stage .bar b { font-size: var(--t-title); letter-spacing: -0.02em; font-weight: 700; }
+  .stage .main { display: grid; grid-template-columns: 60fr 40fr; gap: 40px; padding: 40px 56px; min-height: 0; }
+  .stage .chart { background: #fff; border-radius: 24px; padding: 32px 36px; display: flex; flex-direction: column; min-height: 0; }
+  .stage .lg { display: flex; gap: 36px; font-size: var(--t-label); font-weight: 700; margin-bottom: 16px; }
+  .stage .lg i { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 4px; margin-right: 0.35em; vertical-align: -0.05em; }
+  .stage .py { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px 14px; align-content: center; }
+  .stage .py .l { display: flex; justify-content: flex-end; }
+  .stage .py span { display: block; height: 100%; min-height: 26px; }
+  .stage .py .age { font-size: var(--t-axis); color: #4e5968; text-align: center; min-width: 2.6em; align-self: center; font-variant-numeric: tabular-nums; }
+  .stage .axis { display: flex; justify-content: space-between; font-size: var(--t-axis); color: #4e5968; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .stage .side { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+  .stage .q { background: #fff; border-radius: 24px; padding: 32px 36px; }
+  .stage .q .k { font-size: var(--t-label); color: #4e5968; margin-bottom: 10px; font-weight: 700; }
+  .stage .q p { margin: 0; font-size: var(--t-q); line-height: 1.4; letter-spacing: -0.02em; font-weight: 700; color: #191f28; }
+  .stage .q small { display: block; margin-top: 14px; font-size: var(--t-body); line-height: 1.5; color: #333d4b; font-weight: var(--w-body); }
+  .stage .chs { display: flex; gap: 14px; flex-wrap: wrap; }
+  .stage .ch { padding: 0.5em 0.9em; border-radius: 14px; background: #fff; font-size: var(--t-body); font-weight: 700; color: #4e5968; }
+  .stage .ch.on { background: var(--aw); color: var(--a); box-shadow: inset 0 0 0 4px var(--a); }
+  .stage .bt { margin-top: auto; padding: 0.7em; border-radius: 18px; background: var(--a); color: #fff; font-weight: 700; font-size: var(--t-btn); text-align: center; }
+  .now   { --bar: 64px;  --t-title: 24px; --t-q: 20px; --t-body: 16px; --t-label: 15px; --t-axis: 13px; --t-btn: 17px; --w-body: 400; }
+  .board { --bar: 112px; --t-title: 48px; --t-q: 46px; --t-body: 34px; --t-label: 32px; --t-axis: 30px; --t-btn: 40px; --w-body: 500; }
+  .cap { font-size: 12.5px; font-weight: 600; color: #333d4b; margin: 0 0 6px; }
+  .cap span { font-weight: 400; color: #6b7684; }
+
+  /* 서체 */
+  .font { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid #e5e8eb; }
+  .font:first-of-type { border-top: 1px solid #e5e8eb; }
+  .font h3 { font-size: 15px; margin: 0 0 4px; }
+  .font .who { font-size: 11.5px; color: #4e5968; line-height: 1.5; margin: 0; }
+  .font .tag { display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #e3f6f7; color: #04585c; }
+  .font .tag.warn { background: #fff4e0; color: #7a4a00; }
+  .sample .big { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.35; margin: 0; color: #191f28; }
+  .sample .mid { font-size: 18px; line-height: 1.5; margin: 4px 0 0; color: #333d4b; }
+  .sample .dig { font-size: 22px; margin: 6px 0 0; color: #191f28; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .pick { border: 2px solid #057176; border-radius: 12px; padding: 14px 18px; }
+  .pick p { margin: 0; }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <p>A4 4쪽 보고 자료입니다. 인쇄 창에서 "PDF로 저장"을 고르세요.</p>
+  <button type="button" id="pdf">PDF로 저장</button>
+</div>
+
+<div class="sheets">
+
+  <!-- 1쪽 요약 -->
+  <section class="sheet">
+    <div class="cover-top"><img src="/55/donga-ci.svg" alt="동아출판"><span>2026년 11월</span></div>
+    <p class="kicker">사회과 디지털 자료 디자인 규칙(동아 디자인)</p>
+    <h1>콘텐츠 색과 전자칠판 글자<br>수정안</h1>
+    <p class="sub">선생님들의 의견을 반영해 디자인 규칙 두 가지를 고친 안입니다. 실제 수업 자료인 인구 피라미드 화면으로 그려서 비교했습니다.</p>
+
+    <h2 style="font-size:17px;margin-bottom:10px">요청 사항</h2>
+    <div class="req">
+      <div class="box"><h3><span class="num">1</span>색</h3><p>빨강과 검정이 그래프, 남녀 구분에 쓰이면 빨강이 강조로 읽히거나 성별 고정관념을 떠올리게 할 수 있음. 첫 화면은 유지하고 콘텐츠 안 색을 다른 조합으로.</p></div>
+      <div class="box"><h3><span class="num">2</span>서체와 글자 크기</h3><p>학교 전자칠판에 띄웠을 때 교실 뒤쪽 학생도 읽을 수 있게. 상업적으로 쓸 수 있는 서체로.</p></div>
+    </div>
+
+    <div class="gap"></div>
+    <h2 style="font-size:17px;margin-bottom:10px">수정안 요약</h2>
+    <div class="ans">
+      <div><h3><span class="num">1</span>CI 빨강에서 뽑은 색 조합 3안 (2쪽)</h3><p>CI 빨강을 색상환의 출발점으로 삼아 보색, 삼각 배색, 톤 다운의 세 방법으로 색을 뽑았습니다. 남녀처럼 두 무리를 견주는 색에는 빨강과 검정, 파랑과 분홍을 쓰지 않습니다. 세 안 모두 적록 색약 학생이 보아도 구별되는지 확인했습니다.</p></div>
+      <div><h3><span class="num">2</span>칠판 모드 (3쪽)</h3><p>버튼 하나로 켜는 칠판 모드를 둡니다. 글자를 2배 안팎으로 키우고 획을 한 단계 굵게 합니다. 75인치 칠판 기준 질문 글자 높이 약 3.4cm, 가장 작은 글자도 2cm를 넘습니다.</p></div>
+      <div><h3><span class="num">3</span>상업적 이용이 가능한 서체 3종 비교 (4쪽)</h3><p>Pretendard, KoddiUD 온고딕, 나눔스퀘어 네오를 같은 크기로 비교했습니다. 전자칠판에는 읽기 약자를 위해 만든 KoddiUD 온고딕을 추천합니다.</p></div>
+    </div>
+
+    <div class="gap"></div>
+    <div class="box keep"><img src="/55/donga-ci.svg" alt=""><p style="margin:0">첫 화면의 동아출판 로고와 열림 애니메이션, 맨 위 띠는 지금 그대로 둡니다. 바뀌는 것은 그 아래 콘텐츠의 버튼, 선택 표시, 그래프 색과 글자입니다.</p></div>
+    <div class="foot"><span>콘텐츠 색과 전자칠판 글자 수정안</span><span>1</span></div>
+  </section>
+
+  <!-- 2쪽 색 -->
+  <section class="sheet">
+    <p class="kicker">1. 색</p>
+    <h2>CI 빨강에서 뽑은 색 조합 3안</h2>
+    <p class="sub">동그라미는 색상환입니다. 큰 빨간 점이 CI 빨강(#ec1940), 작은 점이 그 자리에서 뽑은 색입니다. 선명한 정도는 CI 빨강에 맞췄고, 회색 계열은 CI 먹(#333333)을 그대로 씁니다.</p>
+
+    <div class="pal">
+      <div class="set" style="--a:#057176;--aw:#e3f6f7">
+        <div class="head"><svg data-hues="200.5:#057176,70.5:#be7a05" viewBox="0 0 92 92" aria-hidden="true"></svg><div><h3>A. 보색</h3><p class="rel">빨강의 정반대 자리 청록이 주색. 빨강 옆 따뜻한 호박색과 짝.</p></div></div>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card"><div class="leg"><span><i style="background:#088187"></i>남자</span><span><i style="background:#be7a05"></i>여자</span></div><div class="pyr" data-m="#088187" data-f="#be7a05"></div>
+          <div class="series"><span style="background:#057176"></span><span style="background:#be7a05"></span><span style="background:#333"></span><span style="background:#8b95a1"></span></div></div>
+        <div class="btn">정답 확인하기</div>
+        <div class="hex">주색 #057176<br>두 무리 #088187, #be7a05</div>
+      </div>
+      <div class="set" style="--a:#1b57bb;--aw:#ebf2fe">
+        <div class="head"><svg data-hues="260.5:#1b57bb,140.5:#388628" viewBox="0 0 92 92" aria-hidden="true"></svg><div><h3>B. 삼각</h3><p class="rel">빨강과 정삼각형을 이루는 남색과 초록.</p></div></div>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card"><div class="leg"><span><i style="background:#388628"></i>남자</span><span><i style="background:#275ebd"></i>여자</span></div><div class="pyr" data-m="#388628" data-f="#275ebd"></div>
+          <div class="series"><span style="background:#1b57bb"></span><span style="background:#388628"></span><span style="background:#333"></span><span style="background:#8b95a1"></span></div></div>
+        <div class="btn">정답 확인하기</div>
+        <div class="hex">주색 #1b57bb<br>두 무리 #388628, #275ebd</div>
+      </div>
+      <div class="set" style="--a:#93202d;--aw:#feeded">
+        <div class="head"><svg data-hues="20.5:#93202d,250.5:#3e6084,80.5:#b58202" viewBox="0 0 92 92" aria-hidden="true"></svg><div><h3>C. 와인</h3><p class="rel">빨강을 어둡게 누른 와인색을 버튼에만. 그래프는 먹빛 남색과 겨자.</p></div></div>
+        <div class="chips"><span class="chip on">2020년</span><span class="chip">2050년</span><span class="chip">비교</span></div>
+        <div class="card"><div class="leg"><span><i style="background:#3e6084"></i>남자</span><span><i style="background:#b58202"></i>여자</span></div><div class="pyr" data-m="#3e6084" data-f="#b58202"></div>
+          <div class="series"><span style="background:#3e6084"></span><span style="background:#b58202"></span><span style="background:#333"></span><span style="background:#8b95a1"></span></div></div>
+        <div class="btn">정답 확인하기</div>
+        <div class="hex">주색 #93202d<br>두 무리 #3e6084, #b58202</div>
+      </div>
+    </div>
+
+    <div class="gap"></div>
+    <table>
+      <tr><th>안</th><th>CI와의 관계</th><th>좋은 점</th><th>살필 점</th></tr>
+      <tr><td><b>A. 보색</b></td><td>빨강의 반대색</td><td>빨강과 가장 멀어 "강조, 경고" 느낌이 없음. 지리 자료(바다, 물)와 어울림</td><td>청록과 호박색이 적록 색약에서 세 안 중 가장 가까움(구별은 됨)</td></tr>
+      <tr><td><b>B. 삼각</b></td><td>빨강과 정삼각형</td><td>교과서에 익숙한 남색. 색약에서도 두 무리 차이가 가장 큼</td><td>성격이 무난해 동아출판만의 느낌은 약함</td></tr>
+      <tr><td><b>C. 와인</b></td><td>빨강의 톤 다운</td><td>CI와 가장 가까워 브랜드가 바로 보임</td><td>버튼이 빨강 계열이라 "빨강은 강조"라는 느낌이 조금 남음</td></tr>
+    </table>
+
+    <div class="gap"></div>
+    <div class="box">
+      <h3>세 안 공통</h3>
+      <ul>
+        <li>남녀처럼 두 무리를 견주는 색에 빨강과 검정, 파랑과 분홍을 쓰지 않습니다.</li>
+        <li>적록 색약(가장 흔한 두 유형)을 흉내 내 계산해도 두 무리 색이 구별됩니다.</li>
+        <li>버튼 위 흰 글자 대비는 5.7 : 1 이상으로 웹 접근성 기준(4.5 : 1)을 넘습니다.</li>
+        <li>오답, 오류 표시는 색과 함께 늘 아이콘과 문구를 붙입니다.</li>
+      </ul>
+    </div>
+    <div class="foot"><span>콘텐츠 색과 전자칠판 글자 수정안</span><span>2</span></div>
+  </section>
+
+  <!-- 3쪽 칠판 모드 -->
+  <section class="sheet">
+    <p class="kicker">2. 글자 크기</p>
+    <h2>칠판 모드</h2>
+    <p class="sub">기준: 교실 75인치 전자칠판, 화면 1920 x 1080, 맨 뒷자리까지 약 8m. 교사가 화면 위 버튼으로 켜고 끕니다. 휴대폰과 태블릿에서는 지금 크기 그대로입니다.</p>
+
+    <div class="mode"><div class="holder" data-mode="now" data-font="Pretendard"></div><div><h3>지금 크기</h3><p>질문 <b>20px</b><br>본문 <b>16px</b><br>그래프 숫자 <b>13px</b></p><p style="margin-top:8px">뒷자리에서는 질문 정도만 겨우 읽힙니다.</p></div></div>
+    <div class="gap" style="height:14px"></div>
+    <div class="mode"><div class="holder" data-mode="board" data-font="Pretendard"></div><div><h3>칠판 모드</h3><p>질문 <b>46px</b><br>본문 <b>34px</b><br>그래프 숫자 <b>30px</b></p><p style="margin-top:8px">그래프 숫자까지 뒷자리에서 읽힙니다. 왼쪽 그래프, 오른쪽 질문의 두 칸 배치는 같습니다.</p></div></div>
+
+    <div class="gap"></div>
+    <table>
+      <tr><th>쓰는 곳</th><th>지금</th><th>칠판 모드</th><th>75인치에서 실제 글자 높이</th></tr>
+      <tr><td>질문, 정답</td><td class="n">20px</td><td class="n">46px</td><td class="n">약 3.4cm</td></tr>
+      <tr><td>본문, 선택 버튼</td><td class="n">16px</td><td class="n">34px</td><td class="n">약 2.5cm</td></tr>
+      <tr><td>그래프 숫자, 축</td><td class="n">13px</td><td class="n">30px</td><td class="n">약 2.2cm</td></tr>
+      <tr><td>가장 작은 글자</td><td class="n">12px</td><td class="n">28px</td><td class="n">약 2.1cm</td></tr>
+    </table>
+    <div class="gap"></div>
+    <ul>
+      <li>본문 굵기를 한 단계 올립니다. 밝은 칠판에서는 가는 획이 번져 보이기 때문입니다.</li>
+      <li>그래프 선과 막대 테두리는 3px 이상으로 그립니다.</li>
+      <li>글자 크기를 화면 높이에 맞춰 정하므로 65, 75, 86인치 어느 칠판에서도 비율이 같습니다.</li>
+    </ul>
+    <div class="foot"><span>콘텐츠 색과 전자칠판 글자 수정안</span><span>3</span></div>
+  </section>
+
+  <!-- 4쪽 서체 -->
+  <section class="sheet">
+    <p class="kicker">3. 서체</p>
+    <h2>상업적 이용이 가능한 서체 3종</h2>
+    <p class="sub">세 서체 모두 무료이고 상업적 디자인과 웹 탑재가 허용됩니다. 같은 문장을 같은 크기로 넣었습니다.</p>
+
+    <div class="font">
+      <div><h3>Pretendard</h3><p class="who">길형진 외 (오픈 소스)<br>지금 쓰는 서체</p><span class="tag">OFL 1.1</span></div>
+      <div class="sample" style="font-family:Pretendard"><p class="big">2050년에 가장 많은 연령층은?</p><p class="mid">그래프에서 막대가 가장 긴 줄을 찾아보세요.</p><p class="dig">0 1 2 3 4 5 6 7 8 9  1l7 80+</p></div>
+    </div>
+    <div class="font">
+      <div><h3>KoddiUD 온고딕</h3><p class="who">한국장애인개발원<br>읽기 약자를 위한 유니버설 디자인 서체</p><span class="tag warn">무료, 파일 수정 금지</span></div>
+      <div class="sample" style="font-family:KoddiUD"><p class="big">2050년에 가장 많은 연령층은?</p><p class="mid">그래프에서 막대가 가장 긴 줄을 찾아보세요.</p><p class="dig">0 1 2 3 4 5 6 7 8 9  1l7 80+</p></div>
+    </div>
+    <div class="font">
+      <div><h3>나눔스퀘어 네오</h3><p class="who">네이버<br>넓적하고 또렷한 발표용 서체</p><span class="tag">OFL 1.1</span></div>
+      <div class="sample" style="font-family:NanumSquareNeo"><p class="big">2050년에 가장 많은 연령층은?</p><p class="mid">그래프에서 막대가 가장 긴 줄을 찾아보세요.</p><p class="dig">0 1 2 3 4 5 6 7 8 9  1l7 80+</p></div>
+    </div>
+
+    <div class="gap"></div>
+    <table>
+      <tr><th>서체</th><th>멀리서 읽기</th><th>라이선스에서 살필 점</th></tr>
+      <tr><td><b>Pretendard</b></td><td>화면용으로 다듬어져 고르고 깔끔함. 글자 폭이 좁은 편</td><td>제약 거의 없음(서체 파일 단독 판매만 금지)</td></tr>
+      <tr><td><b>KoddiUD 온고딕</b></td><td>글자 속 공간이 넓고 숫자 1, l, 7이 또렷이 구별됨</td><td>서체 판매와 파일 수정(개작) 금지. 자료에 넣어 배포하는 조건은 한국장애인개발원 원문으로 확인 필요</td></tr>
+      <tr><td><b>나눔스퀘어 네오</b></td><td>글자가 넓적해 같은 크기에서 커 보임. 긴 글은 다소 빽빽함</td><td>제약 거의 없음(서체 파일 단독 판매만 금지)</td></tr>
+    </table>
+
+    <div class="gap"></div>
+    <div class="pick">
+      <h3>추천</h3>
+      <p>칠판 모드의 서체로 <b>KoddiUD 온고딕</b>, 휴대폰과 태블릿 화면은 지금처럼 <b>Pretendard</b>. 칠판에서는 멀리서도 읽히는 것이 가장 중요하고, "읽기 약자를 위한 서체"라는 근거가 분명합니다. 라이선스 확인 결과 배포 조건이 맞지 않으면 나눔스퀘어 네오로 바꿉니다.</p>
+    </div>
+    <div class="foot"><span>콘텐츠 색과 전자칠판 글자 수정안</span><span>4</span></div>
+  </section>
+
+</div>
+
+<template id="tpl">
+  <div class="stage">
+    <div class="bar"><img src="/55/donga-ci.svg" alt=""><b>우리나라 인구 피라미드 변화</b></div>
+    <div class="main">
+      <div class="chart">
+        <div class="lg"><span><i style="background:var(--m)"></i>남자</span><span><i style="background:var(--f)"></i>여자</span></div>
+        <div class="py"></div>
+        <div class="axis"><span>40만 명</span><span>20</span><span>0</span><span>20</span><span>40만 명</span></div>
+      </div>
+      <div class="side">
+        <div class="chs"><span class="ch on">2020년</span><span class="ch">2050년</span><span class="ch">비교하기</span></div>
+        <div class="q"><div class="k">질문 1</div><p>2050년에 가장 많은 연령층은 어디일까요?</p><small>그래프에서 막대가 가장 긴 줄을 찾아보세요.</small></div>
+        <div class="bt">정답 확인하기</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+(function () {
+  var rows = [[80, 30, 42], [70, 48, 56], [60, 70, 72], [50, 84, 82], [40, 78, 76], [30, 66, 63], [20, 55, 52], [10, 46, 44], [0, 38, 36]];
+  var mini = [[80, 40, 50], [60, 62, 66], [40, 82, 78], [20, 70, 67], [0, 50, 48]];
+  function bars(box, data, cls, m, f, label) {
+    data.forEach(function (r) {
+      var l = document.createElement('div'); l.className = 'l';
+      var a = document.createElement('span'); a.style.width = r[1] + '%'; a.style.background = m; l.appendChild(a);
+      var g = document.createElement('div'); g.className = 'age'; g.textContent = r[0] === 80 ? '80+' : String(r[0]);
+      var rr = document.createElement('div');
+      var b = document.createElement('span'); b.style.width = r[2] + '%'; b.style.background = f; rr.appendChild(b);
+      box.appendChild(l); box.appendChild(g); box.appendChild(rr);
+    });
+  }
+  document.querySelectorAll('.set .pyr').forEach(function (p) { bars(p, mini, '', p.getAttribute('data-m'), p.getAttribute('data-f')); });
+
+  var tpl = document.getElementById('tpl');
+  var holders = document.querySelectorAll('.holder');
+  holders.forEach(function (h) {
+    var st = tpl.content.firstElementChild.cloneNode(true);
+    st.classList.add(h.getAttribute('data-mode'));
+    st.style.fontFamily = '"' + h.getAttribute('data-font') + '", Pretendard, sans-serif';
+    bars(st.querySelector('.py'), rows, '', 'var(--m)', 'var(--f)');
+    h.appendChild(st);
+  });
+
+  document.querySelectorAll('svg[data-hues]').forEach(function (svg) {
+    var NS = 'http://www.w3.org/2000/svg';
+    function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
+    function pt(h) { var t = (h - 90) * Math.PI / 180; return [46 + 34 * Math.cos(t), 46 + 34 * Math.sin(t)]; }
+    el('circle', { cx: 46, cy: 46, r: 34, fill: 'none', stroke: '#d1d6db', 'stroke-width': 2.5 });
+    var ci = pt(20.5), hs = svg.getAttribute('data-hues').split(',');
+    hs.forEach(function (s) { var q = pt(+s.split(':')[0]); el('line', { x1: ci[0], y1: ci[1], x2: q[0], y2: q[1], stroke: '#c4cad1', 'stroke-width': 2, 'stroke-dasharray': '4 4' }); });
+    el('circle', { cx: ci[0], cy: ci[1], r: 11, fill: '#ec1940', stroke: '#fff', 'stroke-width': 2.5 });
+    hs.forEach(function (s) { var p = s.split(':'), q = pt(+p[0]); el('circle', { cx: q[0], cy: q[1], r: 8, fill: p[1], stroke: '#fff', 'stroke-width': 2.5 }); });
+  });
+
+  // 칠판 그림은 실제 폭에 맞춰 줄이고, 화면이 좁으면 A4 종이 전체를 줄인다
+  function fit() {
+    var z = Math.min(1, (document.documentElement.clientWidth - 24) / 794);
+    document.querySelectorAll('.sheet').forEach(function (s) { s.style.setProperty('--z', z); });
+    holders.forEach(function (h) { h.firstElementChild.style.zoom = String(460 / 1920); });
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  document.getElementById('pdf').addEventListener('click', function () { window.print(); });
+})();
+</script>
+</body>
+</html>
