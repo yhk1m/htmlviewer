@@ -1,0 +1,862 @@
+<!-- © 2026 김용현 -->
+<!DOCTYPE html>
+<html lang="ko" data-tone="mono">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지형교육의 현황과 제언</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* =========================================================
+     모노 디자인 슬라이드 템플릿 (1920x1080)
+     - 슬라이드는 라이트 전용. 검은 장 구분만 검은 바탕.
+     - 테마: <html data-tone="mono|navy|blue">. 주소 ?tone=navy 로도 바꿀 수 있다.
+     - 강조색은 개수 숫자와 한 군데 강조에만. 헤더에는 쓰지 않는다.
+     ========================================================= */
+  :root {
+    --k: #000; --w: #fff;
+    --g1: #f5f5f5; --g2: #efefef; --g2b: #e1e1e1; --g3: #d4d4d4; --g4: #9f9f9f; --g5: #767676; --g6: #606060; --g7: #434343;
+    --accent: #000; --accent-2: #000; --deep: #222;
+    --print-fill: #e1e1e1; /* 인쇄할 때 검은 면 대신 쓰는 회색 */
+  }
+  :root[data-tone="navy"] { --accent: #122347; --accent-2: #704259; --deep: #44515f; }
+  :root[data-tone="blue"] { --accent: #002f98; --accent-2: #e50000; --deep: #052645; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #1a1a1a; overflow: hidden; }
+  body { font-family: Pretendard, "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif; color: var(--k); letter-spacing: -0.5px; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  svg.ic { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; flex: none; }
+
+  /* ---------- 무대 ---------- */
+  #stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; }
+  .slide { position: absolute; inset: 0; background: var(--w); padding: 0 140px; display: flex; visibility: hidden; flex-direction: column; overflow: hidden; }
+  /* 숨은 장도 크기를 유지해야 iframe 배치와 인쇄가 맞다 */
+  .slide.on { visibility: visible; }
+  .slide.dark { background: var(--k); color: var(--w); }
+
+  /* ---------- 헤더 (엔진이 채운다) ---------- */
+  .hd { height: 120px; flex: none; display: flex; align-items: center; justify-content: space-between; }
+  .hd .brand { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; white-space: nowrap; }
+  .hd .brand i { width: 1px; height: 16px; background: var(--g2); }
+  .hd .brand span { font-weight: 400; color: var(--g5); }
+  .hd nav { display: flex; gap: 18px; font-size: 18px; color: var(--g5); white-space: nowrap; }
+  .hd nav span { cursor: pointer; transition: color .2s cubic-bezier(.4,0,.2,1); }
+  .hd nav span:hover, .hd nav span.cur { color: var(--k); }
+  .dark .hd .brand i { background: var(--g7); }
+  .dark .hd .brand span, .dark .hd nav { color: var(--g5); }
+  .dark .hd nav span:hover, .dark .hd nav span.cur { color: var(--w); }
+  .qrc { position: absolute; right: 20px; top: 16px; width: 150px; height: 150px; background: #fff; z-index: 5; }
+  .qrc svg { display: block; width: 100%; height: 100%; }
+  .slide.has-qr .hd { padding-right: 40px; }
+
+  /* ---------- 본문 틀 ---------- */
+  .bd { flex: 1; display: flex; flex-direction: column; padding: 60px 0 100px; min-height: 0; }
+  .bd.mid { justify-content: center; }
+  .bd.fill { padding: 40px 0 56px; }  /* 큰 화면이나 iframe 이 들어가는 장 */
+
+  /* ---------- 글자 ---------- */
+  h1 { font-size: 120px; font-weight: 400; line-height: 1.2; letter-spacing: -2px; }
+  h2 { font-size: 72px; font-weight: 400; line-height: 1.2; letter-spacing: -1.5px; }
+  h3 { font-size: 32px; font-weight: 600; line-height: 1.4; }
+  p { font-size: 28px; line-height: 1.8; }
+  .eyebrow { font-size: 24px; color: var(--g5); margin-bottom: 24px; }
+  .gray { color: var(--g6); }
+  .note { font-size: 22px; color: var(--g5); line-height: 1.7; margin-top: 28px; }
+  .src { position: absolute; left: 140px; bottom: 40px; font-size: 16px; color: var(--g5); }
+  .big { font-size: 64px; font-weight: 400; letter-spacing: -2px; line-height: 1.1; }
+  .acc { color: var(--accent); }
+  a.lk { text-decoration: underline; text-decoration-color: var(--g3); text-underline-offset: 4px; }
+  a.lk:hover { text-decoration-color: currentColor; }
+
+  /* ---------- 그림 자리 (외부 그림 대신) ---------- */
+  .ph { display: grid; place-items: center; background: var(--g2); color: var(--g5); font-size: 20px; letter-spacing: 0; }
+
+  /* ---------- 표지 ---------- */
+  .cover .bd { justify-content: space-between; padding: 100px 0 140px; }
+  .cover .row { display: flex; align-items: flex-end; gap: 80px; }
+  .cover .who { flex: 1; white-space: nowrap; font-size: 28px; line-height: 1.8; }
+  .cover .who .mail { color: var(--g5); }
+  .cover .place { white-space: nowrap; font-size: 32px; line-height: 1.6; text-align: right; color: var(--g6); }
+  .cover .cdate { position: absolute; top: 56px; right: 140px; font-size: 30px; color: var(--g6); }
+
+  /* ---------- 장 구분 ---------- */
+  .sec .bd { justify-content: flex-start; }
+  .sec .subt { font-size: 36px; color: var(--g4); margin-top: 24px; }
+
+  /* ---------- 발표자 소개 ---------- */
+  .intro { display: grid; grid-template-columns: 1fr 1.35fr; gap: 100px; margin-top: 40px; align-items: start; }
+  .intro .name { font-size: 34px; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
+  .intro .career { display: grid; gap: 8px; font-size: 23px; line-height: 1.5; color: var(--g6); }
+  .intro .career b { font-weight: 600; color: var(--k); }
+  .intro .career .edu { margin-top: 12px; }
+  .intro .lab { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+  .intro .links { margin-top: 40px; border-top: 1px solid var(--g2); }
+  .intro .links a { display: grid; grid-template-columns: 120px 1fr; padding: 16px 0; border-bottom: 1px solid var(--g2); font-size: 24px; }
+  .intro .links span { color: var(--g5); font-size: 20px; align-self: center; }
+  .plist { border-top: 1px solid var(--g2); }
+  .plist a { display: grid; grid-template-columns: 56px 1fr auto; gap: 28px; align-items: center; padding: 24px 8px; border-bottom: 1px solid var(--g2); transition: background .2s cubic-bezier(.4,0,.2,1); }
+  .plist a:hover { background: var(--g1); }
+  .plist .ph { width: 56px; height: 56px; font-size: 14px; }
+  .plist b { display: block; font-size: 30px; font-weight: 600; line-height: 1.3; }
+  .plist span { display: block; font-size: 22px; color: var(--g6); line-height: 1.5; margin-top: 4px; }
+  .plist em { font-style: normal; font-size: 20px; color: var(--g5); }
+
+  /* ---------- 배치 ---------- */
+  .hero { flex: 1; display: flex; align-items: flex-start; gap: 120px; }
+  .hero .lead { flex: 1; }
+  .hero .details { width: 720px; display: flex; flex-direction: column; gap: 32px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 56px; align-items: start; }
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 64px; margin-top: 64px; }
+  .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
+  .lane .who { font-size: 32px; font-weight: 600; }
+
+  /* ---------- 가는 줄 목록: rows, steps, tt, chk ---------- */
+  .rows { display: grid; margin-top: 56px; border-top: 1px solid var(--g3); }
+  .rows > div { padding: 22px 24px 22px 0; border-bottom: 1px solid var(--g2); font-size: 26px; line-height: 1.6; align-self: stretch; }
+  .rows.tight > div { padding: 11px 24px 11px 0; }
+  .rows .k { font-size: 34px; font-weight: 600; letter-spacing: -1px; }
+  .rows .s { color: var(--g6); font-size: 22px; }
+  .steps { border-top: 1px solid var(--g3); }
+  .steps > div { display: grid; grid-template-columns: 56px 1fr; padding: 20px 0; border-bottom: 1px solid var(--g2); font-size: 28px; line-height: 1.6; }
+  .steps > div > b { font-weight: 600; color: var(--g5); }
+  .steps .s { display: block; font-size: 22px; color: var(--g6); }
+  .tt { margin-top: 48px; border-top: 1px solid var(--g3); }
+  .tt > div { display: grid; grid-template-columns: 160px 1fr; padding: 18px 0; border-bottom: 1px solid var(--g2); font-size: 30px; }
+  .tt > div > span { color: var(--g5); }
+  .tt .rest { color: var(--g5); }
+  .tt.c3 > div { grid-template-columns: 160px 1fr 420px; }
+  .tt.c3 .head { font-size: 20px; color: var(--g5); padding: 12px 0; }
+  .tt.toc { display: grid; grid-auto-rows: 1fr; margin-top: 48px; max-width: 1100px; }
+  .tt.toc > div { grid-template-columns: 80px 1fr; align-items: center; padding: 18px 0; font-size: 30px; }
+  .tt.toc small { display: block; font-size: 22px; color: var(--g6); }
+  /* 목차 두 칸 (7~8개): class="tt toc cols" */
+  .tt.toc.cols { grid-template-rows: repeat(4, auto); grid-auto-flow: column; grid-auto-columns: 1fr; grid-auto-rows: auto; column-gap: 80px; margin-top: 64px; border-top: 0; max-width: none; }
+  .tt.toc.cols > div { padding: 32px 0; align-items: start; }
+  .tt.toc.cols > div:nth-child(4n+1) { border-top: 1px solid var(--g3); }
+  .chk h3 { font-size: 24px; color: var(--g5); font-weight: 600; margin-bottom: 12px; }
+  .chk p { font-size: 26px; line-height: 1.7; padding: 10px 0; border-bottom: 1px solid var(--g2); }
+  .chk.ico p { display: flex; align-items: center; gap: 16px; }
+  .chk.ico .ic { color: var(--g4); }
+
+  /* ---------- 연표와 개수 ---------- */
+  .yr { display: grid; margin-top: 44px; border-top: 1px solid var(--g3); }
+  .yr > div { padding: 16px 20px 16px 0; border-bottom: 1px solid var(--g2); font-size: 22px; line-height: 1.6; }
+  .yr .hd2 { font-size: 20px; color: var(--g5); }
+  .yr .y { font-size: 34px; letter-spacing: -1px; }
+  .yr em { font-style: normal; color: var(--g5); font-size: 18px; display: inline-block; width: 36px; }
+  .count { font-size: 28px; color: var(--g6); margin-top: 32px; }
+  .count b { color: var(--accent-2); font-weight: 600; }
+
+  /* ---------- 막대와 범례 ---------- */
+  .legend { display: flex; gap: 28px; font-size: 20px; color: var(--g6); margin-top: 28px; }
+  .legend span::before { content: ""; display: inline-block; width: 16px; height: 16px; margin-right: 8px; vertical-align: -2px; background: var(--c); }
+  .legend em { font-style: normal; margin-left: auto; color: var(--g5); }
+  .bars { margin-top: 20px; border-top: 1px solid var(--g3); }
+  .bars > div { display: grid; grid-template-columns: 220px 1fr 110px; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--g2); font-size: 24px; }
+  .bars .bb { display: grid; gap: 4px; }
+  .bars i { display: block; height: 24px; background: var(--c, var(--k)); }
+  .bars i.acc { background: var(--accent); }
+  .bars b { font-size: 30px; font-weight: 600; text-align: right; }
+
+  /* ---------- 위 3px 줄 카드 ---------- */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 64px; }
+  .cards.c3 { grid-template-columns: repeat(3, 1fr); gap: 56px; }
+  .cards > div { border-top: 3px solid var(--k); padding-top: 22px; }
+  .cards .n { display: block; font-size: 20px; color: var(--g5); margin-bottom: 8px; }
+  .cards b { display: block; font-size: 36px; font-weight: 600; letter-spacing: -1px; margin-bottom: 16px; }
+  .cards p { font-size: 24px; line-height: 1.6; color: var(--g6); padding: 8px 0; border-bottom: 1px solid var(--g2); }
+  /* 큰 숫자 카드: .stat > div(위 3px 검은 줄) 안에 .lab 이름, .num 숫자(강조는 .num.acc), p 한 줄 설명 */
+  .stat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 80px; margin-top: 64px; }
+  .stat.c3 { grid-template-columns: repeat(3, 1fr); gap: 56px; }
+  .stat > div { border-top: 3px solid var(--k); padding-top: 22px; }
+  .stat .lab { display: block; font-size: 24px; color: var(--g5); }
+  .stat .num { display: block; font-size: 200px; font-weight: 300; line-height: 1; letter-spacing: -6px; margin: 28px 0 32px; font-variant-numeric: tabular-nums; }
+  .stat .num small { font-size: 64px; font-weight: 400; letter-spacing: -2px; margin-left: 8px; }
+  .stat .num.acc { color: var(--accent); }
+  .stat p { font-size: 24px; line-height: 1.6; color: var(--g6); }
+  .stat.c3 .num { font-size: 160px; letter-spacing: -5px; }
+  /* 그림 카드: class="cards case3", 카드 안 첫 줄에 <div class="ph">그림</div> */
+  .case3 { grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 36px; }
+  .case3 .ph { width: 100%; height: 230px; border: 1px solid var(--g3); margin-bottom: 18px; }
+
+  /* ---------- 1px 검은 상자: 요청문, 이름표, 정의, 흐름 ---------- */
+  .ask { border: 1px solid var(--k); padding: 32px 36px; font-size: 28px; line-height: 1.7; }
+  .ask .lab { font-size: 20px; color: var(--g5); margin-bottom: 12px; }
+  .tag { display: inline-block; border: 1px solid var(--k); font-size: 20px; padding: 2px 12px; margin-right: 8px; line-height: 1.5; }
+  .apidef { margin-top: 20px; border-left: 4px solid var(--k); padding: 4px 0 4px 22px; }
+  .apidef p { font-size: 23px; line-height: 1.6; color: var(--g6); }
+  .apidef b { color: var(--k); font-weight: 600; }
+  /* 흐름: <div class="flow"><div>상자</div><i><em>동작</em></i><div class="on-k">결과</div></div> */
+  .flow { display: flex; align-items: stretch; margin-top: 64px; }
+  .flow > div { flex: 1; border: 1px solid var(--k); padding: 36px 32px; }
+  .flow > div.on-k { background: var(--k); color: var(--w); }
+  .flow > div.on-k span { color: var(--g3); }
+  .flow > div.opt { border-style: dashed; }
+  .flow b { display: block; font-size: 34px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px; }
+  .flow span { display: block; font-size: 24px; color: var(--g6); line-height: 1.6; }
+  .flow > i { flex: none; width: 200px; display: grid; grid-template-rows: 1fr 1fr; justify-items: center; text-align: center; font-style: normal; font-size: 20px; color: var(--g5); line-height: 1.5; }
+  .flow > i em { font-style: normal; align-self: end; padding-bottom: 8px; }
+  .flow > i::after { content: ""; display: block; width: 140px; height: 12px; margin-top: -6px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 12'%3E%3Cpath d='M0 6h132' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M128 1l10 5-10 5z'/%3E%3C/svg%3E") no-repeat; }
+
+  /* ---------- 검은 상자 흰 글씨: 핵심 한 줄 ---------- */
+  .inv { background: var(--k); color: var(--w); padding: 40px 44px; }
+  .inv .lab { font-size: 22px; color: var(--g4); margin-bottom: 12px; }
+  .inv .head { font-size: 40px; font-weight: 600; line-height: 1.35; letter-spacing: -1px; }
+  .inv p { font-size: 24px; line-height: 1.7; color: var(--g3); margin-top: 24px; }
+
+  /* ---------- 인용 ---------- */
+  .quote { border-top: 1px solid var(--k); padding-top: 40px; }
+  .quote blockquote { font-size: 52px; font-weight: 300; line-height: 1.45; letter-spacing: -1.5px; }
+  .quote cite { display: block; font-style: normal; font-size: 22px; color: var(--g5); margin-top: 32px; }
+  /* 원문 글 + 번역: class="tweet" */
+  .tweet { border: 1px solid var(--g3); padding: 32px 36px; }
+  .tweet .who { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; font-size: 24px; }
+  .tweet .who b { font-weight: 600; }
+  .tweet .who span { color: var(--g5); font-size: 20px; }
+  .tweet .txt { font-size: 18px; line-height: 1.6; letter-spacing: 0; word-break: normal; }
+  .tweet .ko { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--g2); font-size: 18px; line-height: 1.65; color: var(--g6); }
+  .tweet mark { background: none; font-weight: 700; color: var(--k); }
+
+  /* ---------- 코드, 브라우저 틀 ---------- */
+  code, pre { font-family: Consolas, Pretendard, "Malgun Gothic", monospace; letter-spacing: 0; }
+  pre { background: var(--g1); border: 1px solid var(--g2); padding: 28px 32px; font-size: 24px; line-height: 1.6; white-space: pre-wrap; }
+  pre .c { color: var(--g5); }
+  p code, .steps code, .rows code, .chk code { background: var(--g1); padding: 2px 8px; font-size: .88em; }
+  .browser { border: 1px solid var(--g3); }
+  .browser .bar { display: flex; align-items: center; gap: 14px; background: var(--g1); border-bottom: 1px solid var(--g3); padding: 10px 20px; font-size: 18px; color: var(--g5); }
+  .browser .bar i { width: 12px; height: 12px; border: 1px solid var(--g4); }
+  .browser .page { padding: 32px 36px; font-family: "Times New Roman", serif; letter-spacing: 0; }
+  .browser .page h1 { font-size: 52px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; letter-spacing: 0; }
+  .browser .page p { font-size: 24px; line-height: 1.6; margin-bottom: 18px; }
+
+  /* ---------- 화면 캡처, 데모, 휴대폰, QR ---------- */
+  figure { margin: 0; }
+  figure .ph { width: 100%; border: 1px solid var(--g3); }
+  figcaption { font-size: 18px; color: var(--g5); line-height: 1.6; margin-top: 12px; }
+  .demo { flex: 1; width: 100%; border: 1px solid var(--g3); margin-top: 32px; display: block; }
+  .demo2 { display: grid; grid-template-columns: auto 1fr; gap: 96px; margin-top: 28px; flex: 1; min-height: 0; align-items: start; }
+  .demo2 .shots { display: flex; gap: 28px; height: 100%; max-height: 720px; }
+  /* 휴대폰 틀은 실물 모양이라 둥근 모서리 예외 */
+  .demo2 .shot { height: 100%; aspect-ratio: 500 / 980; border: 10px solid #111; border-radius: 40px; overflow: hidden; background: #111; }
+  .demo2 .shot .ph { width: 100%; height: 100%; }
+  .qrs { display: flex; gap: 32px; margin-top: 28px; }
+  .qrbox { border: 1px solid var(--g3); padding: 14px 14px 12px; text-align: center; }
+  .qrbox .ph, .qrbox svg { width: 190px; height: 190px; display: grid; background: var(--g1); }
+  .qrbox b { display: block; font-size: 22px; font-weight: 600; margin-top: 6px; }
+  .qrbox span { display: block; font-size: 16px; color: var(--g5); line-height: 1.5; }
+  .qrs.lg { gap: 48px; margin-top: 64px; }
+  .qrs.lg .qrbox { padding: 20px 20px 18px; }
+  .qrs.lg .qrbox .ph { width: 260px; height: 260px; }
+  .qrs.lg .qrbox b { font-size: 26px; margin-top: 12px; }
+  .qrs.lg .qrbox span { font-size: 18px; }
+
+  /* ---------- 하나씩 보이기 ---------- */
+  .frag { opacity: 0; transform: translateY(12px); transition: opacity .4s, transform .4s; }
+  .frag.show { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .frag { transition: none; transform: none; } }
+
+  /* ---------- 모서리 버튼, 진행 막대 ---------- */
+  .ctl { position: fixed; right: 20px; bottom: 16px; z-index: 9; display: flex; align-items: center; gap: 6px; font: 14px Pretendard, sans-serif; opacity: .35; transition: opacity .2s; }
+  .ctl:hover { opacity: 1; }
+  .ctl button { width: 36px; height: 36px; border: 1px solid var(--g3); border-radius: 2px; background: #fff; color: #333; cursor: pointer; }
+  .ctl button:hover { background: #000; color: #fff; border-color: #000; }
+  .ctl svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; display: block; margin: auto; }
+  .ctl .pg { min-width: 72px; height: 36px; line-height: 36px; text-align: center; background: #fff; color: #555; }
+  .progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--g5); transition: width .3s; z-index: 9; }
+
+  /* ---------- 인쇄, PDF: 한 장에 한 쪽, 검은 장은 흰 바탕 ---------- */
+  @page { size: 1920px 1080px; margin: 0; }
+  @media print {
+    html, body { width: auto; height: auto; overflow: visible; background: #fff; }
+    #stage { position: static !important; transform: none !important; width: 1920px; height: auto; }
+    .slide { display: flex !important; visibility: visible !important; position: relative; width: 1920px; height: 1080px; break-after: page; }
+    .slide:last-child { break-after: auto; }
+    .slide.dark { background: var(--w); color: var(--k); }
+    .dark .hd .brand i { background: var(--g2); }
+    .dark .hd nav span.cur { color: var(--k); }
+    .frag { opacity: 1 !important; transform: none !important; }
+    .ctl, .progress { display: none !important; }
+    /* 잉크 아끼기: 검은 면은 회색 면(--print-fill)에 검은 글씨로 */
+    .inv, .flow > div.on-k { background: var(--print-fill); color: var(--k); }
+    .inv .lab { color: var(--g6); }
+    .inv p { color: var(--g7); }
+    .demo2 .shot { border-color: var(--g3); background: var(--g1); }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  /* ---------- 이 자료에서 더한 부품 ---------- */
+  .m-subtitle { font-size: 40px; font-weight: 300; color: var(--g6); margin-top: 36px; letter-spacing: -1px; }
+  .m-logic { display: grid; grid-template-columns: repeat(5, 1fr); column-gap: 72px; margin-top: 56px; }
+  .m-logic .col { position: relative; border-top: 3px solid var(--k); padding-top: 18px; }
+  .m-logic .h { font-size: 32px; font-weight: 600; letter-spacing: -1px; margin-bottom: 10px; }
+  .m-logic .h span { display: block; font-size: 20px; font-weight: 400; color: var(--g5); margin-bottom: 4px; letter-spacing: 0; }
+  .m-logic p { font-size: 24px; line-height: 1.5; padding: 14px 0; border-bottom: 1px solid var(--g2); }
+  .m-logic p b { font-weight: 600; margin-right: 8px; }
+  .m-logic .col:not(:last-child)::after { content: ""; position: absolute; right: -56px; top: 46px; width: 40px; height: 12px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 12'%3E%3Cpath d='M0 6h32' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M28 1l10 5-10 5z'/%3E%3C/svg%3E") no-repeat; }
+  .m-flow4 > i { width: 120px; }
+  .m-flow4 > i::after { width: 90px; background-size: 90px 12px; }
+  .m-bars > div { grid-template-columns: 330px 1fr 70px; }
+  .m-refs { margin-top: 32px; border-top: 1px solid var(--g3); }
+  .m-refs p { font-size: 21px; line-height: 1.6; padding: 11px 0 11px 40px; text-indent: -40px; border-bottom: 1px solid var(--g2); word-break: break-all; }
+</style>
+</head>
+<body>
+<div id="stage">
+<!-- 1. 표지 -->
+<section class="slide cover">
+  <div class="hd"></div>
+  <div class="cdate">2026.12.1.(화)</div>
+  <div class="bd">
+    <div>
+      <h1>2022 개정 교육과정<br>지형교육의 현황과 제언</h1>
+      <p class="m-subtitle">3D 시뮬레이터와 지형 필드워크 기반 지형교육</p>
+    </div>
+    <div class="row">
+      <div class="who">김용현, 김한성<br>서울대학교 지리교육과 석사과정</div>
+      <div class="place">지리교수방법론특강<br>서울대학교</div>
+    </div>
+  </div>
+  <!-- 발표자 메모: 지형교육이 줄었다는 주장을 단순히 내용량의 복원 요구로 제시하기보다, 어떤 지형 지식이 얼마나 깊이 가르쳐지고 실제 삶의 문제와 어떻게 연결되어야 하는지 살펴보겠다고 소개한다. -->
+</section>
+
+<!-- 2. 목차와 논리 흐름 -->
+<section class="slide" data-intro>
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>발표 흐름</h2>
+    <div class="m-logic">
+      <div class="col"><div class="h"><span>01</span>문제 제기</div><p>지형 단원 비중 감소</p><p>관점의 재구성</p><p>평가 구조의 압력</p></div>
+      <div class="col"><div class="h"><span>02</span>필요성</div><p>환경교육</p><p>국토교육</p><p>논리교육</p></div>
+      <div class="col"><div class="h"><span>03</span>어려움</div><p>용어</p><p>설명</p><p>생활, 활동 연계</p></div>
+      <div class="col"><div class="h"><span>04</span>제언</div><p><b>A</b> 핵심 용어, 사례 선별</p><p><b>B</b> 3D 시뮬레이터</p><p><b>C</b> 지역 연계 필드워크</p></div>
+      <div class="col"><div class="h"><span>05</span>결론</div><p>설명력 있는<br>지형 지식 보장</p></div>
+    </div>
+    <div class="ask" style="margin-top:56px"><div class="lab">핵심 질문</div>양적 축소와 질적 재구성 속에서, 모든 학생에게 지형의 형성과 변화 원리를 어떻게 가르칠 것인가?</div>
+  </div>
+  <!-- 발표자 메모: 이 흐름을 발표의 뼈대로 삼는다. 2026 지리학대회 특별세션의 여섯 발표(이광률, 성정원, 최학모, 김영훈, 최광희와 이원영, 함경림)를 각 논점에 배치한다. 수치와 쟁점은 특별세션 발표문, 2025년 지형교육 연구, 모식도 진단 자료를 구분해 설명한다. -->
+</section>
+
+<!-- 장 구분 01 -->
+<section class="slide dark sec" data-sec="문제 제기">
+  <div class="hd"></div>
+  <div class="bd"><div class="eyebrow">01</div><h1>문제 제기</h1><p class="subt">2015에서 2022로, 지형교육은 어떻게 달라졌나</p></div>
+</section>
+
+<!-- 3-1. 단원 비중 감소 -->
+<section class="slide" data-sec="문제 제기">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>지형 관련 단원 비중 감소</h2>
+    <div class="stat c3">
+      <div><span class="lab">고등학교 지리 선택 과목</span><span class="num acc">6.3<small>%</small></span><p>2015 개정 14.8%에서 2022 개정 6.3%로</p></div>
+      <div class="frag"><span class="lab">통합사회 포함 중고 사회 교과서 전체</span><span class="num acc">2.7<small>%</small></span><p>2015 개정 5.2%에서 2022 개정 2.7%로</p></div>
+      <div class="frag"><span class="lab">영국, 오스트레일리아, IB 교과서</span><span class="num">26.8<small>%</small></span><p>우리나라와 비교해 5배 이상</p></div>
+    </div>
+  </div>
+  <div class="src">출처: 이광률 외(2025); 이광률(2026, 118~119쪽); 이원영 외(2025). 지형 관련 단원 비율</div>
+</section>
+
+<!-- 3-2. 질적 변화 -->
+<section class="slide" data-sec="문제 제기">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>지형을 다루는 방식의 변화</h2>
+    <div class="two" style="margin-top:44px">
+      <div class="chk">
+        <h3>2015 개정</h3>
+        <p>산지, 하천, 해안, 화산, 카르스트 등 지형 유형</p>
+        <p>지형의 분포, 형성 원인과 과정</p>
+        <p>지형학적 관점의 탐구</p>
+      </div>
+      <div class="chk frag">
+        <h3>2022 개정</h3>
+        <p>지형과 인간 생활의 관계</p>
+        <p>경관 가치, 관광과 자원 이용</p>
+        <p>개발과 보전의 갈등</p>
+        <p>지속가능한 이용과 재해 대응</p>
+      </div>
+    </div>
+    <div class="inv frag" style="margin-top:48px"><div class="lab">강조점 이동</div><div class="head">지형이 어떻게 형성되고 변화하는가 → 지형이 인간 생활과 어떤 관계를 맺는가</div></div>
+  </div>
+  <!-- 발표자 메모: 2022 개정의 변화는 생활, 환경 문제와 지형을 연결한다는 장점이 있다. 쟁점은 새로운 내용의 도입 자체가 아니라, 그 쟁점을 설명할 지형의 형태, 물질, 형성과정 지식이 충분히 남아 있는가이다. -->
+</section>
+
+<!-- 4. 성취기준과 교과서 -->
+<section class="slide" data-sec="문제 제기">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>성취기준과 교과서의 변화</h2>
+    <div class="two" style="grid-template-columns:1fr 1.15fr;margin-top:48px">
+      <div>
+        <div class="eyebrow" style="margin-bottom:12px">성취기준 속 '지형' 직접 언급</div>
+        <div class="rows" style="grid-template-columns:1fr 110px 50px 110px;margin-top:0">
+          <div class="s">과목 (2015 → 2022)</div><div class="s">2015</div><div class="s"></div><div class="s">2022</div>
+          <div>세계지리 → 세계시민과 지리</div><div class="k">7개</div><div class="gray">→</div><div class="k acc">2회</div>
+          <div>한국지리 → 한국지리 탐구</div><div class="k">5개</div><div class="gray">→</div><div class="k acc">0회</div>
+        </div>
+        <p class="note">낱말 횟수일 뿐, 지형 학습이 모두 사라졌다는 뜻은 아님<br>중학교 사회는 지형 성취기준 요소 13.2% → 14.3%, 단 독립 단원 없이 지역지리 안에 분산</p>
+      </div>
+      <div class="chk frag">
+        <h3>세계시민과 지리의 지형 내용</h3>
+        <p>건조, 빙하, 주빙하 지형의 독립 탐구 내용 없음</p>
+        <p>세계 대지형: 형성과정 유지, 인간 생활과 자원 이용 강화</p>
+        <p>화산 지형: 형성과정 설명 축소, 생활 맥락 강화</p>
+        <p>카르스트, 해안 지형: 경관 가치, 관광, 지속가능성으로</p>
+        <p>교과서 시각 자료: 형성과정 설명에서 생활, 환경 쟁점 판단으로</p>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 성정원(2026, 120~122쪽); 최학모(2026, 123~124쪽); 이광률 외(2025)</div>
+  <!-- 발표자 메모: 용어 횟수, 성취기준 비율, 교과서 내용 깊이를 구분해야 한다. 직접 언급 횟수의 코딩 범위와 단위(성취기준 문장 등)를 설명한다. -->
+</section>
+
+<!-- 5. 평가 구조 -->
+<section class="slide" data-sec="문제 제기">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="hero">
+      <div class="lead"><h2>평가 구조와<br>학교 수업의 압력</h2></div>
+      <div class="details" style="width:900px">
+        <div class="steps">
+          <div><b>1</b><span>교과서 설명은 간략해짐<span class="s">입시와 수업 시수 압박 속에서 보충 설명의 범위를 정하기 어려움</span></span></div>
+          <div class="frag"><b>2</b><span>학력평가의 지형 문항<span class="s">2025~2026 전국연합 학력평가, 제한적이고 간략하게 제시된 사례</span></span></div>
+          <div class="frag"><b>3</b><span>2028학년도 수능 통합사회 체제<span class="s">지형의 독립적 평가 가능성에 대한 우려</span></span></div>
+        </div>
+        <div class="inv frag"><div class="lab">결과</div><div class="head">평가 비중이 낮다고 여기면<br>교실의 지형 원리 설명도 줄어듦</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 김영훈(2026, 125쪽); 이광률(2026, 119쪽)</div>
+  <!-- 발표자 메모: 2028 수능과 평가 구조는 지형교육에 영향을 주는 조건으로 제시한다. '통합사회 속 지형 2쪽 내외' 수치는 무엇을 세는지 확인 전에는 쓰지 않는다. -->
+</section>
+
+<!-- 장 구분 02 -->
+<section class="slide dark sec" data-sec="필요성">
+  <div class="hd"></div>
+  <div class="bd"><div class="eyebrow">02</div><h1>지형교육의 필요성</h1><p class="subt">그럼에도 지형교육이 필요한 이유</p></div>
+</section>
+
+<!-- 6. 필요성 -->
+<section class="slide" data-sec="필요성">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>그럼에도 지형교육이 필요한 이유</h2>
+    <div class="cards c3">
+      <div><span class="n">01</span><b>환경교육</b><p>자연재해와 환경 변화의 원인을 지형 과정으로 설명</p><p>기후위기, 생태계 변화, 재해 위험의 지리적 이해</p><p>자연기반해법(NBS)과 회복탄력성의 토대</p></div>
+      <div class="frag"><span class="n">02</span><b>국토교육</b><p>우리가 사는 장소의 지표, 토지 이용, 경관 이해</p><p>하천, 해안, 산지 이용과 관리의 공간적 의미</p></div>
+      <div class="frag"><span class="n">03</span><b>논리교육</b><p>형태, 구성 물질 → 과정 → 원인과 결과 추론</p><p>관찰 자료로 지형 변화를 설명하고 새 사례에 적용</p></div>
+    </div>
+    <p class="note frag">예: 상류의 토사 공급 → 하천 구조물 → 하류의 범람 위험 → 해안 퇴적물 감소와 침식은 연결된 과정</p>
+  </div>
+  <div class="src">출처: 최광희, 이원영(2026, 125~127쪽); 함경림(2026, 128~129쪽)</div>
+</section>
+
+<!-- 장 구분 03 -->
+<section class="slide dark sec" data-sec="어려움">
+  <div class="hd"></div>
+  <div class="bd"><div class="eyebrow">03</div><h1>지형교육의 어려움</h1><p class="subt">용어, 설명, 생활 연계</p></div>
+</section>
+
+<!-- 7-1. 용어와 설명 (김용현) -->
+<section class="slide" data-sec="어려움">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>용어와 설명의 어려움</h2>
+    <div class="two">
+      <div class="chk">
+        <h3>용어</h3>
+        <p>추상적이고 낯선 개념과 전문 용어</p>
+        <p>용어 암기 중심 수업에 대한 부담</p>
+      </div>
+      <div class="chk frag">
+        <h3>설명</h3>
+        <p>복잡한 자연과학 과정이라는 거리감</p>
+        <p>한반도 형성, 산지 단원 등의 추상성</p>
+        <p>지형도와 분포 자료를 읽는 어려움</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7-2. 교사 인식 (김용현) -->
+<section class="slide" data-sec="어려움">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>교사가 본 2015 개정 지형 내용</h2>
+    <div class="two" style="grid-template-columns:1.2fr 1fr">
+      <div class="stat" style="margin-top:0;gap:56px">
+        <div><span class="lab">불만족</span><span class="num acc">53<small>%</small></span><p>지형 내용에 불만족한 교사</p></div>
+        <div><span class="lab">만족</span><span class="num">21<small>%</small></span><p>지형 내용에 만족한 교사</p></div>
+      </div>
+      <div class="chk frag">
+        <h3>교사가 꼽은 주요 문제</h3>
+        <p>어려운 개념과 용어</p>
+        <p>일상과의 낮은 관련성</p>
+        <p>활동 수업 실행의 어려움</p>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 성정원(2026, 120쪽)이 인용한 이광률 외(2025)</div>
+  <!-- 발표자 메모: 모식도의 추가 진단값(개념, 용어가 어렵다 35%, 용어 암기식 수업 24%, 추상적 용어를 싫어한다 72%, 자연과학적이라 거리감 47%, 한반도 형성, 산지 단원 기피 77%)은 원자료와 조사 문항, 표본을 확인한 뒤 사용한다. -->
+</section>
+
+<!-- 8. 생활, 활동 연계 -->
+<section class="slide" data-sec="어려움">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>생활과 활동 연계의 어려움</h2>
+    <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="chk">
+        <h3>왜 어려운가</h3>
+        <p>생활 경험과 끊긴 지형 원리는 암기로 남음</p>
+        <p>지역 사례 자료, 활동 수업 준비에 드는 시간</p>
+        <p>제한된 시수와 평가 압력 속 활동 범위 결정</p>
+        <p>관심의 실마리: 형성과정 이해, 눈으로 보는 지형</p>
+      </div>
+      <div class="frag">
+        <div class="legend" style="margin-top:0"><span style="--c:var(--k)">지형을 좋아하는 이유</span><span style="--c:var(--g3)">필요한 수업 전환</span><em>단위 %</em></div>
+        <div class="bars m-bars">
+          <div><span>형성과정을 알 수 있어서</span><div class="bb"><i class="acc" style="width:51%"></i></div><b class="acc">51</b></div>
+          <div><span>시각적으로 인지하기 쉬워서</span><div class="bb"><i style="width:38%"></i></div><b>38</b></div>
+          <div><span>활동, 탐구 수업 전환</span><div class="bb"><i style="width:13%;--c:var(--g3)"></i></div><b>13</b></div>
+          <div><span>지역 맥락 연계</span><div class="bb"><i style="width:10%;--c:var(--g3)"></i></div><b>10</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 발표 모식도 제시 자료 (조사 대상, 문항, 복수응답 여부는 원자료 확인 필요)</div>
+</section>
+
+<!-- 장 구분 04 -->
+<section class="slide dark sec" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd"><div class="eyebrow">04</div><h1>제언</h1><p class="subt">핵심 용어 선별, 3D 시뮬레이터, 지역 연계 필드워크</p></div>
+</section>
+
+<!-- 9. 해결 A (김용현) -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="eyebrow" style="margin-bottom:8px">해결 방안 A</div>
+    <h2>용어를 줄이고 핵심 원리를 남기기</h2>
+    <div class="two" style="grid-template-columns:1.1fr 1fr;margin-top:40px">
+      <div class="steps">
+        <div><b>1</b><span>익숙한 설명어로 먼저 풀기<span class="s">그다음 핵심 전문 용어를 붙이기</span></span></div>
+        <div class="frag"><b>2</b><span>실제 경관, 지도, 사진과 연결<span class="s">이름, 분포와 함께 형태, 물질, 형성과정, 변화 원리</span></span></div>
+        <div class="frag"><b>3</b><span>익숙한 사례에서 확장<span class="s">해안, 화산, 카르스트 사례의 원리를 다른 지형으로</span></span></div>
+      </div>
+      <div class="frag">
+        <div class="chk">
+          <h3>고르는 기준</h3>
+          <p>무차별 암기 대신 핵심 개념과 대표 사례</p>
+          <p>유형 목록보다 해석 관점과 설명력</p>
+          <p>중복 조정, 학교급별 계열 설계</p>
+        </div>
+        <div class="rows tight" style="grid-template-columns:150px 1fr;margin-top:28px">
+          <div class="s">학교급</div><div class="s">중심 지형 (계열 제안)</div>
+          <div class="k" style="font-size:26px">중학교</div><div>산지, 하천 등 일반 지형</div>
+          <div class="k" style="font-size:26px">고등학교</div><div>화산, 카르스트, 빙하 등 특수 환경 심화</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 최광희, 이원영(2026, 126~127쪽); 김영훈(2026, 125쪽)</div>
+  <!-- 발표자 메모: '내용을 줄이자'는 제안을 '지형 원리를 가르치지 말자'로 해석하지 않는다. 내용 요소의 수는 조정하되, 핵심 지형을 기술하고 형성과정을 설명할 수 있는 충분한 시간과 자료를 확보하는 것이 목표다. -->
+</section>
+
+<!-- 10-1. 해결 B (김용현) -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="eyebrow" style="margin-bottom:8px">해결 방안 B</div>
+    <h2>지형의 형태와 과정을 시각화하기</h2>
+    <div class="flow m-flow4" style="margin-top:48px">
+      <div><b>예측</b><span>어떻게 변할까?</span></div>
+      <i class="frag"><em>실행</em></i>
+      <div class="frag"><b>관찰</b><span>시뮬레이터로 시간에 따른 변화</span></div>
+      <i class="frag"><em>설명</em></i>
+      <div class="frag"><b>과정 설명</b><span>형성 원리를 말과 그림으로</span></div>
+      <i class="frag"><em>대조</em></i>
+      <div class="frag on-k"><b>실제 지역</b><span>지도, 사진, DEM과 비교</span></div>
+    </div>
+    <div class="two" style="margin-top:48px">
+      <div class="chk">
+        <h3>쓰는 자료</h3>
+        <p>지도, 사진, 단면도, DEM으로 형태와 분포 파악</p>
+        <p>AI와 DEM 기반 3D 시각화, 형성과정 시뮬레이션</p>
+        <p>직접 만든 지형 형성 실험실 (topolab.bgnl.kr)</p>
+      </div>
+      <div class="ask"><div class="lab">평가 초점</div>화면 조작이 아니라<br>형성 원리를 정확히 설명하고 적용하는가</div>
+    </div>
+  </div>
+  <div class="src">출처: 이광률 외(2025)의 시각, 공간 자료 및 수업 자료 제언</div>
+  <!-- 발표자 메모: 3D로 보인다는 사실만으로 형성 메커니즘을 이해한 것은 아니다. 형태 시각화와 과정 시뮬레이션을 구분하고, 실제 지도, 사진, 현장 관찰 자료와 연결한다. 모식도의 교사 요구 비율(시각 자료 58%, 3D 애니메이션 38%)은 원자료 확인 뒤 표기한다. -->
+</section>
+
+<!-- 10-2. 지형 형성 실험실 시연 -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd fill">
+    <h2 style="font-size:56px">지형 형성 실험실 <span class="gray" style="font-size:32px;margin-left:16px">topolab.bgnl.kr</span></h2>
+    <iframe class="demo" src="https://topolab.bgnl.kr" title="지형 형성 실험실" loading="lazy" allow="fullscreen"></iframe>
+  </div>
+</section>
+
+<!-- 11. 해결 C -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="eyebrow" style="margin-bottom:8px">해결 방안 C</div>
+    <h2>지역 연계 지형 필드워크</h2>
+    <div class="two" style="grid-template-columns:1.1fr 1fr;margin-top:48px">
+      <div class="chk">
+        <h3>지역과 함께 탐구</h3>
+        <p>지형을 그 지역의 자연환경, 인간 활동, 환경 쟁점과 함께</p>
+        <p>실제 경관 관찰로 교과서 지식을 장소와 연결</p>
+        <p>예: 하천 상, 중, 하류나 해안의 형태, 침식과 퇴적 흔적, 토지 이용, 관리 시설</p>
+        <p>현장 자료로 지형과 인간 활동의 상호작용, 대안 탐색</p>
+      </div>
+      <div>
+        <div class="legend" style="margin-top:0"><span style="--c:var(--k)">필요한 해결 방안</span><em>단위 %</em></div>
+        <div class="bars m-bars">
+          <div><span>지형과 인간 활동 사례</span><div class="bb"><i class="acc" style="width:71%"></i></div><b class="acc">71</b></div>
+          <div><span>지역 기반 탐구</span><div class="bb"><i style="width:42%"></i></div><b>42</b></div>
+        </div>
+        <div class="inv frag" style="margin-top:40px"><div class="head">필드워크는 방문이 아니라<br>질문, 수집, 설명, 판단의 탐구</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 최학모(2026, 124쪽); 함경림(2026, 128~129쪽); 이광률 외(2025); 비율은 발표 모식도 제시 자료(원자료 확인 필요)</div>
+  <!-- 발표자 메모: 최학모 발표는 학교자율시간, 자유학기 주제선택활동, 현장체험학습, 동아리 활동과 연계한 프로그램 개발 가능성을 제시한다. 현장에서 관찰한 사실과 학생의 추론을 구분하도록 안내한다. -->
+</section>
+
+<!-- 12. 필드워크 수업 예시 -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="eyebrow" style="margin-bottom:8px">수업 예시: 우리 지역 하천 또는 해안의 지형과 인간 활동</div>
+    <h2>지형 필드워크 수업의 흐름</h2>
+    <div class="cards c3" style="margin-top:48px">
+      <div><span class="n">01</span><b>수업 전</b><p>현장 질문: 어떤 과정으로 형성되었고, 지금 어떻게 이용, 관리되는가?</p><p>지도, 항공사진으로 관찰 지점과 경로 확인</p><p>관찰표, 안전과 역할 안내</p></div>
+      <div class="frag"><span class="n">02</span><b>현장</b><p>지형의 형태와 구성 물질 관찰</p><p>침식, 운반, 퇴적 흔적과 하천 구조물, 해안 시설 기록</p><p>사진, 스케치, 위치 표시로 근거 수집</p><p>관찰 사실과 추론을 구분</p></div>
+      <div class="frag"><span class="n">03</span><b>수업 후</b><p>현장 자료와 지형도, DEM, 시뮬레이터 결과 대조</p><p>지형 형성과 변화 원리 설명</p><p>개발, 보전, 재해 관리 대안을 근거와 함께 비교</p></div>
+    </div>
+  </div>
+  <!-- 발표자 메모: 결과물은 방문 소감문이 아니라, 관찰 자료와 지형학적 설명이 결합된 지역 해석 자료로 설계한다. 실제 장소와 활동은 학교 여건과 안전 계획에 맞춰 선정한다. -->
+</section>
+
+<!-- 13. 연결성 -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>하천에서 해안까지, 연결성 배우기</h2>
+    <div class="flow m-flow4" style="margin-top:56px">
+      <div><b>상류</b><span>강우, 사면 침식, 토사 공급</span></div>
+      <i></i>
+      <div class="frag"><b>중류와 하류</b><span>유수, 퇴적, 범람원, 제방, 토지 이용</span></div>
+      <i class="frag"></i>
+      <div class="frag"><b>하구와 해안</b><span>퇴적물 공급, 연안 침식과 퇴적</span></div>
+      <i class="frag"></i>
+      <div class="frag on-k"><b>지역사회</b><span>위험, 생태계, 개발과 보전의 선택</span></div>
+    </div>
+    <div class="chk frag" style="margin-top:56px">
+      <h3>핵심 개념</h3>
+      <p>지형은 따로 떨어진 유형의 목록이 아니라 연결된 시스템</p>
+      <p>한 지역의 개발, 관리 선택이 하류와 해안에 영향</p>
+      <p>자연기반해법(NBS): 자연의 순환과 회복탄력성을 고려한 관리</p>
+    </div>
+  </div>
+  <div class="src">출처: 최광희, 이원영(2026, 125~127쪽); 함경림(2026, 128~129쪽)</div>
+  <!-- 발표자 메모: 최광희, 이원영 발표는 하천 상류, 하류, 해안의 연결, 퇴적물 공급, 댐과 보 등 구조물, 해수면 변화가 지형 과정에 미치는 영향을 설명한다. 함경림 발표는 도시하천 준설을 범람원, 퇴적물, 극한 강우, 돌발홍수, 생물다양성과 관리 선택이 만나는 사례로 검토한다. -->
+</section>
+
+<!-- 14. 한계와 쟁점 -->
+<section class="slide" data-sec="제언">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="hero">
+      <div class="lead"><h2>활용의 한계와<br>쟁점</h2></div>
+      <div class="details" style="width:960px">
+        <div class="chk">
+          <p>3D 지형 표현 ≠ 형성과정과 메커니즘의 설명</p>
+          <p>시뮬레이터는 실제 자연의 시공간 규모와 복합 요인을 단순화</p>
+          <p>교사 역량, 장비, 수업 시수, 현장 접근성과 안전 여건 필요</p>
+          <p>필드워크는 사전 질문, 안전 계획, 사후 분석까지 갖춰야 함</p>
+        </div>
+        <div class="inv frag"><div class="lab">조건</div><div class="head">활동과 기술은 지형학적 핵심 지식의<br>이해를 돕는 수단</div><p>도구의 정확성과 교육목표 부합 검토, 학습 효과는 수업 적용으로 검증</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 장 구분 05 -->
+<section class="slide dark sec" data-sec="결론">
+  <div class="hd"></div>
+  <div class="bd"><div class="eyebrow">05</div><h1>결론</h1></div>
+</section>
+
+<!-- 15-1. 결론 -->
+<section class="slide" data-sec="결론">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>정리</h2>
+    <div class="steps" style="margin-top:48px">
+      <div><b>1</b><span>2022 개정은 고등학교 지형 단원 비중 감소와 관점 재구성을 동반</span></div>
+      <div class="frag"><b>2</b><span>중학교, 초등학교는 성취기준 비율이 달라 일률적 축소로 보기 어려움</span></div>
+      <div class="frag"><b>3</b><span>핵심은 내용량의 복원이 아니라 <b class="acc" style="color:var(--accent)">설명력 있는 지형 지식</b>의 보장</span></div>
+      <div class="frag"><b>4</b><span>핵심 원리 + 시각화와 시뮬레이션 + 지역 탐구와 필드워크를 연결</span></div>
+      <div class="frag"><b>5</b><span>교과서, 교사 자료, 수업 시수, 평가가 함께 뒷받침되어야 함</span></div>
+    </div>
+  </div>
+  <!-- 발표자 메모: 축소 논의는 양적 지표, 내용의 깊이, 학교급별 계열, 실제 수업 가능성을 나누어 보아야 한다. 강력한 지형 지식과 생활 문제 탐구는 대립하는 목표가 아니며, 필드워크와 디지털 도구는 둘을 잇는 수업 방법이다. -->
+</section>
+
+<!-- 15-2. 마무리 문장 -->
+<section class="slide" data-sec="결론">
+  <div class="hd"></div>
+  <div class="bd mid">
+    <div class="quote">
+      <blockquote>지형교육의 과제는 지형을 더 많이 나열하는 데 있지 않다.<br>학생이 지형의 형성과 변화를 설명하고, 그 지식으로<br>자기 지역의 문제를 해석하며, 근거에 기반해<br>책임 있는 선택을 하도록 돕는 데 있다.</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- 16. 참고문헌 -->
+<section class="slide" data-sec="결론">
+  <div class="hd"></div>
+  <div class="bd" style="padding-top:40px">
+    <h2 style="font-size:56px">참고문헌</h2>
+    <div class="m-refs">
+      <p>이광률, 홍성찬, 최광희, 이원영, 김도현, 함동식, 2025, 「2022 개정 교육과정 지리 교과의 지형 내용 변화」, 한국지형학회지, 32(4), 1-18. https://doi.org/10.16968/JKGA.32.4.1</p>
+      <p>이원영, 최광희, 이광률, 홍성찬, 김도현, 함동식, 2025, 「국내외 중등 지리 교과서의 지형 내용 체계 및 내용 요소 비교」, 한국지형학회지, 32(4), 19-38. https://doi.org/10.16968/JKGA.32.4.19</p>
+      <p>이광률, 2026, 「2022 개정 교육과정의 중등 지형 교육과정 변화와 지형 교과특위 활동」, 2026 지리학대회 초록집, 118-119.</p>
+      <p>성정원, 2026, 「지형교육 내용의 변화 양상 분석: 『세계지리』와 『세계시민과 지리』를 중심으로」, 2026 지리학대회 초록집, 120-122.</p>
+      <p>최학모, 2026, 「중학교 지리 교사가 바라보는 지형 교육 현황과 소고」, 2026 지리학대회 초록집, 123-124.</p>
+      <p>김영훈, 2026, 「고등학교 교사의 시각으로 본 2022 개정 교육과정에서 지형 학습」, 2026 지리학대회 초록집, 125.</p>
+      <p>최광희, 이원영, 2026, 「지형 연결성을 강조한 새로운 중등 지형교육의 제안」, 2026 지리학대회 초록집, 125-127.</p>
+      <p>함경림, 2026, 「지리교육에서 바라보는 중등 지형 교육에 대한 제언」, 2026 지리학대회 초록집, 128-129.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17. 마무리 -->
+<section class="slide">
+  <div class="hd"></div>
+  <div class="bd mid"><h1>감사합니다.</h1><p class="gray" style="margin-top:32px">김용현, 김한성 | 서울대학교 지리교육과 석사과정</p></div>
+</section>
+
+</div>
+
+<!-- 모서리 버튼: 이전, 쪽 번호, 다음, 전체 화면, PDF -->
+<div class="ctl" id="ctrl">
+  <button id="bPrev" aria-label="이전"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg></button>
+  <span class="pg" id="pg"></span>
+  <button id="bNext" aria-label="다음"><svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></button>
+  <button id="bFull" aria-label="전체 화면" title="전체 화면 (F)"><svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+  <button id="bPdf" aria-label="PDF로 저장" title="전체 슬라이드를 PDF로 저장 (P)"><svg viewBox="0 0 16 16"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg></button>
+</div>
+<div class="progress" id="bar"></div>
+
+<script>
+// ===== 자료 설정 =====
+// title: 헤더 왼쪽 자료 제목 (굵게), sub: 그 옆 회색 글 (날짜와 장소)
+// qr: 오른쪽 위 QR. 빈 문자열이면 끔. 자료 주소 QR을 SVG 문자열로 넣는다. 예:
+//   qr: '<svg viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#000" d="M0 0h7v7h-7z..."/></svg>'
+const CONFIG = { title: '2022 개정 지형교육의 현황과 제언', sub: '2026.12.1. 지리교수방법론특강', qr: '' };
+
+/* ===== 엔진 =====
+   - <section class="slide" data-sec="장 이름">: 헤더 오른쪽 장 목록을 자동으로 만들고 현재 장을 검게
+   - class="frag": 다음 키마다 하나씩 보이기(.show), 이전 키는 거꾸로 숨기기
+   - data-go="장 이름": 누르면 그 장 첫 슬라이드로
+   - 주소 #n (1부터): n번째 장 열기. 주소를 바꾸면 그 장으로 이동
+   - 키: → ↓ PageDown Space Enter 다음 / ← ↑ PageUp Backspace 이전 / Home End / F 전체 화면 / P PDF
+   - iframe 안 페이지는 postMessage({ slideKey: e.key }) 로 키를 넘긴다
+   - 첫 장과 마지막 장은 헤더 없음 */
+(function () {
+  const tone = new URLSearchParams(location.search).get('tone');
+  if (tone) document.documentElement.dataset.tone = tone;
+})();
+
+const slides = [...document.querySelectorAll('.slide')];
+let cur = 0;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SECS = [...new Set(slides.map(s => s.dataset.sec).filter(Boolean))];
+slides.forEach((s, i) => {
+  const edge = i === 0 || i === slides.length - 1;
+  if (CONFIG.qr && !edge && !s.classList.contains('sec')) {
+    s.classList.add('has-qr');
+    s.insertAdjacentHTML('beforeend', '<div class="qrc">' + CONFIG.qr + '</div>');
+  }
+  if (edge) return;
+  const nav = SECS.map(t => `<span class="${t === s.dataset.sec ? 'cur' : ''}" data-go="${esc(t)}">${esc(t)}</span>`).join('');
+  s.querySelector('.hd').innerHTML = `<div class="brand">${esc(CONFIG.title)}<i></i><span>${esc(CONFIG.sub)}</span></div><nav>${nav}</nav>`;
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if (t) show(slides.findIndex(s => s.dataset.sec === t.dataset.go));
+});
+
+function steps(s) { return [...s.querySelectorAll('.frag')]; }
+function show(n) {
+  if (n < 0) return;
+  slides[cur].classList.remove('on');
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('on');
+  document.getElementById('bar').style.width = ((cur + 1) / slides.length * 100) + '%';
+  document.getElementById('pg').textContent = (cur + 1) + ' / ' + slides.length;
+  history.replaceState(null, '', '#' + (cur + 1));
+}
+function next() {
+  const pending = steps(slides[cur]).find(el => !el.classList.contains('show'));
+  if (pending) { pending.classList.add('show'); return; }
+  show(cur + 1);
+}
+function prev() {
+  const done = steps(slides[cur]).filter(el => el.classList.contains('show'));
+  if (done.length) { done.at(-1).classList.remove('show'); return; }
+  show(cur - 1);
+}
+
+// 발표용 리모컨은 기종마다 보내는 키가 달라서 넉넉히 받는다. 다른 요소가 가로채지 못하게 capture 단계에서 받는다
+const NEXT = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter', 'MediaTrackNext'];
+const PREV = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'MediaTrackPrevious'];
+window.addEventListener('keydown', e => {
+  if (NEXT.includes(e.key)) { e.preventDefault(); next(); }
+  else if (PREV.includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === 'Home') show(0);
+  else if (e.key === 'End') show(slides.length - 1);
+  else if (e.key === 'F5') { e.preventDefault(); if (!document.fullscreenElement) toggleFull(); }  // 리모컨의 발표 시작 버튼
+  else if (e.key === 'f' || e.key === 'F') toggleFull();
+  else if (e.key === 'p' || e.key === 'P') savePdf();
+}, true);
+// iframe 안에서 누른 키도 슬라이드 조작으로 받는다
+window.addEventListener('message', e => {
+  if (e.data && e.data.slideKey) window.dispatchEvent(new KeyboardEvent('keydown', { key: e.data.slideKey }));
+});
+// 주소 #n 을 바꾸면 그 장으로
+window.addEventListener('hashchange', () => {
+  const n = parseInt(location.hash.slice(1), 10);
+  if (n && n - 1 !== cur) show(n - 1);
+});
+document.getElementById('bNext').onclick = e => { e.currentTarget.blur(); next(); };
+document.getElementById('bPrev').onclick = e => { e.currentTarget.blur(); prev(); };
+document.getElementById('bFull').onclick = e => { e.currentTarget.blur(); toggleFull(); };
+document.getElementById('bPdf').onclick = e => { e.currentTarget.blur(); savePdf(); };
+
+function toggleFull() {
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+}
+// 인쇄 창에서 「PDF로 저장」을 고른다. @media print 가 한 장에 한 쪽, 검은 장은 흰 바탕으로 바꾼다
+function savePdf() { window.print(); }
+
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  document.getElementById('stage').style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+
+show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>
