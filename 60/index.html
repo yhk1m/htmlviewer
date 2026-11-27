@@ -295,6 +295,11 @@
   .m-case .tool { display: block; font-size: 22px; color: var(--k); padding: 8px 0; border-top: 1px solid var(--g2); border-bottom: 1px solid var(--g2); }
   .m-case p { font-size: 22px; line-height: 1.5; color: var(--g6); margin-top: 10px; }
   @media print { .flow > div.on-k span { color: var(--g6); } }
+  /* 새 탭으로 여는 큰 버튼 */
+  .m-open { display: inline-flex; align-items: center; gap: 14px; height: 72px; padding: 0 36px; background: var(--k); color: #fff; font-size: 28px; font-weight: 600; text-decoration: none; border-radius: 3px; margin-right: 170px; }
+  .m-open svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .m-open:hover { background: var(--g7); }
+  @media print { .m-open { background: var(--print-fill); color: var(--k); } }
 
 </style>
 </head>
@@ -371,9 +376,12 @@
 <section class="slide" data-sec="e-GIS">
   <div class="hd"></div>
   <div class="bd fill">
-    <h2>e-GIS 화면 <span class="gray" style="font-weight:300">e-gis.kr</span></h2>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px">
+      <h2>e-GIS 화면 <span class="gray" style="font-weight:300">e-gis.kr</span></h2>
+      <a class="m-open" href="https://e-gis.kr" target="_blank" rel="noopener">e-GIS 열기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></a>
+    </div>
     <figure style="margin-top:28px">
-      <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:680px;object-fit:cover;object-position:top;border:1px solid var(--g3)">
+      <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:660px;object-fit:cover;object-position:top;border:1px solid var(--g3)">
     </figure>
   </div>
 </section>
@@ -1208,7 +1216,7 @@
 // title: 헤더 왼쪽 자료 제목 (굵게), sub: 그 옆 회색 글 (날짜와 장소)
 // qr: 오른쪽 위 QR. 빈 문자열이면 끔. 자료 주소 QR을 SVG 문자열로 넣는다. 예:
 //   qr: '<svg viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#000" d="M0 0h7v7h-7z..."/></svg>'
-const CONFIG = { title: '교육용 웹 GIS e-GIS 수업 적용 사례', sub: '2026.11.28. 충북대학교', qr: '' };
+const CONFIG = { title: '교육용 웹 GIS e-GIS 수업 적용 사례', sub: '2026.11.28. 충북대학교', qr: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m2 0h2m3 0h3m1 0h7m-25 1h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h6m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h2m2 0h1m5 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m1 0h1m3 0h2m-15 1h2m3 0h1m2 0h1m1 0h1m1 0h3m2 0h2m1 0h1m-21 1h2m2 0h1m1 0h1m1 0h8m1 0h1m2 0h1m1 0h2m-23 1h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1m4 0h3m1 0h1m-23 1h2m3 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h2m4 0h1m-17 1h1m3 0h2m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h5m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m-23 1h3m2 0h4m3 0h8m-22 1h2m3 0h5m1 0h1m2 0h1m1 0h5m2 0h1m-16 1h1m2 0h1m1 0h2m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m2 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m2 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m3 0h3m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m1 0h3m1 0h2m-25 1h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h3m-21 1h7m3 0h3m3 0h1m1 0h1m2 0h1m2 0h1"/></svg>' };
 
 /* ===== 엔진 =====
    - <section class="slide" data-sec="장 이름">: 헤더 오른쪽 장 목록을 자동으로 만들고 현재 장을 검게
