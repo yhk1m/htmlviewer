@@ -300,15 +300,21 @@
   .m-open svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
   .m-open:hover { background: var(--g7); }
   @media print { .m-open { background: var(--print-fill); color: var(--k); } }
-  /* 5장: 큰 QR과 열기 버튼 */
-  .slide.solo-qr > .qrc { display: none; }
-  .m-go { display: flex; flex-direction: column; gap: 28px; }
-  .m-go .qrbox { padding: 24px 24px 20px; }
-  .m-go .qrbox svg { width: 330px; height: 330px; background: #fff; }
-  .m-go .qrbox b { font-size: 28px; margin-top: 14px; }
-  .m-go .qrbox span { font-size: 20px; }
+  /* 5장: 열기 버튼 */
+  .m-go { display: flex; flex-direction: column; gap: 24px; }
   .m-go .m-open { justify-content: center; height: 84px; font-size: 30px; }
   .m-go .note { margin-top: 0; }
+  /* 오른쪽 위 QR 두 개 (e-GIS, 프롬프트 기록) */
+  .qrc { width: auto; height: auto; display: flex; gap: 14px; top: 12px; background: transparent; }
+  .qrc figure { margin: 0; width: 104px; text-align: center; background: #fff; }
+  .qrc figure svg { width: 104px; height: 104px; }
+  .qrc figcaption { font-size: 14px; line-height: 1.3; color: var(--g6); margin-top: 6px; white-space: nowrap; }
+  .slide.has-qr .hd { padding-right: 40px; }
+  /* 3장: 프롬프트 기록 QR */
+  .m-prompt { display: flex; align-items: center; gap: 36px; margin-top: 56px; }
+  .m-prompt .qrbox svg { width: 190px; height: 190px; background: #fff; }
+  .m-prompt p { font-size: 28px; line-height: 1.5; color: var(--g6); }
+  .m-prompt p b { display: block; font-size: 34px; font-weight: 600; color: var(--k); }
 
 </style>
 </head>
@@ -354,7 +360,7 @@
   <div class="bd">
     <h2>교사가 직접 만든 웹 GIS</h2>
     <p class="gray" style="font-size:32px;margin-top:24px">바이브 코딩: 자연어로 지시하고 AI가 코드 작성 (Collins 2025 올해의 단어)</p>
-    <div class="flow" style="margin-top:96px">
+    <div class="flow" style="margin-top:72px">
       <div><b>수업 요구</b><span>필요한 기능 떠올리기</span></div>
       <i class="frag"><em>자연어 설명</em></i>
       <div class="frag"><b>Claude Code</b><span>코드 작성과 수정</span></div>
@@ -362,6 +368,10 @@
       <div class="frag"><b>수업 적용</b><span>교실에서 시험</span></div>
       <i class="frag"><em>되돌림</em></i>
       <div class="frag on-k"><b>다시 고치기</b><span>2025.12.21~ 현재 반복</span></div>
+    </div>
+    <div class="m-prompt frag">
+      <div class="qrbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h1m5 0h1m1 0h3m7 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m5 0h2m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m4 0h1m1 0h1m2 0h1m1 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h2m2 0h1m1 0h2m-17 1h1m2 0h8m1 0h1m1 0h1m1 0h2m2 0h1m1 0h3m-22 1h2m4 0h1m1 0h2m2 0h1m1 0h1m1 0h5m-23 1h2m2 0h3m3 0h1m1 0h4m1 0h1m1 0h2m2 0h1m-25 1h1m3 0h2m2 0h4m3 0h1m1 0h2m1 0h5m-24 1h1m1 0h4m1 0h2m1 0h2m1 0h3m1 0h2m4 0h1m-25 1h1m1 0h1m1 0h2m3 0h2m3 0h3m3 0h1m2 0h1m-24 1h2m1 0h2m1 0h4m1 0h2m1 0h4m2 0h5m-25 1h1m4 0h1m2 0h1m1 0h2m3 0h5m1 0h2m1 0h1m-25 1h1m3 0h5m3 0h9m1 0h2m-16 1h2m1 0h2m1 0h1m1 0h1m3 0h1m1 0h2m-24 1h7m1 0h6m2 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h3m1 0h2m1 0h2m3 0h1m3 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h6m-21 1h1m1 0h3m1 0h1m1 0h1m3 0h2m3 0h2m4 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m2 0h1m1 0h2m2 0h5m-25 1h1m5 0h1m2 0h1m4 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h5m2 0h1m2 0h1"/></svg><span>html.bgnl.kr/59</span></div>
+      <p><b>개발에 쓴 프롬프트 기록</b>수업에서 필요한 기능을 자연어로 요청한 기록</p>
     </div>
   </div>
   <div class="src">출처: Clark, L. (2025), The Register</div>
@@ -381,15 +391,14 @@
   </div>
 </section>
 
-<!-- 5. e-GIS 화면 | .two 왼쪽 캡처, 오른쪽 .qrbox + .m-open (머리 QR 숨김) -->
-<section class="slide solo-qr" data-sec="e-GIS">
+<!-- 5. e-GIS 화면 | .two 왼쪽 캡처, 오른쪽 .m-open -->
+<section class="slide" data-sec="e-GIS">
   <div class="hd"></div>
   <div class="bd">
     <h2>e-GIS 화면</h2>
-    <div class="two" style="grid-template-columns:1fr 380px;gap:72px;margin-top:40px">
+    <div class="two" style="grid-template-columns:1fr 380px;gap:72px;margin-top:40px;align-items:end">
       <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:640px;object-fit:cover;object-position:left top;border:1px solid var(--g3)">
       <div class="m-go">
-        <div class="qrbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m2 0h2m3 0h3m1 0h7m-25 1h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h6m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h2m2 0h1m5 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m1 0h1m3 0h2m-15 1h2m3 0h1m2 0h1m1 0h1m1 0h3m2 0h2m1 0h1m-21 1h2m2 0h1m1 0h1m1 0h8m1 0h1m2 0h1m1 0h2m-23 1h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1m4 0h3m1 0h1m-23 1h2m3 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h2m4 0h1m-17 1h1m3 0h2m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h5m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m-23 1h3m2 0h4m3 0h8m-22 1h2m3 0h5m1 0h1m2 0h1m1 0h5m2 0h1m-16 1h1m2 0h1m1 0h2m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m2 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m2 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m3 0h3m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m1 0h3m1 0h2m-25 1h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h3m-21 1h7m3 0h3m3 0h1m1 0h1m2 0h1m2 0h1"/></svg><b>e-GIS</b><span>e-gis.kr</span></div>
         <a class="m-open" href="https://e-gis.kr" target="_blank" rel="noopener">e-GIS 열기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></a>
         <p class="note">설치 없이 브라우저, 태블릿에서 바로 실행</p>
       </div>
@@ -1227,7 +1236,7 @@
 // title: 헤더 왼쪽 자료 제목 (굵게), sub: 그 옆 회색 글 (날짜와 장소)
 // qr: 오른쪽 위 QR. 빈 문자열이면 끔. 자료 주소 QR을 SVG 문자열로 넣는다. 예:
 //   qr: '<svg viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#000" d="M0 0h7v7h-7z..."/></svg>'
-const CONFIG = { title: '교육용 웹 GIS e-GIS 수업 적용 사례', sub: '2026.11.28. 충북대학교', qr: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m2 0h2m3 0h3m1 0h7m-25 1h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h6m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h2m2 0h1m5 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m1 0h1m3 0h2m-15 1h2m3 0h1m2 0h1m1 0h1m1 0h3m2 0h2m1 0h1m-21 1h2m2 0h1m1 0h1m1 0h8m1 0h1m2 0h1m1 0h2m-23 1h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1m4 0h3m1 0h1m-23 1h2m3 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h2m4 0h1m-17 1h1m3 0h2m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h5m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m-23 1h3m2 0h4m3 0h8m-22 1h2m3 0h5m1 0h1m2 0h1m1 0h5m2 0h1m-16 1h1m2 0h1m1 0h2m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m2 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m2 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m3 0h3m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m1 0h3m1 0h2m-25 1h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h3m-21 1h7m3 0h3m3 0h1m1 0h1m2 0h1m2 0h1"/></svg>' };
+const CONFIG = { title: '교육용 웹 GIS e-GIS 수업 적용 사례', sub: '2026.11.28. 충북대학교', qr: '<figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m2 0h2m3 0h3m1 0h7m-25 1h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h6m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h2m2 0h1m5 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m1 0h1m3 0h2m-15 1h2m3 0h1m2 0h1m1 0h1m1 0h3m2 0h2m1 0h1m-21 1h2m2 0h1m1 0h1m1 0h8m1 0h1m2 0h1m1 0h2m-23 1h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1m4 0h3m1 0h1m-23 1h2m3 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h2m4 0h1m-17 1h1m3 0h2m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h5m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m-23 1h3m2 0h4m3 0h8m-22 1h2m3 0h5m1 0h1m2 0h1m1 0h5m2 0h1m-16 1h1m2 0h1m1 0h2m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m2 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m2 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m3 0h3m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m1 0h3m1 0h2m-25 1h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h3m-21 1h7m3 0h3m3 0h1m1 0h1m2 0h1m2 0h1"/></svg><figcaption>e-GIS</figcaption></figure>' };
 
 /* ===== 엔진 =====
    - <section class="slide" data-sec="장 이름">: 헤더 오른쪽 장 목록을 자동으로 만들고 현재 장을 검게
