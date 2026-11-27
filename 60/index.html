@@ -296,10 +296,19 @@
   .m-case p { font-size: 22px; line-height: 1.5; color: var(--g6); margin-top: 10px; }
   @media print { .flow > div.on-k span { color: var(--g6); } }
   /* 새 탭으로 여는 큰 버튼 */
-  .m-open { display: inline-flex; align-items: center; gap: 14px; height: 72px; padding: 0 36px; background: var(--k); color: #fff; font-size: 28px; font-weight: 600; text-decoration: none; border-radius: 3px; margin-right: 170px; }
+  .m-open { display: inline-flex; align-items: center; gap: 14px; height: 72px; padding: 0 36px; background: var(--k); color: #fff; font-size: 28px; font-weight: 600; text-decoration: none; border-radius: 3px; }
   .m-open svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; }
   .m-open:hover { background: var(--g7); }
   @media print { .m-open { background: var(--print-fill); color: var(--k); } }
+  /* 5장: 큰 QR과 열기 버튼 */
+  .slide.solo-qr > .qrc { display: none; }
+  .m-go { display: flex; flex-direction: column; gap: 28px; }
+  .m-go .qrbox { padding: 24px 24px 20px; }
+  .m-go .qrbox svg { width: 330px; height: 330px; background: #fff; }
+  .m-go .qrbox b { font-size: 28px; margin-top: 14px; }
+  .m-go .qrbox span { font-size: 20px; }
+  .m-go .m-open { justify-content: center; height: 84px; font-size: 30px; }
+  .m-go .note { margin-top: 0; }
 
 </style>
 </head>
@@ -372,17 +381,19 @@
   </div>
 </section>
 
-<!-- 5. e-GIS 화면 | figure -->
-<section class="slide" data-sec="e-GIS">
+<!-- 5. e-GIS 화면 | .two 왼쪽 캡처, 오른쪽 .qrbox + .m-open (머리 QR 숨김) -->
+<section class="slide solo-qr" data-sec="e-GIS">
   <div class="hd"></div>
-  <div class="bd fill">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px">
-      <h2>e-GIS 화면 <span class="gray" style="font-weight:300">e-gis.kr</span></h2>
-      <a class="m-open" href="https://e-gis.kr" target="_blank" rel="noopener">e-GIS 열기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></a>
+  <div class="bd">
+    <h2>e-GIS 화면</h2>
+    <div class="two" style="grid-template-columns:1fr 380px;gap:72px;margin-top:40px">
+      <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:640px;object-fit:cover;object-position:left top;border:1px solid var(--g3)">
+      <div class="m-go">
+        <div class="qrbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m2 0h2m3 0h3m1 0h7m-25 1h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h1m1 0h6m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m1 0h2m2 0h1m5 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h1m1 0h1m3 0h2m-15 1h2m3 0h1m2 0h1m1 0h1m1 0h3m2 0h2m1 0h1m-21 1h2m2 0h1m1 0h1m1 0h8m1 0h1m2 0h1m1 0h2m-23 1h1m1 0h1m1 0h2m1 0h1m1 0h1m3 0h1m4 0h3m1 0h1m-23 1h2m3 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-21 1h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h2m4 0h1m-17 1h1m3 0h2m1 0h2m1 0h2m3 0h2m-25 1h2m1 0h5m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m-23 1h3m2 0h4m3 0h8m-22 1h2m3 0h5m1 0h1m2 0h1m1 0h5m2 0h1m-16 1h1m2 0h1m1 0h2m1 0h1m3 0h1m3 0h1m-25 1h7m2 0h1m2 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h1m-21 1h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m2 0h2m-25 1h1m1 0h3m1 0h1m3 0h2m3 0h3m2 0h1m1 0h2m-24 1h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m1 0h3m1 0h2m-25 1h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h3m-21 1h7m3 0h3m3 0h1m1 0h1m2 0h1m2 0h1"/></svg><b>e-GIS</b><span>e-gis.kr</span></div>
+        <a class="m-open" href="https://e-gis.kr" target="_blank" rel="noopener">e-GIS 열기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg></a>
+        <p class="note">설치 없이 브라우저, 태블릿에서 바로 실행</p>
+      </div>
     </div>
-    <figure style="margin-top:28px">
-      <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:660px;object-fit:cover;object-position:top;border:1px solid var(--g3)">
-    </figure>
   </div>
 </section>
 
