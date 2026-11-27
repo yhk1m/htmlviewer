@@ -1,0 +1,1308 @@
+<!-- © 2026 김용현 -->
+<!DOCTYPE html>
+<html lang="ko" data-tone="mono">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>e-GIS 수업 적용 사례</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* =========================================================
+     모노 디자인 슬라이드 템플릿 (1920x1080)
+     - 슬라이드는 라이트 전용. 검은 장 구분만 검은 바탕.
+     - 테마: <html data-tone="mono|navy|blue">. 주소 ?tone=navy 로도 바꿀 수 있다.
+     - 강조색은 개수 숫자와 한 군데 강조에만. 헤더에는 쓰지 않는다.
+     ========================================================= */
+  :root {
+    --k: #000; --w: #fff;
+    --g1: #f5f5f5; --g2: #efefef; --g2b: #e1e1e1; --g3: #d4d4d4; --g4: #9f9f9f; --g5: #767676; --g6: #606060; --g7: #434343;
+    --accent: #000; --accent-2: #000; --deep: #222;
+    --print-fill: #e1e1e1; /* 인쇄할 때 검은 면 대신 쓰는 회색 */
+  }
+  :root[data-tone="navy"] { --accent: #122347; --accent-2: #704259; --deep: #44515f; }
+  :root[data-tone="blue"] { --accent: #002f98; --accent-2: #e50000; --deep: #052645; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #1a1a1a; overflow: hidden; }
+  body { font-family: Pretendard, "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif; color: var(--k); letter-spacing: -0.5px; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  svg.ic { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; flex: none; }
+
+  /* ---------- 무대 ---------- */
+  #stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; }
+  .slide { position: absolute; inset: 0; background: var(--w); padding: 0 140px; display: flex; visibility: hidden; flex-direction: column; overflow: hidden; }
+  /* 숨은 장도 크기를 유지해야 iframe 배치와 인쇄가 맞다 */
+  .slide.on { visibility: visible; }
+  .slide.dark { background: var(--k); color: var(--w); }
+
+  /* ---------- 헤더 (엔진이 채운다) ---------- */
+  .hd { height: 120px; flex: none; display: flex; align-items: center; justify-content: space-between; }
+  .hd .brand { display: flex; align-items: center; gap: 14px; font-size: 20px; font-weight: 600; white-space: nowrap; }
+  .hd .brand i { width: 1px; height: 16px; background: var(--g2); }
+  .hd .brand span { font-weight: 400; color: var(--g5); }
+  .hd nav { display: flex; gap: 18px; font-size: 18px; color: var(--g5); white-space: nowrap; }
+  .hd nav span { cursor: pointer; transition: color .2s cubic-bezier(.4,0,.2,1); }
+  .hd nav span:hover, .hd nav span.cur { color: var(--k); }
+  .dark .hd .brand i { background: var(--g7); }
+  .dark .hd .brand span, .dark .hd nav { color: var(--g5); }
+  .dark .hd nav span:hover, .dark .hd nav span.cur { color: var(--w); }
+  .qrc { position: absolute; right: 20px; top: 16px; width: 150px; height: 150px; background: #fff; z-index: 5; }
+  .qrc svg { display: block; width: 100%; height: 100%; }
+  .slide.has-qr .hd { padding-right: 40px; }
+
+  /* ---------- 본문 틀 ---------- */
+  .bd { flex: 1; display: flex; flex-direction: column; padding: 60px 0 100px; min-height: 0; }
+  .bd.mid { justify-content: center; }
+  .bd.fill { padding: 40px 0 56px; }  /* 큰 화면이나 iframe 이 들어가는 장 */
+
+  /* ---------- 글자 ---------- */
+  h1 { font-size: 120px; font-weight: 400; line-height: 1.2; letter-spacing: -2px; }
+  h2 { font-size: 72px; font-weight: 400; line-height: 1.2; letter-spacing: -1.5px; }
+  h3 { font-size: 32px; font-weight: 600; line-height: 1.4; }
+  p { font-size: 28px; line-height: 1.8; }
+  .eyebrow { font-size: 24px; color: var(--g5); margin-bottom: 24px; }
+  .gray { color: var(--g6); }
+  .note { font-size: 22px; color: var(--g5); line-height: 1.7; margin-top: 28px; }
+  .src { position: absolute; left: 140px; bottom: 40px; font-size: 16px; color: var(--g5); }
+  .big { font-size: 64px; font-weight: 400; letter-spacing: -2px; line-height: 1.1; }
+  .acc { color: var(--accent); }
+  a.lk { text-decoration: underline; text-decoration-color: var(--g3); text-underline-offset: 4px; }
+  a.lk:hover { text-decoration-color: currentColor; }
+
+  /* ---------- 그림 자리 (외부 그림 대신) ---------- */
+  .ph { display: grid; place-items: center; background: var(--g2); color: var(--g5); font-size: 20px; letter-spacing: 0; }
+
+  /* ---------- 표지 ---------- */
+  .cover .bd { justify-content: space-between; padding: 100px 0 140px; }
+  .cover .row { display: flex; align-items: flex-end; gap: 80px; }
+  .cover .who { flex: 1; white-space: nowrap; font-size: 28px; line-height: 1.8; }
+  .cover .who .mail { color: var(--g5); }
+  .cover .place { white-space: nowrap; font-size: 32px; line-height: 1.6; text-align: right; color: var(--g6); }
+  .cover .cdate { position: absolute; top: 56px; right: 140px; font-size: 30px; color: var(--g6); }
+
+  /* ---------- 장 구분 ---------- */
+  .sec .bd { justify-content: flex-start; }
+  .sec .subt { font-size: 36px; color: var(--g4); margin-top: 24px; }
+
+  /* ---------- 발표자 소개 ---------- */
+  .intro { display: grid; grid-template-columns: 1fr 1.35fr; gap: 100px; margin-top: 40px; align-items: start; }
+  .intro .name { font-size: 34px; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
+  .intro .career { display: grid; gap: 8px; font-size: 23px; line-height: 1.5; color: var(--g6); }
+  .intro .career b { font-weight: 600; color: var(--k); }
+  .intro .career .edu { margin-top: 12px; }
+  .intro .lab { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+  .intro .links { margin-top: 40px; border-top: 1px solid var(--g2); }
+  .intro .links a { display: grid; grid-template-columns: 120px 1fr; padding: 16px 0; border-bottom: 1px solid var(--g2); font-size: 24px; }
+  .intro .links span { color: var(--g5); font-size: 20px; align-self: center; }
+  .plist { border-top: 1px solid var(--g2); }
+  .plist a { display: grid; grid-template-columns: 56px 1fr auto; gap: 28px; align-items: center; padding: 24px 8px; border-bottom: 1px solid var(--g2); transition: background .2s cubic-bezier(.4,0,.2,1); }
+  .plist a:hover { background: var(--g1); }
+  .plist .ph { width: 56px; height: 56px; font-size: 14px; }
+  .plist b { display: block; font-size: 30px; font-weight: 600; line-height: 1.3; }
+  .plist span { display: block; font-size: 22px; color: var(--g6); line-height: 1.5; margin-top: 4px; }
+  .plist em { font-style: normal; font-size: 20px; color: var(--g5); }
+
+  /* ---------- 배치 ---------- */
+  .hero { flex: 1; display: flex; align-items: flex-start; gap: 120px; }
+  .hero .lead { flex: 1; }
+  .hero .details { width: 720px; display: flex; flex-direction: column; gap: 32px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 56px; align-items: start; }
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 64px; margin-top: 64px; }
+  .lane { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 32px; }
+  .lane .who { font-size: 32px; font-weight: 600; }
+
+  /* ---------- 가는 줄 목록: rows, steps, tt, chk ---------- */
+  .rows { display: grid; margin-top: 56px; border-top: 1px solid var(--g3); }
+  .rows > div { padding: 22px 24px 22px 0; border-bottom: 1px solid var(--g2); font-size: 26px; line-height: 1.6; align-self: stretch; }
+  .rows.tight > div { padding: 11px 24px 11px 0; }
+  .rows .k { font-size: 34px; font-weight: 600; letter-spacing: -1px; }
+  .rows .s { color: var(--g6); font-size: 22px; }
+  .steps { border-top: 1px solid var(--g3); }
+  .steps > div { display: grid; grid-template-columns: 56px 1fr; padding: 20px 0; border-bottom: 1px solid var(--g2); font-size: 28px; line-height: 1.6; }
+  .steps > div > b { font-weight: 600; color: var(--g5); }
+  .steps .s { display: block; font-size: 22px; color: var(--g6); }
+  .tt { margin-top: 48px; border-top: 1px solid var(--g3); }
+  .tt > div { display: grid; grid-template-columns: 160px 1fr; padding: 18px 0; border-bottom: 1px solid var(--g2); font-size: 30px; }
+  .tt > div > span { color: var(--g5); }
+  .tt .rest { color: var(--g5); }
+  .tt.c3 > div { grid-template-columns: 160px 1fr 420px; }
+  .tt.c3 .head { font-size: 20px; color: var(--g5); padding: 12px 0; }
+  .tt.toc { display: grid; grid-auto-rows: 1fr; margin-top: 48px; max-width: 1100px; }
+  .tt.toc > div { grid-template-columns: 80px 1fr; align-items: center; padding: 18px 0; font-size: 30px; }
+  .tt.toc small { display: block; font-size: 22px; color: var(--g6); }
+  /* 목차 두 칸 (7~8개): class="tt toc cols" */
+  .tt.toc.cols { grid-template-rows: repeat(4, auto); grid-auto-flow: column; grid-auto-columns: 1fr; grid-auto-rows: auto; column-gap: 80px; margin-top: 64px; border-top: 0; max-width: none; }
+  .tt.toc.cols > div { padding: 32px 0; align-items: start; }
+  .tt.toc.cols > div:nth-child(4n+1) { border-top: 1px solid var(--g3); }
+  .chk h3 { font-size: 24px; color: var(--g5); font-weight: 600; margin-bottom: 12px; }
+  .chk p { font-size: 26px; line-height: 1.7; padding: 10px 0; border-bottom: 1px solid var(--g2); }
+  .chk.ico p { display: flex; align-items: center; gap: 16px; }
+  .chk.ico .ic { color: var(--g4); }
+
+  /* ---------- 연표와 개수 ---------- */
+  .yr { display: grid; margin-top: 44px; border-top: 1px solid var(--g3); }
+  .yr > div { padding: 16px 20px 16px 0; border-bottom: 1px solid var(--g2); font-size: 22px; line-height: 1.6; }
+  .yr .hd2 { font-size: 20px; color: var(--g5); }
+  .yr .y { font-size: 34px; letter-spacing: -1px; }
+  .yr em { font-style: normal; color: var(--g5); font-size: 18px; display: inline-block; width: 36px; }
+  .count { font-size: 28px; color: var(--g6); margin-top: 32px; }
+  .count b { color: var(--accent-2); font-weight: 600; }
+
+  /* ---------- 막대와 범례 ---------- */
+  .legend { display: flex; gap: 28px; font-size: 20px; color: var(--g6); margin-top: 28px; }
+  .legend span::before { content: ""; display: inline-block; width: 16px; height: 16px; margin-right: 8px; vertical-align: -2px; background: var(--c); }
+  .legend em { font-style: normal; margin-left: auto; color: var(--g5); }
+  .bars { margin-top: 20px; border-top: 1px solid var(--g3); }
+  .bars > div { display: grid; grid-template-columns: 220px 1fr 110px; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--g2); font-size: 24px; }
+  .bars .bb { display: grid; gap: 4px; }
+  .bars i { display: block; height: 24px; background: var(--c, var(--k)); }
+  .bars i.acc { background: var(--accent); }
+  .bars b { font-size: 30px; font-weight: 600; text-align: right; }
+
+  /* ---------- 위 3px 줄 카드 ---------- */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 64px; }
+  .cards.c3 { grid-template-columns: repeat(3, 1fr); gap: 56px; }
+  .cards > div { border-top: 3px solid var(--k); padding-top: 22px; }
+  .cards .n { display: block; font-size: 20px; color: var(--g5); margin-bottom: 8px; }
+  .cards b { display: block; font-size: 36px; font-weight: 600; letter-spacing: -1px; margin-bottom: 16px; }
+  .cards p { font-size: 24px; line-height: 1.6; color: var(--g6); padding: 8px 0; border-bottom: 1px solid var(--g2); }
+  /* 큰 숫자 카드: .stat > div(위 3px 검은 줄) 안에 .lab 이름, .num 숫자(강조는 .num.acc), p 한 줄 설명 */
+  .stat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 80px; margin-top: 64px; }
+  .stat.c3 { grid-template-columns: repeat(3, 1fr); gap: 56px; }
+  .stat > div { border-top: 3px solid var(--k); padding-top: 22px; }
+  .stat .lab { display: block; font-size: 24px; color: var(--g5); }
+  .stat .num { display: block; font-size: 200px; font-weight: 300; line-height: 1; letter-spacing: -6px; margin: 28px 0 32px; font-variant-numeric: tabular-nums; }
+  .stat .num small { font-size: 64px; font-weight: 400; letter-spacing: -2px; margin-left: 8px; }
+  .stat .num.acc { color: var(--accent); }
+  .stat p { font-size: 24px; line-height: 1.6; color: var(--g6); }
+  .stat.c3 .num { font-size: 160px; letter-spacing: -5px; }
+  /* 그림 카드: class="cards case3", 카드 안 첫 줄에 <div class="ph">그림</div> */
+  .case3 { grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 36px; }
+  .case3 .ph { width: 100%; height: 230px; border: 1px solid var(--g3); margin-bottom: 18px; }
+
+  /* ---------- 1px 검은 상자: 요청문, 이름표, 정의, 흐름 ---------- */
+  .ask { border: 1px solid var(--k); padding: 32px 36px; font-size: 28px; line-height: 1.7; }
+  .ask .lab { font-size: 20px; color: var(--g5); margin-bottom: 12px; }
+  .tag { display: inline-block; border: 1px solid var(--k); font-size: 20px; padding: 2px 12px; margin-right: 8px; line-height: 1.5; }
+  .apidef { margin-top: 20px; border-left: 4px solid var(--k); padding: 4px 0 4px 22px; }
+  .apidef p { font-size: 23px; line-height: 1.6; color: var(--g6); }
+  .apidef b { color: var(--k); font-weight: 600; }
+  /* 흐름: <div class="flow"><div>상자</div><i><em>동작</em></i><div class="on-k">결과</div></div> */
+  .flow { display: flex; align-items: stretch; margin-top: 64px; }
+  .flow > div { flex: 1; border: 1px solid var(--k); padding: 36px 32px; }
+  .flow > div.on-k { background: var(--k); color: var(--w); }
+  .flow > div.on-k span { color: var(--g3); }
+  .flow > div.opt { border-style: dashed; }
+  .flow b { display: block; font-size: 34px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px; }
+  .flow span { display: block; font-size: 24px; color: var(--g6); line-height: 1.6; }
+  .flow > i { flex: none; width: 200px; display: grid; grid-template-rows: 1fr 1fr; justify-items: center; text-align: center; font-style: normal; font-size: 20px; color: var(--g5); line-height: 1.5; }
+  .flow > i em { font-style: normal; align-self: end; padding-bottom: 8px; }
+  .flow > i::after { content: ""; display: block; width: 140px; height: 12px; margin-top: -6px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 12'%3E%3Cpath d='M0 6h132' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M128 1l10 5-10 5z'/%3E%3C/svg%3E") no-repeat; }
+
+  /* ---------- 검은 상자 흰 글씨: 핵심 한 줄 ---------- */
+  .inv { background: var(--k); color: var(--w); padding: 40px 44px; }
+  .inv .lab { font-size: 22px; color: var(--g4); margin-bottom: 12px; }
+  .inv .head { font-size: 40px; font-weight: 600; line-height: 1.35; letter-spacing: -1px; }
+  .inv p { font-size: 24px; line-height: 1.7; color: var(--g3); margin-top: 24px; }
+
+  /* ---------- 인용 ---------- */
+  .quote { border-top: 1px solid var(--k); padding-top: 40px; }
+  .quote blockquote { font-size: 52px; font-weight: 300; line-height: 1.45; letter-spacing: -1.5px; }
+  .quote cite { display: block; font-style: normal; font-size: 22px; color: var(--g5); margin-top: 32px; }
+  /* 원문 글 + 번역: class="tweet" */
+  .tweet { border: 1px solid var(--g3); padding: 32px 36px; }
+  .tweet .who { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; font-size: 24px; }
+  .tweet .who b { font-weight: 600; }
+  .tweet .who span { color: var(--g5); font-size: 20px; }
+  .tweet .txt { font-size: 18px; line-height: 1.6; letter-spacing: 0; word-break: normal; }
+  .tweet .ko { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--g2); font-size: 18px; line-height: 1.65; color: var(--g6); }
+  .tweet mark { background: none; font-weight: 700; color: var(--k); }
+
+  /* ---------- 코드, 브라우저 틀 ---------- */
+  code, pre { font-family: Consolas, Pretendard, "Malgun Gothic", monospace; letter-spacing: 0; }
+  pre { background: var(--g1); border: 1px solid var(--g2); padding: 28px 32px; font-size: 24px; line-height: 1.6; white-space: pre-wrap; }
+  pre .c { color: var(--g5); }
+  p code, .steps code, .rows code, .chk code { background: var(--g1); padding: 2px 8px; font-size: .88em; }
+  .browser { border: 1px solid var(--g3); }
+  .browser .bar { display: flex; align-items: center; gap: 14px; background: var(--g1); border-bottom: 1px solid var(--g3); padding: 10px 20px; font-size: 18px; color: var(--g5); }
+  .browser .bar i { width: 12px; height: 12px; border: 1px solid var(--g4); }
+  .browser .page { padding: 32px 36px; font-family: "Times New Roman", serif; letter-spacing: 0; }
+  .browser .page h1 { font-size: 52px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; letter-spacing: 0; }
+  .browser .page p { font-size: 24px; line-height: 1.6; margin-bottom: 18px; }
+
+  /* ---------- 화면 캡처, 데모, 휴대폰, QR ---------- */
+  figure { margin: 0; }
+  figure .ph { width: 100%; border: 1px solid var(--g3); }
+  figcaption { font-size: 18px; color: var(--g5); line-height: 1.6; margin-top: 12px; }
+  .demo { flex: 1; width: 100%; border: 1px solid var(--g3); margin-top: 32px; display: block; }
+  .demo2 { display: grid; grid-template-columns: auto 1fr; gap: 96px; margin-top: 28px; flex: 1; min-height: 0; align-items: start; }
+  .demo2 .shots { display: flex; gap: 28px; height: 100%; max-height: 720px; }
+  /* 휴대폰 틀은 실물 모양이라 둥근 모서리 예외 */
+  .demo2 .shot { height: 100%; aspect-ratio: 500 / 980; border: 10px solid #111; border-radius: 40px; overflow: hidden; background: #111; }
+  .demo2 .shot .ph { width: 100%; height: 100%; }
+  .qrs { display: flex; gap: 32px; margin-top: 28px; }
+  .qrbox { border: 1px solid var(--g3); padding: 14px 14px 12px; text-align: center; }
+  .qrbox .ph, .qrbox svg { width: 190px; height: 190px; display: grid; background: var(--g1); }
+  .qrbox b { display: block; font-size: 22px; font-weight: 600; margin-top: 6px; }
+  .qrbox span { display: block; font-size: 16px; color: var(--g5); line-height: 1.5; }
+  .qrs.lg { gap: 48px; margin-top: 64px; }
+  .qrs.lg .qrbox { padding: 20px 20px 18px; }
+  .qrs.lg .qrbox .ph { width: 260px; height: 260px; }
+  .qrs.lg .qrbox b { font-size: 26px; margin-top: 12px; }
+  .qrs.lg .qrbox span { font-size: 18px; }
+
+  /* ---------- 하나씩 보이기 ---------- */
+  .frag { opacity: 0; transform: translateY(12px); transition: opacity .4s, transform .4s; }
+  .frag.show { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .frag { transition: none; transform: none; } }
+
+  /* ---------- 모서리 버튼, 진행 막대 ---------- */
+  .ctl { position: fixed; right: 20px; bottom: 16px; z-index: 9; display: flex; align-items: center; gap: 6px; font: 14px Pretendard, sans-serif; opacity: .35; transition: opacity .2s; }
+  .ctl:hover { opacity: 1; }
+  .ctl button { width: 36px; height: 36px; border: 1px solid var(--g3); border-radius: 2px; background: #fff; color: #333; cursor: pointer; }
+  .ctl button:hover { background: #000; color: #fff; border-color: #000; }
+  .ctl svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; display: block; margin: auto; }
+  .ctl .pg { min-width: 72px; height: 36px; line-height: 36px; text-align: center; background: #fff; color: #555; }
+  .progress { position: fixed; left: 0; bottom: 0; height: 3px; background: var(--g5); transition: width .3s; z-index: 9; }
+
+  /* ---------- 인쇄, PDF: 한 장에 한 쪽, 검은 장은 흰 바탕 ---------- */
+  @page { size: 1920px 1080px; margin: 0; }
+  @media print {
+    html, body { width: auto; height: auto; overflow: visible; background: #fff; }
+    #stage { position: static !important; transform: none !important; width: 1920px; height: auto; }
+    .slide { display: flex !important; visibility: visible !important; position: relative; width: 1920px; height: 1080px; break-after: page; }
+    .slide:last-child { break-after: auto; }
+    .slide.dark { background: var(--w); color: var(--k); }
+    .dark .hd .brand i { background: var(--g2); }
+    .dark .hd nav span.cur { color: var(--k); }
+    .frag { opacity: 1 !important; transform: none !important; }
+    .ctl, .progress { display: none !important; }
+    /* 잉크 아끼기: 검은 면은 회색 면(--print-fill)에 검은 글씨로 */
+    .inv, .flow > div.on-k { background: var(--print-fill); color: var(--k); }
+    .inv .lab { color: var(--g6); }
+    .inv p { color: var(--g7); }
+    .demo2 .shot { border-color: var(--g3); background: var(--g1); }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  /* 우수 사례 그림 카드 (발표 전용 부품) */
+  .m-case { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 40px; }
+  .m-case.c2 { grid-template-columns: repeat(2, 1fr); gap: 64px; }
+  .m-case > div { border-top: 3px solid var(--k); padding-top: 20px; }
+  .m-case img { display: block; width: 100%; height: 330px; object-fit: cover; object-position: center; border: 1px solid var(--g3); margin-bottom: 20px; }
+  .m-case.c2 img { height: 440px; }
+  .m-case .n { display: block; font-size: 20px; color: var(--g5); }
+  .m-case b { display: block; font-size: 32px; font-weight: 600; letter-spacing: -1px; line-height: 1.3; margin: 6px 0 12px; }
+  .m-case .tool { display: block; font-size: 22px; color: var(--k); padding: 8px 0; border-top: 1px solid var(--g2); border-bottom: 1px solid var(--g2); }
+  .m-case p { font-size: 22px; line-height: 1.5; color: var(--g6); margin-top: 10px; }
+  @media print { .flow > div.on-k span { color: var(--g6); } }
+
+</style>
+</head>
+<body>
+<div id="stage">
+<!-- © 2026 김용현 -->
+
+<!-- 1. 표지 -->
+<section class="slide cover">
+  <div class="hd"></div>
+  <div class="cdate">2026.11.28.(토)</div>
+  <div class="bd">
+    <h1 style="font-size:96px">생성형 AI를 활용한<br>교육용 웹 GIS 개발과<br>고등학교 신설 과목 적용</h1>
+    <div class="row">
+      <div class="who">김용현<br>서울대학교 지리교육과 석사과정</div>
+      <div class="place">한국지리학회 발표<br>충북대학교</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 문제 제기 | .hero .inv -->
+<section class="slide" data-sec="배경">
+  <div class="hd"></div>
+  <div class="bd">
+    <div class="hero">
+      <div class="lead"><h2>효과는 알지만<br>교실에서는<br>어려운 GIS</h2></div>
+      <div class="details">
+        <div class="rows tight" style="grid-template-columns:220px 1fr;margin-top:0">
+          <div class="k">하드웨어</div><div>컴퓨터실 확보, 사양</div>
+          <div class="k">소프트웨어</div><div>설치, 라이선스, 낯선 화면</div>
+          <div class="k">데이터</div><div>수업에 맞는 공간 자료 찾기와 가공</div>
+        </div>
+        <div class="inv frag" style="margin-top:56px"><div class="lab">현실</div><div class="head">프로그램 실습보다<br>문헌 학습에 머무는 GIS 교육</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: 하은혜, 이채현, 조철기 (2022), 한국지역지리학회지 28(3)</div>
+</section>
+
+<!-- 3. 바이브 코딩 개발 | .flow -->
+<section class="slide" data-sec="e-GIS">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>교사가 직접 만든 웹 GIS</h2>
+    <p class="gray" style="font-size:32px;margin-top:24px">바이브 코딩: 자연어로 지시하고 AI가 코드 작성 (Collins 2025 올해의 단어)</p>
+    <div class="flow" style="margin-top:96px">
+      <div><b>수업 요구</b><span>필요한 기능 떠올리기</span></div>
+      <i class="frag"><em>자연어 설명</em></i>
+      <div class="frag"><b>Claude Code</b><span>코드 작성과 수정</span></div>
+      <i class="frag"><em>배포</em></i>
+      <div class="frag"><b>수업 적용</b><span>교실에서 시험</span></div>
+      <i class="frag"><em>되돌림</em></i>
+      <div class="frag on-k"><b>다시 고치기</b><span>2025.12.21~ 현재 반복</span></div>
+    </div>
+  </div>
+  <div class="src">출처: Clark, L. (2025), The Register</div>
+</section>
+
+<!-- 4. 특징 4가지 | .cards -->
+<section class="slide" data-sec="e-GIS">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>e-GIS 특징</h2>
+    <div class="cards">
+      <div><span class="n">01</span><b>설치 없음</b><p>웹 브라우저로 바로 실행</p><p>별도 백엔드 서버 없음</p><p>GitHub 저장 자료 불러오기</p></div>
+      <div class="frag"><span class="n">02</span><b>태블릿 최적화</b><p>일반 교실, 개인 태블릿</p><p>터치 조작 기준 설계</p><p>서울 1인 1태블릿 환경</p></div>
+      <div class="frag"><span class="n">03</span><b>전문가용 화면</b><p>QGIS, ArcGIS와 닮은 구성</p><p>기능은 단순하게</p><p>전문 프로그램으로 이행</p></div>
+      <div class="frag"><span class="n">04</span><b>쉬운 자료 투입</b><p>미리 탑재한 수업 자료</p><p>구글 시트 링크 연동</p><p>속성, 좌표 자료</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. e-GIS 화면 | figure -->
+<section class="slide" data-sec="e-GIS">
+  <div class="hd"></div>
+  <div class="bd fill">
+    <h2>e-GIS 화면 <span class="gray" style="font-weight:300">e-gis.kr</span></h2>
+    <figure style="margin-top:28px">
+      <img src="img/egis.jpg" alt="e-GIS 웹 화면" style="width:100%;height:680px;object-fit:cover;object-position:top;border:1px solid var(--g3)">
+    </figure>
+  </div>
+</section>
+
+<!-- 6. 적용 개요 | .tt.c3 -->
+<section class="slide" data-sec="적용 사례">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>두 학교 수행평가 적용</h2>
+    <div class="tt c3" style="margin-top:56px">
+      <div class="head"><span></span><div>D 고등학교</div><div>Y 고등학교</div></div>
+      <div><span>학교</span><div>일반 사립고 (남고)</div><div>자율형 사립고 (남고)</div></div>
+      <div><span>과목</span><div>2학년 「한국지리 탐구」</div><div>2학년 「도시의 미래 탐구」</div></div>
+      <div><span>과제</span><div>공간적 의사결정 지도 제작</div><div>단계 구분도 제작</div></div>
+      <div><span>배점</span><div>30점 (실험 실습 22, 서논술 8)</div><div>20점 (GIS 활용 문제 탐구)</div></div>
+      <div><span>산출물</span><div>탐구 보고서 75편</div><div>지도 캡처 73명</div></div>
+    </div>
+  </div>
+  <div class="src">출처: 두 학교 2026학년도 2학기 평가 계획, 학생 산출물</div>
+</section>
+
+<!-- 7. D 고 과제 | .two .rows -->
+<section class="slide" data-sec="D 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>공간적 의사결정 지도 제작하기</h2>
+    <div class="two" style="grid-template-columns:1fr 1fr">
+      <div>
+        <div class="eyebrow">GIS 기능 실습 10점</div>
+        <div class="rows tight" style="grid-template-columns:1fr 1fr;margin-top:16px">
+          <div>지오코딩</div><div>결합 (join)</div>
+          <div>점묘도</div><div>등고선 지도</div>
+          <div>핫스팟 분석</div><div>단계 구분도</div>
+          <div>카토그램</div><div>등시선도</div>
+        </div>
+      </div>
+      <div class="frag">
+        <div class="eyebrow">개별 GIS 탐구 12점 + 보고서 8점</div>
+        <div class="rows tight" style="grid-template-columns:220px 1fr;margin-top:16px">
+          <div class="k">자료 취득</div><div>탐구에 맞는 공간 자료 직접 찾기</div>
+          <div class="k">자료 가공</div><div>정제, 지오코딩, 결합</div>
+          <div class="k">공간 분석</div><div>서로 다른 기능 2개 이상 연계</div>
+          <div class="k">보고서</div><div>과정, 해석, 결론과 시사점</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="src">출처: D 고등학교 2026학년도 2학기 한국지리 탐구 평가 계획</div>
+</section>
+
+<!-- 8. D 고 전체 분석 | 그래프 -->
+<section class="slide" data-sec="D 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>개별 탐구에서 쓴 공간 분석</h2>
+    <div class="two" style="grid-template-columns:1fr 1fr;gap:96px">
+      <div id="d-tools"></div>
+      <div class="frag">
+        <div id="d-share"></div>
+        <div id="d-acq" style="margin-top:40px"></div>
+        <p class="count">기능 2개 이상 연계 <b>45명 (60%)</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="src">자료: D 고 학생 보고서 75편 전수 분석</div>
+</section>
+
+<!-- 9. D 고 주제 | .two + .inv -->
+<section class="slide" data-sec="D 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>학생이 고른 탐구 주제</h2>
+    <div class="two" style="grid-template-columns:1.15fr 1fr;gap:96px">
+      <div id="d-topic"></div>
+      <div class="inv frag" style="align-self:start"><div class="lab">발견</div><div class="head">우리 동네 시설의<br>접근성과 사각지대</div><p>서울 대상 58편 (77%), 접근성, 사각지대, 격차를 다룬 탐구 42편 (56%)</p></div>
+    </div>
+  </div>
+  <div class="src">자료: D 고 학생 보고서 75편 전수 분석, 주제 분류는 발표자</div>
+</section>
+
+<!-- 10. D 고 우수 사례 1~3 | .m-case -->
+<section class="slide" data-sec="D 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>D 고 우수 사례</h2>
+    <div class="m-case">
+      <div><img src="img/d1.jpg" alt="자치구별 인구와 체육센터 보로노이 서비스권 지도"><span class="n">D-1</span><b>인구 밀집과 체육센터<br>서비스권 불일치</b><span class="tool">보로노이, 공간 연산, 등시선, 결합</span><p>보로노이를 자치구로 잘라 인구와 결합</p></div>
+      <div class="frag"><img src="img/d2.jpg" alt="무더위쉼터 야간 버퍼와 독거노인 비율 지도" style="object-position:62% 50%"><span class="n">D-2</span><b>무더위쉼터<br>야간 기후 복지 사각지대</b><span class="tool">버퍼, 공간 연산, 단계 구분도</span><p>주간과 야간 쉼터 버퍼 차이, 독거노인 비율과 중첩</p></div>
+      <div class="frag"><img src="img/d3.jpg" alt="거점국립대 보로노이로 본 전국 대학 권역" style="object-position:72% 50%"><span class="n">D-3</span><b>서울대 10개 만들기<br>다음 지원 대학 선정</b><span class="tool">보로노이, 버퍼, 지오코딩, 결합</span><p>국가거점국립대 권역과 산업단지로 본 국토 균형</p></div>
+    </div>
+  </div>
+  <div class="src">학생 산출물, 개인 정보 가림</div>
+</section>
+
+<!-- 11. D 고 우수 사례 4~5 -->
+<section class="slide" data-sec="D 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>D 고 우수 사례</h2>
+    <div class="m-case c2">
+      <div><img src="img/d4.jpg" alt="군위군 미술관 자동차 등시선 지도"><span class="n">D-4</span><b>소멸 위험 지역 군위군의 문화 시설 접근성</b><span class="tool">등시선, 공간 연산, 결합</span><p>소멸위험지수 단계 구분도와 미술관 10, 20, 30분 등시선</p></div>
+      <div class="frag"><img src="img/d5.jpg" alt="한강공원 자동차 등시선 지도"><span class="n">D-5</span><b>한강공원 광역 접근성</b><span class="tool">보로노이, 버퍼, 등시선</span><p>주차장 보로노이, 자동차와 자전거 등시선, 서울 밖까지 닿는 영향권</p></div>
+    </div>
+  </div>
+  <div class="src">학생 산출물, 개인 정보 가림</div>
+</section>
+
+<!-- 12. Y 고 과제 | .two .rows -->
+<section class="slide" data-sec="Y 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>단계 구분도 제작</h2>
+    <div class="two" style="grid-template-columns:1fr 1fr">
+      <div>
+        <div class="eyebrow">2-9반 (36명)</div>
+        <div class="steps" style="margin-top:16px">
+          <div><b>1</b><span>시도별 인구 밀도</span></div>
+          <div><b>2</b><span>2026.07.01 경계<span class="s">전남광주통합특별시 반영</span></span></div>
+          <div><b>3</b><span>자연 구분점, 6단계</span></div>
+        </div>
+      </div>
+      <div class="frag">
+        <div class="eyebrow">2-12반 (37명)</div>
+        <div class="steps" style="margin-top:16px">
+          <div><b>1</b><span>서울 자치구별 고령 인구 비율</span></div>
+          <div><b>2</b><span>2026.06 자료 결합</span></div>
+          <div><b>3</b><span>6단계, 색 자유</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:48px">평가 요소: 레이어 생성, 자료 결합 등 GIS 도구를 오류 없이 다루어 분석 기반 만들기</p>
+  </div>
+  <div class="src">출처: Y 고등학교 도시의 미래 탐구 평가 계획, 과제 안내, 학생 산출물</div>
+</section>
+
+<!-- 13. Y 고 전체 분석 -->
+<section class="slide" data-sec="Y 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>Y 고 전체 분석</h2>
+    <div class="two" style="grid-template-columns:1.1fr 1fr;gap:96px">
+      <div id="y-cond"></div>
+      <div class="stat frag" style="grid-template-columns:1fr 1fr;margin-top:0">
+        <div><span class="lab">2-12반 6단계</span><span class="num" style="font-size:150px">78<small>%</small></span><p>서울 자치구 지도 35명 중 29명</p></div>
+        <div><span class="lab">기본 파랑 그대로</span><span class="num acc" style="font-size:150px">67<small>%</small></span><p>색은 자유였지만 73명 중 49명</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="src">자료: Y 고 학생 제출 캡처 73명 전수 분석</div>
+</section>
+
+<!-- 14. Y 고 우수 사례 2-9반 -->
+<section class="slide" data-sec="Y 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>Y 고 우수 사례 <span class="gray" style="font-weight:300">시도 인구 밀도</span></h2>
+    <div class="m-case">
+      <div><img src="img/y1.jpg" alt="보라에서 초록으로 가는 시도 인구 밀도 지도" style="object-position:40% 50%"><span class="n">Y-1</span><b>순차 색 팔레트</b><p>보라에서 초록, 낮은 값과 높은 값이 뚜렷</p></div>
+      <div class="frag"><img src="img/y2.jpg" alt="갈색 단색 시도 인구 밀도 지도" style="object-position:55% 50%"><span class="n">Y-2</span><b>경계 시점 확인</b><p>이전 경계 레이어는 끄고 2026.07 경계만 사용</p></div>
+      <div class="frag"><img src="img/y3.jpg" alt="보라 단색 시도 인구 밀도 지도" style="object-position:50% 40%"><span class="n">Y-3</span><b>단색 명도 단계</b><p>보라 6단계, 범례와 지도가 함께 읽힘</p></div>
+    </div>
+  </div>
+  <div class="src">학생 산출물, 개인 정보 가림</div>
+</section>
+
+<!-- 15. Y 고 우수 사례 2-12반 -->
+<section class="slide" data-sec="Y 고">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>Y 고 우수 사례 <span class="gray" style="font-weight:300">서울 고령 인구 비율</span></h2>
+    <div class="m-case c2">
+      <div><img src="img/y4.jpg" alt="노랑에서 빨강으로 가는 서울 자치구 고령 인구 비율 지도"><span class="n">Y-4</span><b>노랑에서 빨강</b><p>강북, 도봉의 높은 고령 인구 비율이 한눈에</p></div>
+      <div class="frag"><img src="img/y5.jpg" alt="초록 단색 서울 자치구 고령 인구 비율 지도"><span class="n">Y-5</span><b>레이어와 범례 함께</b><p>결합한 레이어와 원래 경계 레이어를 나란히 관리</p></div>
+    </div>
+  </div>
+  <div class="src">학생 산출물, 개인 정보 가림</div>
+</section>
+
+<!-- 15. 시사점 | .two .chk.ico -->
+<section class="slide" data-sec="시사점">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>시사점과 남은 과제</h2>
+    <div class="two">
+      <div class="chk ico">
+        <h3>확인한 것</h3>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/><path d="M7.5 12.5l3 3 6-7"/></svg>일반 교실, 태블릿으로 GIS 수행평가</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/><path d="M7.5 12.5l3 3 6-7"/></svg>지도로 문제를 보고 대안 제시</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/><path d="M7.5 12.5l3 3 6-7"/></svg>기본 기능 숙달에 드는 시간</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/><path d="M7.5 12.5l3 3 6-7"/></svg>평가 요소에 기능 항목 추가</p>
+      </div>
+      <div class="chk ico frag">
+        <h3>남은 과제</h3>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>접속, 실행, 초기 안내 시간 조사</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>과목별 과제 예시와 출처 분명한 자료</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>평가 기준 개발</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>서울 사립 남고 너머 다양한 표본</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16. 마무리 -->
+<section class="slide">
+  <div class="hd"></div>
+  <div class="bd mid"><h1>감사합니다.</h1><p class="gray" style="margin-top:32px">김용현 | 서울대학교 지리교육과 | e-gis.kr</p></div>
+</section>
+
+</div>
+
+<!-- 모서리 버튼: 이전, 쪽 번호, 다음, 전체 화면, PDF -->
+<div class="ctl" id="ctrl">
+  <button id="bPrev" aria-label="이전"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg></button>
+  <span class="pg" id="pg"></span>
+  <button id="bNext" aria-label="다음"><svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></button>
+  <button id="bFull" aria-label="전체 화면" title="전체 화면 (F)"><svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+  <button id="bPdf" aria-label="PDF로 저장" title="전체 슬라이드를 PDF로 저장 (P)"><svg viewBox="0 0 16 16"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg></button>
+</div>
+<div class="progress" id="bar"></div>
+
+</script>
+<script>
+/* MONO_VIZ:START 그래프와 지도 그리기 (assets/mono-viz.js). node scripts/build-template.mjs 가 채운다 */
+/* =========================================================
+   mono-viz.js  모노 디자인 그래프와 지도
+   라이브러리 없이 SVG 로 그린다. 색은 모두 CSS 변수라 테마, 다크 모드, 인쇄가 저절로 맞는다.
+   그래프: MonoViz.bar, hbar, line, scatter, share, climate, pyramid
+   지도:   MonoViz.map(el, { geo, type: 'choropleth' | 'symbol' | 'flow' | 'locator', ... })
+   모든 함수는 (요소 또는 선택자, 옵션)을 받고 { update(옵션) } 을 돌려준다.
+   요소 너비가 바뀌면 다시 그린다. .slide 안이면 슬라이드 크기(글자 20px)로 그린다.
+   색 코드는 var() 대비값에만 쓴다. 새 색을 만들지 않는다.
+   ========================================================= */
+(function (G) {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+
+  var CSS = [
+    '.mv{--mv-fg:var(--fg,var(--k,#000));--mv-bg:var(--bg,var(--w,#fff));--mv-ramp:var(--mv-fg);--mv-pos:var(--c-6,#90533f);--mv-neg:var(--c-4,#455371);--mv-f:13px;position:relative;min-width:0}',
+    ':root[data-tone="navy"] .mv,:root[data-tone="blue"] .mv{--mv-ramp:var(--accent);--mv-pos:var(--accent-2);--mv-neg:var(--accent)}',
+    '.mv.mv--slide{--mv-f:20px}',
+    '.mv svg{display:block;max-width:100%;overflow:visible}',
+    '.mv text{font-family:inherit;font-size:var(--mv-f);font-variant-numeric:tabular-nums;letter-spacing:0}',
+    '.mv-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:6px 20px;margin-bottom:10px;font-size:var(--mv-f);line-height:1.4}',
+    '.mv-unit{color:var(--g5)}',
+    '.mv-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-left:auto;color:var(--g6)}',
+    '.mv-legend>span{display:inline-flex;align-items:center;gap:6px}',
+    '.mv-legend i{display:inline-block;width:12px;height:12px;background:var(--c)}',
+    '.mv--slide .mv-legend i{width:18px;height:18px}',
+    '.mv-legend i.ln{height:2px;width:18px}',
+    '.mv--slide .mv-legend i.ln{height:3px;width:28px}',
+    '.mv-legend svg{display:inline-block;overflow:visible}',
+    '.mv-steps{display:inline-flex;flex-wrap:wrap;gap:0}',
+    '.mv-steps>span{display:flex;flex-direction:column;gap:4px;min-width:44px;color:var(--g6)}',
+    '.mv-steps em{font-style:normal;padding-right:10px;white-space:nowrap}',
+    '.mv--slide .mv-steps>span{min-width:80px}',
+    '.mv .mv-steps>span i{width:100%;height:12px}',
+    '.mv--slide .mv-steps>span i{width:100%;height:20px}',
+    '.mv-src{margin-top:10px;font-size:var(--mv-f);color:var(--g5)}',
+    '.mv .ax{fill:var(--g5)}',
+    '.mv .lab{fill:var(--g6)}',
+    '.mv .val{fill:var(--mv-fg);font-weight:600}',
+    '.mv .nm{fill:var(--mv-fg);font-weight:500}',
+    '.mv .halo{paint-order:stroke;stroke:var(--mv-bg);stroke-width:3px;stroke-linejoin:round}',
+    '.mv--slide .halo{stroke-width:5px}',
+    '.mv .grid{stroke:var(--g2);stroke-width:1;shape-rendering:crispEdges}',
+    '.mv .base{stroke:var(--mv-fg);stroke-width:1;shape-rendering:crispEdges}',
+    '.mv .rg{stroke:var(--mv-bg);stroke-width:1;stroke-linejoin:round}',
+    '.mv .rg:hover{stroke:var(--mv-fg)}',
+    '.mv .frame{fill:var(--mv-bg);stroke:var(--mv-fg);stroke-width:1;shape-rendering:crispEdges}',
+    '.mv .ink{fill:var(--mv-fg);stroke:var(--mv-fg)}'
+  ].join('\n');
+
+  /* 계열 색: 셋까지는 흑백, 넷 이상은 분류 색 */
+  var GRAY = ['var(--mv-fg)', 'var(--g5)', 'var(--g3)'];
+  var CAT = ['var(--c-1,#927037)', 'var(--c-2,#4b6256)', 'var(--c-3,#645169)', 'var(--c-4,#455371)', 'var(--c-5,#5e3939)', 'var(--c-6,#90533f)', 'var(--c-7,#3f3f46)'];
+  function scol(i, n) { return n <= 3 ? GRAY[i] : CAT[i % CAT.length]; }
+  var ACC = 'var(--accent)';
+  /* 단계 색은 육지 색(--g1)과 섞는다. 다크 모드에서도 가장 옅은 칸이 바다(바탕)와 구별된다 */
+  function mix(base, p) { return 'color-mix(in srgb, ' + base + ' ' + p + '%, var(--g1))'; }
+
+  /* ---------- 공통 도구 ---------- */
+  function css() {
+    if (document.getElementById('mono-viz-css')) return;
+    var s = document.createElement('style'); s.id = 'mono-viz-css'; s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+  function E(tag, at, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in at) if (at[k] != null) e.setAttribute(k, at[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function T(txt, x, y, cls, anchor, parent, extra) {
+    var t = E('text', Object.assign({ x: r1(x), y: r1(y), 'class': cls, 'text-anchor': anchor || 'start', 'dominant-baseline': 'middle' }, extra || {}), parent);
+    t.textContent = txt; return t;
+  }
+  function tip(node, txt) { E('title', {}, node).textContent = txt; return node; }
+  function r1(v) { return Math.round(v * 10) / 10; }
+  var mctx;
+  function tw(s, f, w) {
+    mctx = mctx || document.createElement('canvas').getContext('2d');
+    mctx.font = (w || 400) + ' ' + f + 'px "Pretendard Variable", Pretendard, sans-serif';
+    return mctx.measureText(String(s)).width * 1.08;
+  }
+  function maxw(arr, f, w) { var m = 0; arr.forEach(function (s) { m = Math.max(m, tw(s, f, w)); }); return m; }
+  function fmt(v, o) {
+    if (o && o.format) return o.format(v);
+    return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 1 });
+  }
+  function niceStep(raw) {
+    var p = Math.pow(10, Math.floor(Math.log10(raw))), e = raw / p;
+    return (e >= 7.5 ? 10 : e >= 3.5 ? 5 : e >= 1.5 ? 2 : 1) * p;
+  }
+  function ticks(min, max, count) {
+    if (min === max) { max = min + 1; }
+    var step = niceStep((max - min) / (count || 4));
+    var lo = Math.floor(min / step + 1e-9) * step, hi = Math.ceil(max / step - 1e-9) * step, t = [];
+    for (var v = lo; v <= hi + step / 2; v += step) t.push(+v.toFixed(10));
+    return t;
+  }
+  function lin(d0, d1, r0, r1_) { return function (v) { return r0 + (v - d0) / (d1 - d0 || 1) * (r1_ - r0); }; }
+  function swatch(c, kind) { return '<i class="' + (kind || '') + '" style="--c:' + c + '"></i>'; }
+  function legend(ctx, items) {
+    ctx.legend.innerHTML = items.map(function (it) { return '<span>' + swatch(it.c, it.kind) + it.t + '</span>'; }).join('');
+  }
+
+  /* 요소 하나에 그래프를 붙이고, 너비가 바뀌면 다시 그린다 */
+  function mount(el, o, draw) {
+    css();
+    if (typeof el === 'string') el = document.querySelector(el);
+    if (!el) throw new Error('MonoViz: 요소를 찾지 못함');
+    var lastW = -1;
+    function run() {
+      var W = Math.floor(el.clientWidth);
+      lastW = W;
+      el.classList.add('mv');
+      var slide = !!el.closest('.slide');
+      el.classList.toggle('mv--slide', slide);
+      el.innerHTML = '';
+      if (!W) return;
+      var head = document.createElement('div'); head.className = 'mv-head';
+      var unit = document.createElement('span'); unit.className = 'mv-unit'; unit.textContent = o.unit || '';
+      var lg = document.createElement('div'); lg.className = 'mv-legend';
+      head.appendChild(unit); head.appendChild(lg); el.appendChild(head);
+      var f = slide ? 20 : 13;
+      var H = o.height || (slide ? 500 : Math.round(Math.max(240, Math.min(420, W * 0.5))));
+      var svg = E('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': o.title || o.unit || '' }, el);
+      var ctx = { el: el, svg: svg, legend: lg, unit: unit, slide: slide, f: f, W: W, H: H, o: o };
+      draw(ctx);
+      svg.setAttribute('height', ctx.H); svg.setAttribute('viewBox', '0 0 ' + ctx.W + ' ' + ctx.H);
+      if (ctx.W !== W) svg.setAttribute('width', ctx.W);
+      if (!lg.childNodes.length && !o.unit) head.remove();
+      if (o.source) { var s = document.createElement('p'); s.className = 'mv-src'; s.textContent = o.source; el.appendChild(s); }
+    }
+    run();
+    if (G.ResizeObserver) new ResizeObserver(function () { if (Math.floor(el.clientWidth) !== lastW) run(); }).observe(el);
+    return { update: function (n) { o = n; run(); } };
+  }
+
+  /* 세로 값 축(눈금선 + 왼쪽 눈금 글자)을 그리고 y 변환을 돌려준다 */
+  function yAxis(ctx, g, min, max, x0, x1, top, bot, side) {
+    var t = ticks(Math.min(0, min), Math.max(0, max), ctx.slide ? 5 : 4);
+    var y = lin(t[0], t[t.length - 1], bot, top);
+    t.forEach(function (v) {
+      if (v !== 0) E('line', { x1: x0, x2: x1, y1: r1(y(v)) + .5, y2: r1(y(v)) + .5, 'class': 'grid' }, g);
+      T(fmt(v, ctx.o), side === 'right' ? x1 + 8 : x0 - 8, y(v), 'ax', side === 'right' ? 'start' : 'end', g);
+    });
+    return { y: y, t: t };
+  }
+  function tickWidth(ctx, min, max) {
+    return maxw(ticks(Math.min(0, min), Math.max(0, max), ctx.slide ? 5 : 4).map(function (v) { return fmt(v, ctx.o); }), ctx.f) + 10;
+  }
+  function series(o) {
+    if (o.series) return o.series;
+    return [{ name: o.name || '', values: o.values }];
+  }
+  function hi(o) {
+    if (o.highlight == null) return null;
+    return typeof o.highlight === 'number' ? { series: 0, index: o.highlight } : o.highlight;
+  }
+
+  /* ---------- 1. 세로 막대 (묶음, 누적) ---------- */
+  function bar(el, o) {
+    return mount(el, o, function (c) {
+      var S = series(o), n = o.labels.length, m = S.length, f = c.f, h = hi(o);
+      if (m > 1) legend(c, S.map(function (s, j) { return { c: scol(j, m), t: s.name }; }));
+      var vals = [];
+      for (var i = 0; i < n; i++) {
+        if (o.stacked) { var p = 0, q = 0; S.forEach(function (s) { var v = s.values[i] || 0; if (v >= 0) p += v; else q += v; }); vals.push(p, q); }
+        else S.forEach(function (s) { vals.push(s.values[i] || 0); });
+      }
+      var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+      var L = tickWidth(c, mn, mx), top = f * 1.4, bot = c.H - f * 2.2, R = c.W - 2;
+      var ax = yAxis(c, c.svg, mn, mx, L, R, top, bot), y = ax.y;
+      var band = (R - L) / n, gw = band * (m === 1 ? 0.62 : 0.72), bw = o.stacked ? gw : gw / m;
+      var showVal = !o.stacked && n * m <= 12 && o.values !== false;
+      for (i = 0; i < n; i++) {
+        var gx = L + band * i + (band - gw) / 2, up = 0, dn = 0;
+        S.forEach(function (s, j) {
+          var v = s.values[i] || 0, col = scol(j, m);
+          if (h && h.series === j) col = h.index === i ? ACC : 'var(--g3)';
+          var x = o.stacked ? gx : gx + bw * j, y0, y1;
+          if (o.stacked) { if (v >= 0) { y0 = y(up); up += v; y1 = y(up); } else { y0 = y(dn); dn += v; y1 = y(dn); } }
+          else { y0 = y(0); y1 = y(v); }
+          tip(E('rect', { x: r1(x), y: r1(Math.min(y0, y1)), width: r1(Math.max(1, bw - (m > 1 && !o.stacked ? 2 : 0))), height: r1(Math.abs(y1 - y0)), fill: col }, c.svg), o.labels[i] + ' ' + (s.name || '') + ' ' + fmt(v, o));
+          if (showVal) T(fmt(v, o), x + bw / 2, v >= 0 ? y1 - f * 0.7 : y1 + f * 0.7, 'val', 'middle', c.svg, h && h.series === j && h.index === i ? { style: 'fill:var(--accent)' } : null);
+        });
+        T(o.labels[i], L + band * i + band / 2, bot + f * 1.2, 'ax', 'middle', c.svg);
+      }
+      E('line', { x1: L, x2: R, y1: r1(y(0)) + .5, y2: r1(y(0)) + .5, 'class': 'base' }, c.svg);
+    });
+  }
+
+  /* ---------- 2. 가로 막대 ---------- */
+  function hbar(el, o) {
+    var S = series(o), m = S.length;
+    var bh = function (slide) { return (slide ? 28 : 16) * (m > 1 ? 0.8 : 1); };
+    var rowH = function (slide) { return bh(slide) * m + (slide ? 22 : 14); };
+    if (!o.height) o = Object.assign({}, o, { _auto: true });
+    return mount(el, o, function (c) {
+      var f = c.f, h = hi(o), n = o.labels.length;
+      c.H = o._auto ? Math.ceil(rowH(c.slide) * n + 4) : c.H;
+      if (m > 1) legend(c, S.map(function (s, j) { return { c: scol(j, m), t: s.name }; }));
+      var all = []; S.forEach(function (s) { all = all.concat(s.values); });
+      var mx = Math.max.apply(null, all.concat([0]));
+      var L = maxw(o.labels, f) + 16, R = c.W - maxw(all.map(function (v) { return fmt(v, o); }), f, 600) - 12;
+      var x = lin(0, mx, L, R), rh = (c.H - 4) / n, b = bh(c.slide);
+      for (var i = 0; i < n; i++) {
+        var top = 2 + rh * i + (rh - b * m) / 2;
+        T(o.labels[i], 0, 2 + rh * i + rh / 2, 'lab', 'start', c.svg);
+        S.forEach(function (s, j) {
+          var v = s.values[i] || 0, col = scol(j, m), on = h && h.series === j && h.index === i;
+          if (h && h.series === j) col = on ? ACC : 'var(--g3)';
+          var yy = top + b * j;
+          tip(E('rect', { x: L, y: r1(yy), width: r1(Math.max(0, x(v) - L)), height: r1(b - (m > 1 ? 2 : 0)), fill: col }, c.svg), o.labels[i] + ' ' + fmt(v, o));
+          T(fmt(v, o), x(v) + 8, yy + b / 2, 'val', 'start', c.svg, on ? { style: 'fill:var(--accent)' } : null);
+        });
+      }
+      E('line', { x1: L + .5, x2: L + .5, y1: 0, y2: c.H, 'class': 'base' }, c.svg);
+    });
+  }
+
+  /* ---------- 3. 꺾은선 ---------- */
+  function line(el, o) {
+    return mount(el, o, function (c) {
+      var S = series(o), n = o.labels.length, f = c.f, h = o.highlight;
+      var all = []; S.forEach(function (s) { all = all.concat(s.values.filter(function (v) { return v != null; })); });
+      var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+      if (!o.zero) { var pad = (mx - mn) * 0.08; mn = mn - pad; mx = mx + pad; } else { mn = Math.min(0, mn); }
+      var t = ticks(mn, mx, c.slide ? 5 : 4);
+      var L = maxw(t.map(function (v) { return fmt(v, o); }), f) + 10;
+      var R = c.W - maxw(S.map(function (s) { return s.name; }), f, 500) - 16;
+      var top = f, bot = c.H - f * 2.2, y = lin(t[0], t[t.length - 1], bot, top);
+      t.forEach(function (v) {
+        if (v !== t[0]) E('line', { x1: L, x2: c.W - 2, y1: r1(y(v)) + .5, y2: r1(y(v)) + .5, 'class': 'grid' }, c.svg);
+        T(fmt(v, o), L - 8, y(v), 'ax', 'end', c.svg);
+      });
+      E('line', { x1: L, x2: c.W - 2, y1: r1(bot) + .5, y2: r1(bot) + .5, 'class': 'base' }, c.svg);
+      var x = function (i) { return n === 1 ? (L + R) / 2 : L + 6 + (R - L - 12) * i / (n - 1); };
+      var lw = maxw(o.labels, f) + 12, every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor((R - L) / lw))));
+      o.labels.forEach(function (lb, i) { if (i % every === 0 || i === n - 1) T(lb, x(i), bot + f * 1.2, 'ax', 'middle', c.svg); });
+      var sw = c.slide ? 3 : 2, ends = [];
+      var order = S.map(function (s, j) { return j; }).sort(function (a, b) { return (a === h) - (b === h); });
+      order.forEach(function (j) {
+        var s = S[j], col = h != null ? (j === h ? ACC : 'var(--g4)') : scol(j, S.length);
+        var d = '', last = -1;
+        s.values.forEach(function (v, i) { if (v == null) return; d += (last === i - 1 && d ? 'L' : 'M') + r1(x(i)) + ',' + r1(y(v)); last = i; });
+        tip(E('path', { d: d, fill: 'none', stroke: col, 'stroke-width': sw, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, c.svg), s.name);
+        s.values.forEach(function (v, i) {
+          if (v == null || !(o.dots || i === last)) return;
+          tip(E('circle', { cx: r1(x(i)), cy: r1(y(v)), r: sw + 1.5, fill: col }, c.svg), s.name + ' ' + o.labels[i] + ' ' + fmt(v, o));
+        });
+        ends.push({ y: y(s.values[last]), t: s.name, cls: h != null && j === h ? 'val' : j === 0 && h == null ? 'nm' : 'lab', acc: h === j });
+      });
+      ends.sort(function (a, b) { return a.y - b.y; });
+      for (var k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < f * 1.2) ends[k].y = ends[k - 1].y + f * 1.2;
+      ends.forEach(function (e) { T(e.t, R + 10, e.y, e.cls, 'start', c.svg, e.acc ? { style: 'fill:var(--accent)' } : null); });
+    });
+  }
+
+  /* ---------- 4. 산점도 ---------- */
+  function scatter(el, o) {
+    return mount(el, o, function (c) {
+      var P = o.points, f = c.f;
+      var xs = P.map(function (p) { return p.x; }), ys = P.map(function (p) { return p.y; });
+      var tx = ticks(Math.min.apply(null, xs), Math.max.apply(null, xs), c.slide ? 6 : 5);
+      var ty = ticks(Math.min.apply(null, ys), Math.max.apply(null, ys), c.slide ? 5 : 4);
+      var L = maxw(ty.map(function (v) { return fmt(v, o); }), f) + 10, R = c.W - 8, top = f, bot = c.H - f * 2.6;
+      var x = lin(tx[0], tx[tx.length - 1], L + 6, R), y = lin(ty[0], ty[ty.length - 1], bot, top);
+      ty.forEach(function (v) {
+        if (v !== ty[0]) E('line', { x1: L, x2: R, y1: r1(y(v)) + .5, y2: r1(y(v)) + .5, 'class': 'grid' }, c.svg);
+        T(fmt(v, o), L - 8, y(v), 'ax', 'end', c.svg);
+      });
+      tx.forEach(function (v) { T(fmt(v, o), x(v), bot + f * 1.2, 'ax', 'middle', c.svg); });
+      E('line', { x1: L, x2: R, y1: r1(bot) + .5, y2: r1(bot) + .5, 'class': 'base' }, c.svg);
+      if (o.xTitle) T(o.xTitle, R, bot + f * 2.4, 'ax', 'end', c.svg);
+      if (o.trend) {
+        var nn = P.length, mx_ = xs.reduce(function (a, b) { return a + b; }, 0) / nn, my = ys.reduce(function (a, b) { return a + b; }, 0) / nn, sxy = 0, sxx = 0;
+        P.forEach(function (p) { sxy += (p.x - mx_) * (p.y - my); sxx += (p.x - mx_) * (p.x - mx_); });
+        var b1 = sxy / (sxx || 1), b0 = my - b1 * mx_, xa = tx[0], xb = tx[tx.length - 1];
+        E('line', { x1: x(xa), y1: y(b0 + b1 * xa), x2: x(xb), y2: y(b0 + b1 * xb), stroke: 'var(--g4)', 'stroke-width': 1 }, c.svg);
+      }
+      var r = c.slide ? 7 : 4;
+      P.slice().sort(function (a, b) { return !!a.highlight - !!b.highlight; }).forEach(function (p) {
+        tip(E('circle', { cx: r1(x(p.x)), cy: r1(y(p.y)), r: p.highlight ? r + 1 : r, fill: p.highlight ? ACC : 'var(--mv-fg)', 'fill-opacity': p.highlight ? 1 : 0.55 }, c.svg), (p.label ? p.label + ' ' : '') + fmt(p.x, o) + ', ' + fmt(p.y, o));
+        if (p.label) {
+          var right = x(p.x) + r + 5 + tw(p.label, f, 600) > c.W;   /* 오른쪽 끝 점은 이름을 왼쪽에 */
+          T(p.label, right ? x(p.x) - r - 5 : x(p.x) + r + 5, y(p.y), (p.highlight ? 'val' : 'lab') + ' halo', right ? 'end' : 'start', c.svg, p.highlight ? { style: 'fill:var(--accent)' } : null);
+        }
+      });
+    });
+  }
+
+  /* ---------- 5. 100% 띠 (원 그래프 대신) ---------- */
+  var SHARE = ['var(--mv-fg)', 'var(--g6)', 'var(--g4)', 'var(--g2b,#e1e1e1)'];
+  var SHARE_TXT = ['var(--mv-bg)', 'var(--mv-bg)', 'var(--mv-fg)', 'var(--mv-fg)'];
+  function share(el, o) {
+    if (!o.height) o = Object.assign({}, o, { _auto: true });
+    return mount(el, o, function (c) {
+      var f = c.f, n = o.rows.length, p = o.parts.length, bh = c.slide ? 56 : 32, gap = c.slide ? 20 : 12;
+      var col = function (j) { return p <= 4 ? SHARE[j] : CAT[j % CAT.length]; };
+      var txt = function (j) { return p <= 4 ? SHARE_TXT[j] : 'var(--w,#fff)'; };
+      legend(c, o.parts.map(function (nm, j) { return { c: col(j), t: nm }; }));
+      if (o._auto) c.H = n * (bh + gap);
+      var L = maxw(o.rows.map(function (r) { return r.label; }), f) + 16, R = c.W;
+      o.rows.forEach(function (row, i) {
+        var sum = row.values.reduce(function (a, b) { return a + b; }, 0) || 1, acc = 0, yy = i * (bh + gap) + gap / 2;
+        T(row.label, 0, yy + bh / 2, 'lab', 'start', c.svg);
+        row.values.forEach(function (v, j) {
+          var x0 = L + (R - L) * acc / sum, w = (R - L) * v / sum; acc += v;
+          tip(E('rect', { x: r1(x0), y: r1(yy), width: r1(Math.max(0, w - 1)), height: bh, fill: col(j) }, c.svg), row.label + ' ' + o.parts[j] + ' ' + fmt(v / sum * 100) + '%');
+          var s = fmt(v / sum * 100) + '%';
+          if (w > tw(s, f, 600) + 12) T(s, x0 + 8, yy + bh / 2, 'val', 'start', c.svg, { style: 'fill:' + txt(j) });
+        });
+      });
+    });
+  }
+
+  /* ---------- 6. 기후 그래프 (강수 막대 + 기온 선) ---------- */
+  function climate(el, o) {
+    return mount(el, o, function (c) {
+      var f = c.f, T12 = o.temp, P12 = o.rain;
+      legend(c, [{ c: 'var(--mv-fg)', t: '기온', kind: 'ln' }, { c: 'var(--g3)', t: '강수량' }]);
+      var tt = ticks(Math.min(0, Math.min.apply(null, T12)), Math.max.apply(null, T12), c.slide ? 5 : 4), k = tt.length - 1;
+      var rstep = niceStep(Math.max.apply(null, P12) / k); while (rstep * k < Math.max.apply(null, P12)) rstep = niceStep(rstep * 1.5);
+      var rt = []; for (var i = 0; i <= k; i++) rt.push(rstep * i);
+      var L = maxw(tt.map(String), f) + 10, R = c.W - maxw(rt.map(function (v) { return fmt(v); }), f) - 10, top = f * 2, bot = c.H - f * 2.2;
+      var y = lin(tt[0], tt[k], bot, top), yr = lin(0, rt[k], bot, top);
+      tt.forEach(function (v, i) {
+        if (i) E('line', { x1: L, x2: R, y1: r1(y(v)) + .5, y2: r1(y(v)) + .5, 'class': 'grid' }, c.svg);
+        T(fmt(v), L - 8, y(v), 'ax', 'end', c.svg);
+        T(fmt(rt[i]), R + 8, y(v), 'ax', 'start', c.svg);
+      });
+      T('(℃)', L - 8, top - f * 1.3, 'ax', 'end', c.svg);
+      T('(mm)', R + 8, top - f * 1.3, 'ax', 'start', c.svg);
+      var band = (R - L) / 12, bw = band * 0.6;
+      P12.forEach(function (v, i) { tip(E('rect', { x: r1(L + band * i + (band - bw) / 2), y: r1(yr(v)), width: r1(bw), height: r1(bot - yr(v)), fill: 'var(--g3)' }, c.svg), (i + 1) + '월 강수량 ' + fmt(v) + 'mm'); });
+      if (tt[0] < 0) E('line', { x1: L, x2: R, y1: r1(y(0)) + .5, y2: r1(y(0)) + .5, stroke: 'var(--g4)', 'stroke-width': 1 }, c.svg);
+      E('line', { x1: L, x2: R, y1: r1(bot) + .5, y2: r1(bot) + .5, 'class': 'base' }, c.svg);
+      var cx = function (i) { return L + band * i + band / 2; }, sw = c.slide ? 3 : 2;
+      E('path', { d: T12.map(function (v, i) { return (i ? 'L' : 'M') + r1(cx(i)) + ',' + r1(y(v)); }).join(''), fill: 'none', stroke: 'var(--mv-fg)', 'stroke-width': sw, 'stroke-linejoin': 'round' }, c.svg);
+      T12.forEach(function (v, i) { tip(E('circle', { cx: r1(cx(i)), cy: r1(y(v)), r: sw + 1.5, fill: 'var(--mv-fg)' }, c.svg), (i + 1) + '월 기온 ' + fmt(v) + '℃'); });
+      for (i = 0; i < 12; i++) T(String(i + 1), cx(i), bot + f * 1.2, 'ax', 'middle', c.svg);
+      if (!o.unit) {
+        var avg = T12.reduce(function (a, b) { return a + b; }, 0) / 12, sum = P12.reduce(function (a, b) { return a + b; }, 0);
+        c.unit.textContent = (o.name ? o.name + '  ' : '') + '연평균 ' + fmt(avg) + '℃, 연 강수량 ' + fmt(Math.round(sum)) + 'mm';
+      }
+    });
+  }
+
+  /* ---------- 7. 인구 피라미드 ---------- */
+  function pyramid(el, o) {
+    return mount(el, o, function (c) {
+      var f = c.f, n = o.ages.length, names = o.names || ['남자', '여자'];
+      legend(c, [{ c: 'var(--mv-fg)', t: names[0] }, { c: 'var(--g4)', t: names[1] }]);
+      var mx = Math.max.apply(null, o.male.concat(o.female)), t = ticks(0, mx, c.slide ? 3 : 2);
+      var mid = maxw(o.ages, f) + 20, cx = c.W / 2, bot = c.H - f * 2.2, half = (c.W - mid) / 2 - 4;
+      var x = lin(0, t[t.length - 1], 0, half), rh = bot / n, bh = Math.max(1, rh * 0.82);
+      var every = Math.ceil(n / Math.floor(bot / (f * 1.3)));
+      for (var i = 0; i < n; i++) {
+        var yy = bot - rh * (i + 1) + (rh - bh) / 2;   /* 첫 연령대가 맨 아래 */
+        tip(E('rect', { x: r1(cx - mid / 2 - x(o.male[i])), y: r1(yy), width: r1(x(o.male[i])), height: r1(bh), fill: 'var(--mv-fg)' }, c.svg), o.ages[i] + ' ' + names[0] + ' ' + fmt(o.male[i], o));
+        tip(E('rect', { x: r1(cx + mid / 2), y: r1(yy), width: r1(x(o.female[i])), height: r1(bh), fill: 'var(--g4)' }, c.svg), o.ages[i] + ' ' + names[1] + ' ' + fmt(o.female[i], o));
+        if (i % every === 0) T(o.ages[i], cx, yy + bh / 2, 'ax', 'middle', c.svg);
+      }
+      E('line', { x1: 0, x2: cx - mid / 2, y1: r1(bot) + .5, y2: r1(bot) + .5, 'class': 'base' }, c.svg);
+      E('line', { x1: cx + mid / 2, x2: c.W, y1: r1(bot) + .5, y2: r1(bot) + .5, 'class': 'base' }, c.svg);
+      t.forEach(function (v) {
+        T(fmt(v, o), cx - mid / 2 - x(v), bot + f * 1.2, 'ax', v ? 'middle' : 'end', c.svg);
+        T(fmt(v, o), cx + mid / 2 + x(v), bot + f * 1.2, 'ax', v ? 'middle' : 'start', c.svg);
+      });
+    });
+  }
+
+  /* ---------- 지도: 투영 ---------- */
+  var RAD = Math.PI / 180;
+  function equalEarth(lon, lat) {
+    var A1 = 1.340264, A2 = -0.081106, A3 = 0.000893, A4 = 0.003796, M = Math.sqrt(3) / 2;
+    var t = Math.asin(M * Math.sin(lat * RAD)), t2 = t * t, t6 = t2 * t2 * t2;
+    return [lon * RAD * Math.cos(t) / (M * (A1 + 3 * A2 * t2 + t6 * (7 * A3 + 9 * A4 * t2))) / RAD, -t * (A1 + A2 * t2 + t6 * (A3 + A4 * t2)) / RAD];
+  }
+  function eachCoord(geo, fn) {
+    geo.features.forEach(function (ft) {
+      var g = ft.geometry; if (!g) return;
+      var polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+      polys.forEach(function (p) { p.forEach(function (ring) { ring.forEach(fn); }); });
+    });
+  }
+  function projection(geo, kind) {
+    var b = [180, 90, -180, -90];
+    eachCoord(geo, function (c) { b[0] = Math.min(b[0], c[0]); b[1] = Math.min(b[1], c[1]); b[2] = Math.max(b[2], c[0]); b[3] = Math.max(b[3], c[1]); });
+    if (!kind || kind === 'auto') kind = b[2] - b[0] > 90 ? 'equalearth' : 'equirect';
+    var k = Math.cos((b[1] + b[3]) / 2 * RAD);
+    var p = kind === 'equalearth' ? equalEarth : function (lon, lat) { return [lon * k, -lat]; };
+    p.kind = kind; p.bbox = b;
+    return p;
+  }
+  /* 투영한 좌표를 상자에 맞춘다 */
+  function fitter(geo, p, x0, y0, w, h) {
+    var b = [Infinity, Infinity, -Infinity, -Infinity];
+    eachCoord(geo, function (c) { var q = p(c[0], c[1]); b[0] = Math.min(b[0], q[0]); b[1] = Math.min(b[1], q[1]); b[2] = Math.max(b[2], q[0]); b[3] = Math.max(b[3], q[1]); });
+    var s = Math.min(w / (b[2] - b[0]), h / (b[3] - b[1]));
+    var ox = x0 + (w - (b[2] - b[0]) * s) / 2 - b[0] * s, oy = y0 + (h - (b[3] - b[1]) * s) / 2 - b[1] * s;
+    var f = function (lon, lat) { var q = p(lon, lat); return [q[0] * s + ox, q[1] * s + oy]; };
+    f.s = s; f.w = (b[2] - b[0]) * s; f.h = (b[3] - b[1]) * s;
+    return f;
+  }
+  function aspect(geo, p) {
+    var b = [Infinity, Infinity, -Infinity, -Infinity];
+    eachCoord(geo, function (c) { var q = p(c[0], c[1]); b[0] = Math.min(b[0], q[0]); b[1] = Math.min(b[1], q[1]); b[2] = Math.max(b[2], q[0]); b[3] = Math.max(b[3], q[1]); });
+    return (b[3] - b[1]) / (b[2] - b[0]);
+  }
+  function pathOf(g, f) {
+    var polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+    var d = '';
+    polys.forEach(function (poly) {
+      poly.forEach(function (ring) {
+        ring.forEach(function (c, i) { var q = f(c[0], c[1]); d += (i ? 'L' : 'M') + r1(q[0]) + ',' + r1(q[1]); });
+        d += 'Z';
+      });
+    });
+    return d;
+  }
+  /* 가장 큰 고리의 넓이 중심 */
+  function centroid(g, f) {
+    var polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates, best = null, bestA = 0;
+    polys.forEach(function (poly) {
+      var pts = poly[0].map(function (c) { return f(c[0], c[1]); }), a = 0, cx = 0, cy = 0;
+      for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        var cr = pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+        a += cr; cx += (pts[j][0] + pts[i][0]) * cr; cy += (pts[j][1] + pts[i][1]) * cr;
+      }
+      if (Math.abs(a) > bestA) { bestA = Math.abs(a); best = [cx / (3 * a), cy / (3 * a)]; }
+    });
+    best = best || [0, 0]; best.area = bestA / 2;
+    return best;
+  }
+  function featById(geo) { var m = {}; geo.features.forEach(function (ft) { m[ft.properties.id] = ft; }); return m; }
+  function breaksOf(vals, n) {
+    var s = vals.slice().sort(function (a, b) { return a - b; }), out = [];
+    for (var i = 1; i < n; i++) {
+      var v = s[Math.floor(s.length * i / n)], step = niceStep(Math.abs(v) / 10 || 1);
+      out.push(Math.round(v / step) * step);
+    }
+    return out.filter(function (v, i, a) { return !i || v > a[i - 1]; });
+  }
+
+  /* ---------- 지도 ---------- */
+  function map(el, o) {
+    return mount(el, o, function (c) {
+      var geo = o.geo, f = c.f, p = projection(geo, o.projection), byId = featById(geo);
+      var maxH = o.height || (c.slide ? 580 : Math.min(620, Math.max(300, c.W * 0.9)));
+      var pad = c.slide ? 16 : 8;
+      var asp = aspect(geo, p), W = Math.min(c.W, Math.round((maxH - pad * 2) / asp + pad * 2));
+      c.W = c.W; c.H = Math.round(Math.min(maxH, (W - pad * 2) * asp + pad * 2));
+      var fit = fitter(geo, p, (c.W - W) / 2 + pad, pad, W - pad * 2, c.H - pad * 2);
+      var type = o.type || 'locator', vals = o.values || {}, names = {};
+      geo.features.forEach(function (ft) { names[ft.properties.id] = ft.properties.name; });
+      var g = E('g', {}, c.svg);
+      var fillOf = function () { return 'var(--g1)'; };
+
+      if (type === 'choropleth') {
+        var list = Object.keys(vals).map(function (k) { return vals[k]; }).filter(function (v) { return v != null && !isNaN(v); });
+        var br = o.breaks || breaksOf(list, o.steps || 5), nc = br.length + 1;
+        var cls = function (v) { var i = 0; while (i < br.length && v >= br[i]) i++; return i; };
+        var colors = [];
+        if (o.center != null) {
+          var ci = cls(o.center), nNeg = ci, nPos = nc - ci;
+          for (var i = 0; i < nc; i++) {
+            colors.push(i < ci ? mix('var(--mv-neg)', Math.round(20 + 60 * (ci - i - 1) / Math.max(1, nNeg - 1)))
+                               : mix('var(--mv-pos)', Math.round(20 + 60 * (i - ci) / Math.max(1, nPos - 1))));
+          }
+        } else {
+          for (i = 0; i < nc; i++) colors.push(mix('var(--mv-ramp)', Math.round(12 + 68 * i / Math.max(1, nc - 1))));
+        }
+        fillOf = function (id) { var v = vals[id]; return v == null || isNaN(v) ? 'var(--g1)' : colors[cls(v)]; };
+        var lab = function (i) { var a = br[i - 1], b = br[i]; return i === 0 ? '~' + fmt(b, o) : i === nc - 1 ? fmt(a, o) + '~' : fmt(a, o) + '~' + fmt(b, o); };
+        var missing = geo.features.some(function (ft) { return vals[ft.properties.id] == null; });
+        c.legend.innerHTML = '<div class="mv-steps">' + colors.map(function (col, i) { return '<span><i style="background:' + col + '"></i><em>' + lab(i) + '</em></span>'; }).join('') +
+          (missing && o.missing !== false ? '<span><i style="background:var(--g1);outline:1px solid var(--g3);outline-offset:-1px"></i><em>자료 없음</em></span>' : '') + '</div>';
+      }
+      if (type === 'locator') {
+        var focus = [].concat(o.focus || []);
+        fillOf = function (id) { return focus.indexOf(id) >= 0 ? (o.accent ? ACC : 'var(--mv-fg)') : 'var(--g2b,#e1e1e1)'; };
+      }
+
+      var cents = {};
+      geo.features.forEach(function (ft) {
+        if (!ft.geometry) return;
+        var id = ft.properties.id, v = vals[id];
+        tip(E('path', { d: pathOf(ft.geometry, fit), fill: fillOf(id), 'class': 'rg' }, g), (ft.properties.name || id) + (v != null ? ' ' + fmt(v, o) : ''));
+        cents[id] = centroid(ft.geometry, fit);
+      });
+      var at = function (ref) {
+        if (Array.isArray(ref)) return fit(ref[0], ref[1]);
+        if (o.centers && o.centers[ref]) return fit(o.centers[ref][0], o.centers[ref][1]);
+        return cents[ref];
+      };
+
+      if (type === 'symbol') {
+        var pts = (o.points || Object.keys(vals).map(function (k) { return { at: k, value: vals[k] }; })).filter(function (q) { return q.value > 0 && at(q.at); });
+        var vmax = Math.max.apply(null, pts.map(function (q) { return q.value; })), rMax = o.rMax || (c.slide ? 56 : Math.max(14, Math.min(34, c.W / 20)));
+        var rad = function (v) { return rMax * Math.sqrt(v / vmax); };
+        pts.sort(function (a, b) { return b.value - a.value; }).forEach(function (q) {
+          var xy = at(q.at);
+          tip(E('circle', { cx: r1(xy[0]), cy: r1(xy[1]), r: r1(Math.max(2, rad(q.value))), fill: q.highlight ? ACC : 'var(--mv-fg)', 'fill-opacity': q.highlight ? 0.85 : 0.38, stroke: 'var(--mv-bg)', 'stroke-width': 1 }, c.svg), (q.label || names[q.at] || '') + ' ' + fmt(q.value, o));
+        });
+        var lv = [vmax, vmax / 4, vmax / 16].map(function (v) { var s = niceStep(v); return Math.max(s, Math.floor(v / s) * s); });
+        /* 겹친 원 범례: 글자는 겹치지 않게 위아래로 벌린다 */
+        var R0 = rad(lv[0]), lw = R0 * 2 + 14 + maxw(lv.map(function (v) { return fmt(v, o); }), f) + 8, ly = [], top0 = f * 0.6;
+        lv.forEach(function (v, i) { var yy = top0 + R0 * 2 - 2 * rad(v); ly.push(i ? Math.max(yy, ly[i - 1] + f * 1.15) : yy); });
+        var lh = Math.max(top0 + R0 * 2 + 1, ly[ly.length - 1] + f * 0.7);
+        c.legend.innerHTML = '<span><svg width="' + r1(lw) + '" height="' + r1(lh) + '">' + lv.map(function (v, i) {
+          var r = rad(v), cy = top0 + R0 * 2 - r;
+          return '<circle cx="' + r1(R0) + '" cy="' + r1(cy) + '" r="' + r1(r) + '" fill="none" stroke="var(--g5)" stroke-width="1"/>' +
+            '<path d="M' + r1(R0) + ',' + r1(cy - r) + 'H' + r1(R0 * 2 + 4) + 'L' + r1(R0 * 2 + 10) + ',' + r1(ly[i]) + '" fill="none" stroke="var(--g4)" stroke-width="1"/>' +
+            '<text x="' + r1(R0 * 2 + 13) + '" y="' + r1(ly[i]) + '" dominant-baseline="middle" class="ax">' + fmt(v, o) + '</text>';
+        }).join('') + '</svg></span>';
+      }
+
+      if (type === 'flow') {
+        var fl = (o.flows || []).filter(function (q) { return at(q.from) && at(q.to); });
+        var fmax = Math.max.apply(null, fl.map(function (q) { return q.value; })), wMax = o.wMax || (c.slide ? 16 : 9), wMin = c.slide ? 2 : 1.2;
+        var wid = function (v) { return wMin + (wMax - wMin) * v / fmax; };
+        fl.sort(function (a, b) { return b.value - a.value; }).forEach(function (q) {
+          var A = at(q.from), B = at(q.to), w = wid(q.value), dx = B[0] - A[0], dy = B[1] - A[1], len = Math.hypot(dx, dy) || 1;
+          var C = [(A[0] + B[0]) / 2 - dy * 0.18, (A[1] + B[1]) / 2 + dx * 0.18];
+          /* 여러 줄이 한 곳으로 모이면 화살촉이 겹치므로 도착점을 들어오는 방향으로 조금 물린다 */
+          var gap = o.gap != null ? o.gap : (c.slide ? 16 : 10), bx = C[0] - B[0], by = C[1] - B[1], bl = Math.hypot(bx, by) || 1;
+          B = [B[0] + bx / bl * gap, B[1] + by / bl * gap];
+          var tx_ = B[0] - C[0], ty_ = B[1] - C[1], tl = Math.hypot(tx_, ty_) || 1; tx_ /= tl; ty_ /= tl;
+          var hl = 5 + w * 1.6, hw = 3 + w * 1.1, Bs = [B[0] - tx_ * hl * 0.9, B[1] - ty_ * hl * 0.9];
+          var col = q.highlight ? ACC : 'var(--mv-fg)', op = q.highlight ? 1 : 0.72;
+          var gg = tip(E('g', { opacity: op }, c.svg), (names[q.from] || q.label || '') + ' → ' + (names[q.to] || '') + ' ' + fmt(q.value, o));
+          E('path', { d: 'M' + r1(A[0]) + ',' + r1(A[1]) + 'Q' + r1(C[0]) + ',' + r1(C[1]) + ' ' + r1(Bs[0]) + ',' + r1(Bs[1]), fill: 'none', stroke: col, 'stroke-width': r1(w), 'stroke-linecap': 'butt' }, gg);
+          E('path', { d: 'M' + r1(B[0]) + ',' + r1(B[1]) + 'L' + r1(B[0] - tx_ * hl - ty_ * hw) + ',' + r1(B[1] - ty_ * hl + tx_ * hw) + 'L' + r1(B[0] - tx_ * hl + ty_ * hw) + ',' + r1(B[1] - ty_ * hl - tx_ * hw) + 'Z', fill: col }, gg);
+          E('circle', { cx: r1(A[0]), cy: r1(A[1]), r: c.slide ? 5 : 3, fill: 'var(--mv-fg)' }, c.svg);
+        });
+        var fv = [fmax, fmax / 2, fmax / 6].map(function (v) { var s = niceStep(v); return Math.max(s, Math.round(v / s) * s); });
+        c.legend.innerHTML = fv.map(function (v) { return '<span><i style="--c:var(--mv-fg);width:' + (c.slide ? 36 : 24) + 'px;height:' + r1(Math.min(wMax, wid(v))) + 'px"></i>' + fmt(v, o) + '</span>'; }).join('');
+      }
+
+      /* 위치 안내도: 작은 지역은 동그라미로 짚고, 확대 상자를 붙인다 */
+      if (type === 'locator') {
+        [].concat(o.focus || []).forEach(function (id) {
+          var cc = cents[id]; if (!cc) return;
+          if (cc.area < 40) E('circle', { cx: r1(cc[0]), cy: r1(cc[1]), r: c.slide ? 14 : 9, fill: 'none', stroke: o.accent ? ACC : 'var(--mv-fg)', 'stroke-width': c.slide ? 2.5 : 1.5 }, c.svg);
+        });
+        if (o.inset && o.inset.geo) {
+          var ig = o.inset.geo, ip = projection(ig, o.inset.projection), ia = aspect(ig, ip), iw = Math.round(c.W * (o.inset.size || 0.3)), ih = Math.round(iw * ia);
+          var corner = o.inset.corner || 'tr', ix = corner[1] === 'r' ? c.W - iw - 1 : 1, iy = corner[0] === 'b' ? c.H - ih - 1 : 1;
+          E('rect', { x: ix + .5, y: iy + .5, width: iw - 1, height: ih - 1, 'class': 'frame' }, c.svg);
+          var ifit = fitter(ig, ip, ix + 6, iy + 6, iw - 12, ih - 12), ifocus = [].concat(o.inset.focus || []), ib = featById(ig);
+          ig.features.forEach(function (ft) {
+            if (!ft.geometry) return;
+            E('path', { d: pathOf(ft.geometry, ifit), fill: ifocus.indexOf(ft.properties.id) >= 0 ? 'var(--mv-fg)' : 'var(--g2b,#e1e1e1)', stroke: 'var(--mv-bg)', 'stroke-width': .5 }, c.svg);
+          });
+          ifocus.forEach(function (id) { if (!ib[id]) return; var cc = centroid(ib[id].geometry, ifit); if (cc.area < 40) E('circle', { cx: r1(cc[0]), cy: r1(cc[1]), r: c.slide ? 10 : 6, fill: 'none', stroke: 'var(--mv-fg)', 'stroke-width': 1.5 }, c.svg); });
+        }
+      }
+
+      /* 지명: 넓은 지역부터, 겹치면 건너뛴다 */
+      if (o.labels) {
+        var want = o.labels === true ? geo.features.map(function (ft) { return ft.properties.id; }) : o.labels, boxes = [];
+        want.map(function (id) { return { id: id, c: cents[id] }; }).filter(function (q) { return q.c; })
+          .sort(function (a, b) { return b.c.area - a.c.area; }).forEach(function (q) {
+            var t = (o.names && o.names[q.id]) || names[q.id] || q.id, w = tw(t, f, 500), bx = [q.c[0] - w / 2 - 2, q.c[1] - f * 0.6, q.c[0] + w / 2 + 2, q.c[1] + f * 0.6];
+            if (boxes.some(function (b) { return bx[0] < b[2] && bx[2] > b[0] && bx[1] < b[3] && bx[3] > b[1]; })) return;
+            boxes.push(bx); T(t, q.c[0], q.c[1], 'nm halo', 'middle', c.svg);
+          });
+      }
+
+      /* 축척 막대와 방위표: 지역 지도에만 */
+      if (p.kind === 'equirect' && o.scale !== false) {
+        var kmPx = 111.32 / fit.s, want_ = c.W * 0.14 * kmPx, km = niceStep(want_), px = km / kmPx, sy = c.H - pad - 2;
+        /* 기본은 오른쪽 아래(섬과 겹치지 않게). 확대 상자가 오른쪽 아래면 왼쪽 아래 */
+        var leftSide = type === 'locator' && o.inset && (o.inset.corner || 'tr') === 'br', kmT = fmt(km) + ' km';
+        var sx = leftSide ? (c.W - W) / 2 + pad : c.W - (c.W - W) / 2 - pad - px;
+        var sb = E('g', { 'class': 'ink', 'stroke-width': 1 }, c.svg);
+        E('path', { d: 'M' + r1(sx) + ',' + r1(sy - 5) + 'V' + r1(sy) + 'H' + r1(sx + px) + 'V' + r1(sy - 5), fill: 'none' }, sb);
+        T(kmT, leftSide ? sx + px + 6 : sx - 6, sy - 2, 'ax', leftSide ? 'start' : 'end', c.svg);
+      }
+      if (p.kind === 'equirect' && o.north !== false) {
+        var nx = c.W - (c.W - W) / 2 - pad - 8, ny = pad + f * 1.2, nl = c.slide ? 40 : 24;
+        if (type === 'locator' && o.inset && (o.inset.corner || 'tr') === 'tr') nx = (c.W - W) / 2 + pad + 8;
+        T('N', nx, ny - f * 0.2, 'ax', 'middle', c.svg, { style: 'fill:var(--mv-fg);font-weight:600' });
+        E('path', { d: 'M' + nx + ',' + r1(ny + f * 0.6) + 'v' + nl, stroke: 'var(--mv-fg)', 'stroke-width': 1 }, c.svg);
+        E('path', { d: 'M' + nx + ',' + r1(ny + f * 0.6) + 'l-4,9h8z', fill: 'var(--mv-fg)' }, c.svg);
+      }
+    });
+  }
+
+  G.MonoViz = { bar: bar, hbar: hbar, line: line, scatter: scatter, share: share, climate: climate, pyramid: pyramid, map: map, ticks: ticks };
+})(window);
+/* MONO_VIZ:END */
+</script>
+<script>
+// 그래프 장: 값은 analysis/summary.json 과 y-*.csv 집계에서 옮겨 적었다
+(function () {
+  var V = window.MonoViz, $ = function (id) { return document.getElementById(id); };
+  if (!V) return;
+  if ($('d-tools')) V.hbar('#d-tools', { unit: '개별 탐구에서 쓴 공간 분석 기능 (단위: 명, 75명 중)', labels: ['버퍼', '공간 연산', '등시선', '보로노이'], values: [47, 32, 28, 14] });
+  if ($('d-share')) V.share('#d-share', { parts: ['0개', '1개', '2개 이상'], rows: [{ label: '연계한 기능 수', values: [14.7, 25.3, 60.0] }] });
+  if ($('d-acq')) V.share('#d-acq', { parts: ['직접 찾음', '내장 자료만', '일부만'], rows: [{ label: '탐구 자료 취득', values: [77.3, 10.7, 12.0] }] });
+  if ($('d-topic')) V.hbar('#d-topic', { unit: '탐구 주제 분류 (단위: 편)', labels: ['상권과 입지', '의료와 복지', '공원과 체육', '문화와 관광', '재난과 안전', '교육', '교통', '미완성'], values: [16, 12, 11, 10, 9, 8, 6, 3] });
+  if ($('y-cond')) V.hbar('#y-cond', { unit: '2-9반 조건별 충족 (단위: %, 36명 중)', labels: ['과제 지도 제출', '2026.07 경계', '6단계', '인구 밀도 필드', '세 조건 모두'], values: [91.7, 94.4, 80.6, 72.2, 69.4], highlight: 4 });
+})();
+
+</script>
+<script>
+// ===== 자료 설정 =====
+// title: 헤더 왼쪽 자료 제목 (굵게), sub: 그 옆 회색 글 (날짜와 장소)
+// qr: 오른쪽 위 QR. 빈 문자열이면 끔. 자료 주소 QR을 SVG 문자열로 넣는다. 예:
+//   qr: '<svg viewBox="0 0 25 25" shape-rendering="crispEdges"><path fill="#000" d="M0 0h7v7h-7z..."/></svg>'
+const CONFIG = { title: '교육용 웹 GIS e-GIS 수업 적용 사례', sub: '2026.11.28. 충북대학교', qr: '' };
+
+/* ===== 엔진 =====
+   - <section class="slide" data-sec="장 이름">: 헤더 오른쪽 장 목록을 자동으로 만들고 현재 장을 검게
+   - class="frag": 다음 키마다 하나씩 보이기(.show), 이전 키는 거꾸로 숨기기
+   - data-go="장 이름": 누르면 그 장 첫 슬라이드로
+   - 주소 #n (1부터): n번째 장 열기. 주소를 바꾸면 그 장으로 이동
+   - 키: → ↓ PageDown Space Enter 다음 / ← ↑ PageUp Backspace 이전 / Home End / F 전체 화면 / P PDF
+   - iframe 안 페이지는 postMessage({ slideKey: e.key }) 로 키를 넘긴다
+   - 첫 장과 마지막 장은 헤더 없음 */
+(function () {
+  const tone = new URLSearchParams(location.search).get('tone');
+  if (tone) document.documentElement.dataset.tone = tone;
+})();
+
+const slides = [...document.querySelectorAll('.slide')];
+let cur = 0;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SECS = [...new Set(slides.map(s => s.dataset.sec).filter(Boolean))];
+slides.forEach((s, i) => {
+  const edge = i === 0 || i === slides.length - 1;
+  if (CONFIG.qr && !edge && !s.classList.contains('sec')) {
+    s.classList.add('has-qr');
+    s.insertAdjacentHTML('beforeend', '<div class="qrc">' + CONFIG.qr + '</div>');
+  }
+  if (edge) return;
+  const nav = SECS.map(t => `<span class="${t === s.dataset.sec ? 'cur' : ''}" data-go="${esc(t)}">${esc(t)}</span>`).join('');
+  s.querySelector('.hd').innerHTML = `<div class="brand">${esc(CONFIG.title)}<i></i><span>${esc(CONFIG.sub)}</span></div><nav>${nav}</nav>`;
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if (t) show(slides.findIndex(s => s.dataset.sec === t.dataset.go));
+});
+
+function steps(s) { return [...s.querySelectorAll('.frag')]; }
+function show(n) {
+  if (n < 0) return;
+  slides[cur].classList.remove('on');
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('on');
+  document.getElementById('bar').style.width = ((cur + 1) / slides.length * 100) + '%';
+  document.getElementById('pg').textContent = (cur + 1) + ' / ' + slides.length;
+  history.replaceState(null, '', '#' + (cur + 1));
+}
+function next() {
+  const pending = steps(slides[cur]).find(el => !el.classList.contains('show'));
+  if (pending) { pending.classList.add('show'); return; }
+  show(cur + 1);
+}
+function prev() {
+  const done = steps(slides[cur]).filter(el => el.classList.contains('show'));
+  if (done.length) { done.at(-1).classList.remove('show'); return; }
+  show(cur - 1);
+}
+
+// 발표용 리모컨은 기종마다 보내는 키가 달라서 넉넉히 받는다. 다른 요소가 가로채지 못하게 capture 단계에서 받는다
+const NEXT = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter', 'MediaTrackNext'];
+const PREV = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'MediaTrackPrevious'];
+window.addEventListener('keydown', e => {
+  if (NEXT.includes(e.key)) { e.preventDefault(); next(); }
+  else if (PREV.includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === 'Home') show(0);
+  else if (e.key === 'End') show(slides.length - 1);
+  else if (e.key === 'F5') { e.preventDefault(); if (!document.fullscreenElement) toggleFull(); }  // 리모컨의 발표 시작 버튼
+  else if (e.key === 'f' || e.key === 'F') toggleFull();
+  else if (e.key === 'p' || e.key === 'P') savePdf();
+}, true);
+// iframe 안에서 누른 키도 슬라이드 조작으로 받는다
+window.addEventListener('message', e => {
+  if (e.data && e.data.slideKey) window.dispatchEvent(new KeyboardEvent('keydown', { key: e.data.slideKey }));
+});
+// 주소 #n 을 바꾸면 그 장으로
+window.addEventListener('hashchange', () => {
+  const n = parseInt(location.hash.slice(1), 10);
+  if (n && n - 1 !== cur) show(n - 1);
+});
+document.getElementById('bNext').onclick = e => { e.currentTarget.blur(); next(); };
+document.getElementById('bPrev').onclick = e => { e.currentTarget.blur(); prev(); };
+document.getElementById('bFull').onclick = e => { e.currentTarget.blur(); toggleFull(); };
+document.getElementById('bPdf').onclick = e => { e.currentTarget.blur(); savePdf(); };
+
+function toggleFull() {
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+}
+// 인쇄 창에서 「PDF로 저장」을 고른다. @media print 가 한 장에 한 쪽, 검은 장은 흰 바탕으로 바꾼다
+function savePdf() { window.print(); }
+
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  document.getElementById('stage').style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+
+show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>
