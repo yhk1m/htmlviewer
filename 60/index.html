@@ -367,6 +367,18 @@
 .m-zoom img { max-width: 96vw; max-height: 92vh; background: #fff; }
 .m-zoom span { font-size: 14px; color: #bbb; }
 @media print { .m-zoom { display: none !important; } }
+/* 7장 e-GIS 칸만 파랑 (mono-design blue 테마 강조색) */
+.cards.m-why .m-alt { --m-blue: #002f98; border-top: 3px solid var(--m-blue); }
+.cards.m-why .m-alt b, .cards.m-why .m-alt .n { color: var(--m-blue); }
+.cards.m-why .m-alt p { color: var(--m-blue); border-bottom-color: #c9d3ec; }
+.cards.m-why .m-alt { background: var(--m-blue); padding: 22px 28px 12px; }
+.cards.m-why .m-alt b, .cards.m-why .m-alt p { color: #fff; }
+.cards.m-why .m-alt .n { color: #c9d3ec; }
+.cards.m-why .m-alt p { border-bottom-color: rgba(255,255,255,.25); }
+@media print {
+  .cards.m-why .m-alt { background: #e4e9f5; }
+  .cards.m-why .m-alt b, .cards.m-why .m-alt p, .cards.m-why .m-alt .n { color: var(--m-blue); }
+}
 
 </style>
 </head>
