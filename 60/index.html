@@ -329,6 +329,19 @@
 .chk p:has(.m-sub) { align-items: flex-start; }
 .chk p:has(.m-sub) .ic { margin-top: 4px; }
 
+/* 2장 선행 연구 표 */
+.m-lit { margin-top: 48px; }
+.m-lit > div { font-size: 26px; }
+.m-lit .k .m-sub { font-weight: 400; letter-spacing: 0; }
+.m-lit b { display: block; font-size: 28px; font-weight: 600; margin-bottom: 6px; }
+/* 3장 두 칸 같은 너비 */
+.m-bg { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 56px; align-items: start; }
+.m-bg .m-aim { margin-top: 40px; }
+.m-lit { margin-top: 40px; }
+.m-lit > div { padding-top: 16px; padding-bottom: 16px; }
+.m-tip { margin-top: 32px; padding: 28px 44px; }
+.m-tip .head { font-size: 34px; }
+
 </style>
 </head>
 <body>
@@ -351,24 +364,42 @@
   </div>
 </section>
 
-<!-- 2. 문제 제기 | .hero .inv -->
+<!-- 2. 선행 연구 | .rows -->
 <section class="slide" data-sec="배경">
   <div class="hd"></div>
   <div class="bd">
-    <div class="hero">
-      <div class="lead"><h2>효과는 알지만<br>교실에서는<br>어려운 GIS</h2></div>
-      <div class="details">
-        <div class="rows tight" style="grid-template-columns:220px 1fr;margin-top:0">
-          <div class="k">하드웨어</div><div>컴퓨터실 확보와 사양<small class="m-sub">수업마다 컴퓨터실 예약, 학생 수만큼 PC 필요</small></div>
-          <div class="k">소프트웨어</div><div>설치, 라이선스, 낯선 화면<small class="m-sub">전문가용 GIS 설치와 관리, 많은 메뉴와 용어</small></div>
-          <div class="k">데이터</div><div>수업에 맞는 공간 자료<small class="m-sub">자료 찾기, 좌표와 파일 형식 맞추기, 가공</small></div>
-        </div>
-        <div class="inv frag" style="margin-top:48px"><div class="lab">현실</div><div class="head">프로그램 실습보다<br>문헌 학습에 머무는 GIS 교육</div></div>
+    <h2>선행 연구가 본 학교 GIS 교육</h2>
+    <div class="rows tight m-lit" style="grid-template-columns:300px 1fr">
+      <div class="k">김민성<small class="m-sub">2010</small></div>
+      <div><b>교사 인식 조사</b>소프트웨어, 하드웨어, 데이터 인프라 부족<br>GIS 연수 확대 요구, 교육적 가치는 높게 평가</div>
+      <div class="k">하은혜 외<small class="m-sub">2022</small></div>
+      <div><b>중등 지리 교과서 GIS 내용 분석</b>효과는 입증되었지만 인프라 문제로 활용 저조<br>프로그램 실습보다 문헌 학습에 그치는 GIS 교육</div>
+      <div class="k">진스스 외<small class="m-sub">2025</small></div>
+      <div><b>한국과 중국 고등학교 GIS 교육 비교</b>한국: 개념 소개 중심 교과서, 기본 개념과 중첩 분석 위주 시험<br>학생은 GIS를 주로 자료 수집 도구로 인식</div>
+    </div>
+    <div class="inv frag m-tip"><div class="lab">제언 (진스스 외, 2025)</div><div class="head">더 많은 실습 기회와 실제 문제를 다루는 GIS 수업</div></div>
+  </div>
+  <div class="src">출처: 김민성 (2010), 한국지리환경교육학회지 18(2) | 하은혜, 이채현, 조철기 (2022), 한국지역지리학회지 28(3) | 진스스, 최서온, 김영호 (2025), 한국지리환경교육학회지 33(2)</div>
+</section>
+
+<!-- 3. 어려움과 연구 목적 | .m-bg 두 칸 -->
+<section class="slide" data-sec="배경">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>교실에서 GIS가 어려운 이유</h2>
+    <div class="m-bg">
+      <div class="rows tight" style="grid-template-columns:220px 1fr;margin-top:0">
+        <div class="k">하드웨어</div><div>컴퓨터실 확보와 사양<small class="m-sub">수업마다 컴퓨터실 예약, 학생 수만큼 PC 필요</small></div>
+        <div class="k">소프트웨어</div><div>설치, 라이선스, 낯선 화면<small class="m-sub">전문가용 GIS 설치와 관리, 많은 메뉴와 용어</small></div>
+        <div class="k">데이터</div><div>수업에 맞는 공간 자료<small class="m-sub">자료 찾기, 좌표와 파일 형식 맞추기, 가공</small></div>
+      </div>
+      <div>
+        <div class="inv frag"><div class="lab">현실</div><div class="head">프로그램 실습보다<br>문헌 학습에 머무는 GIS 교육</div></div>
         <div class="m-aim frag"><b>연구 목적</b><p>생성형 AI로 교사가 직접 만든 웹 GIS e-GIS의 개발 과정<br>2022 개정 신설 과목 「도시의 미래 탐구」, 「한국지리 탐구」 수행평가 적용 사례 분석</p></div>
       </div>
     </div>
   </div>
-  <div class="src">출처: 하은혜, 이채현, 조철기 (2022), 한국지역지리학회지 28(3)</div>
+  <div class="src">출처: 김민성 (2010), 하은혜 외 (2022)</div>
 </section>
 
 <!-- 3. 바이브 코딩 개발 | .flow -->
