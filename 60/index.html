@@ -316,6 +316,19 @@
   .m-prompt p { font-size: 28px; line-height: 1.5; color: var(--g6); }
   .m-prompt p b { display: block; font-size: 34px; font-weight: 600; color: var(--k); }
 
+/* 6장 두 학교 표: 두 칸 같은 너비 */
+.tt.c3.m-even > div { grid-template-columns: 160px 1fr 1fr; }
+
+/* 2장 세부 설명과 연구 목적 */
+.m-sub { display: block; margin-top: 6px; font-size: 24px; color: var(--g5); }
+.m-aim { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--fg); }
+.m-aim b { display: block; font-size: 20px; font-weight: 600; color: var(--g5); margin-bottom: 10px; }
+.m-aim p { font-size: 28px; line-height: 1.5; margin: 0; }
+
+/* 16장 설명이 붙은 줄은 네모를 첫 줄에 맞춤 */
+.chk p:has(.m-sub) { align-items: flex-start; }
+.chk p:has(.m-sub) .ic { margin-top: 4px; }
+
 </style>
 </head>
 <body>
@@ -333,7 +346,7 @@
     </div>
     <div class="row">
       <div class="who">김용현<br>서울대학교 지리교육과 석사과정</div>
-      <div class="place">한국지리학회 추계학술대회 | 충북대학교</div>
+      <div class="place">2026 한국지리학회 추계학술대회(충북대학교)</div>
     </div>
   </div>
 </section>
@@ -346,11 +359,12 @@
       <div class="lead"><h2>효과는 알지만<br>교실에서는<br>어려운 GIS</h2></div>
       <div class="details">
         <div class="rows tight" style="grid-template-columns:220px 1fr;margin-top:0">
-          <div class="k">하드웨어</div><div>컴퓨터실 확보, 사양</div>
-          <div class="k">소프트웨어</div><div>설치, 라이선스, 낯선 화면</div>
-          <div class="k">데이터</div><div>수업에 맞는 공간 자료 찾기와 가공</div>
+          <div class="k">하드웨어</div><div>컴퓨터실 확보와 사양<small class="m-sub">수업마다 컴퓨터실 예약, 학생 수만큼 PC 필요</small></div>
+          <div class="k">소프트웨어</div><div>설치, 라이선스, 낯선 화면<small class="m-sub">전문가용 GIS 설치와 관리, 많은 메뉴와 용어</small></div>
+          <div class="k">데이터</div><div>수업에 맞는 공간 자료<small class="m-sub">자료 찾기, 좌표와 파일 형식 맞추기, 가공</small></div>
         </div>
-        <div class="inv frag" style="margin-top:56px"><div class="lab">현실</div><div class="head">프로그램 실습보다<br>문헌 학습에 머무는 GIS 교육</div></div>
+        <div class="inv frag" style="margin-top:48px"><div class="lab">현실</div><div class="head">프로그램 실습보다<br>문헌 학습에 머무는 GIS 교육</div></div>
+        <div class="m-aim frag"><b>연구 목적</b><p>생성형 AI로 교사가 직접 만든 웹 GIS e-GIS의 개발 과정<br>2022 개정 신설 과목 「도시의 미래 탐구」, 「한국지리 탐구」 수행평가 적용 사례 분석</p></div>
       </div>
     </div>
   </div>
@@ -417,7 +431,7 @@
   <div class="hd"></div>
   <div class="bd">
     <h2>두 학교 수행평가 적용</h2>
-    <div class="tt c3" style="margin-top:56px">
+    <div class="tt c3 m-even" style="margin-top:56px">
       <div class="head"><span></span><div>D 고등학교</div><div>Y 고등학교</div></div>
       <div><span>학교</span><div>일반 사립고 (남고)</div><div>자율형 사립고 (남고)</div></div>
       <div><span>과목</span><div>2학년 「한국지리 탐구」</div><div>2학년 「도시의 미래 탐구」</div></div>
@@ -499,7 +513,6 @@
       <div class="frag"><img src="img/d3.jpg" alt="거점국립대 보로노이로 본 전국 대학 권역" style="object-position:72% 50%"><span class="n">D-3</span><b>서울대 10개 만들기<br>다음 지원 대학 선정</b><span class="tool">보로노이, 버퍼, 지오코딩, 결합</span><p>국가거점국립대 권역과 산업단지로 본 국토 균형</p></div>
     </div>
   </div>
-  <div class="src">학생 산출물, 개인 정보 가림</div>
 </section>
 
 <!-- 11. D 고 우수 사례 4~5 -->
@@ -512,7 +525,6 @@
       <div class="frag"><img src="img/d5.jpg" alt="한강공원 자동차 등시선 지도"><span class="n">D-5</span><b>한강공원 광역 접근성</b><span class="tool">보로노이, 버퍼, 등시선</span><p>주차장 보로노이, 자동차와 자전거 등시선, 서울 밖까지 닿는 영향권</p></div>
     </div>
   </div>
-  <div class="src">학생 산출물, 개인 정보 가림</div>
 </section>
 
 <!-- 12. Y 고 과제 | .two .rows -->
@@ -570,7 +582,6 @@
       <div class="frag"><img src="img/y3.jpg" alt="보라 단색 시도 인구 밀도 지도" style="object-position:50% 40%"><span class="n">Y-3</span><b>단색 명도 단계</b><p>보라 6단계, 범례와 지도가 함께 읽힘</p></div>
     </div>
   </div>
-  <div class="src">학생 산출물, 개인 정보 가림</div>
 </section>
 
 <!-- 15. Y 고 우수 사례 2-12반 -->
@@ -583,7 +594,6 @@
       <div class="frag"><img src="img/y5.jpg" alt="초록 단색 서울 자치구 고령 인구 비율 지도"><span class="n">Y-5</span><b>레이어와 범례 함께</b><p>결합한 레이어와 원래 경계 레이어를 나란히 관리</p></div>
     </div>
   </div>
-  <div class="src">학생 산출물, 개인 정보 가림</div>
 </section>
 
 <!-- 15. 시사점 | .two .chk.ico -->
@@ -601,10 +611,10 @@
       </div>
       <div class="chk ico frag">
         <h3>남은 과제</h3>
-        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>접속, 실행, 초기 안내 시간 조사</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg><span>실제 이용 조건 조사<small class="m-sub">접속과 실행에서 겪는 어려움, 처음 사용법 안내에 드는 시간, 과제 중 학생이 요청하는 도움</small></span></p>
         <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>과목별 과제 예시와 출처 분명한 자료</p>
         <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>평가 기준 개발</p>
-        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>서울 사립 남고 너머 다양한 표본</p>
+        <p><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 3.5h17v17h-17z"/></svg>서울 사립 남고 이외의 다양한 표본</p>
       </div>
     </div>
   </div>
@@ -613,7 +623,7 @@
 <!-- 16. 마무리 -->
 <section class="slide">
   <div class="hd"></div>
-  <div class="bd mid"><h1>감사합니다.</h1><p class="gray" style="margin-top:32px">김용현 | 서울대학교 지리교육과 | e-gis.kr</p></div>
+  <div class="bd mid"><h1>감사합니다.</h1><p class="gray" style="margin-top:32px">김용현(서울대학교 지리교육과 석사과정) | 2026 한국지리학회 추계학술대회</p></div>
 </section>
 
 </div>
