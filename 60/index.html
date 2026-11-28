@@ -1348,7 +1348,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   var box = document.createElement('div');
   box.className = 'm-zoom';
-  box.innerHTML = '<img alt=""><span>다시 누르면 닫혀요</span>';
+  box.innerHTML = '<img alt=""><span>클릭하여 닫기</span>';
   document.body.appendChild(box);
   var big = box.querySelector('img');
   function open(src, alt) { big.src = src; big.alt = alt || ''; box.classList.add('on'); }
