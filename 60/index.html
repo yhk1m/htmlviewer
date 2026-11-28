@@ -360,6 +360,13 @@
 .m-tb figcaption { text-align: center; }
 .m-tb figcaption b { display: inline; font-size: 26px; margin: 0 10px 0 0; }
 .m-tb figcaption small { margin-top: 6px; }
+/* 교과서 쪽 크게 보기 */
+.m-tb img { cursor: zoom-in; }
+.m-zoom { position: fixed; inset: 0; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(17,17,17,.88); cursor: zoom-out; }
+.m-zoom.on { display: flex; }
+.m-zoom img { max-width: 96vw; max-height: 92vh; background: #fff; }
+.m-zoom span { font-size: 14px; color: #bbb; }
+@media print { .m-zoom { display: none !important; } }
 
 </style>
 </head>
@@ -1324,6 +1331,28 @@
   if ($('d-topic')) V.hbar('#d-topic', { unit: '탐구 주제 분류 (단위: 편)', labels: ['상권과 입지', '의료와 복지', '공원과 체육', '문화와 관광', '재난과 안전', '교육', '교통', '미완성'], values: [16, 12, 11, 10, 9, 8, 6, 3] });
   if ($('y-cond')) V.hbar('#y-cond', { unit: '2-9반 조건별 충족 (단위: %, 36명 중)', labels: ['과제 지도 제출', '2026.07 경계', '6단계', '인구 밀도 필드', '세 조건 모두'], values: [91.7, 94.4, 80.6, 72.2, 69.4], highlight: 4 });
 })();
+
+// 교과서 쪽 그림 크게 보기: 누르면 화면 가득, 다시 누르거나 아무 키나 누르면 닫힘
+document.addEventListener('DOMContentLoaded', function () {
+  var box = document.createElement('div');
+  box.className = 'm-zoom';
+  box.innerHTML = '<img alt=""><span>다시 누르면 닫혀요</span>';
+  document.body.appendChild(box);
+  var big = box.querySelector('img');
+  function open(src, alt) { big.src = src; big.alt = alt || ''; box.classList.add('on'); }
+  function close() { box.classList.remove('on'); }
+  document.querySelectorAll('.m-tb img').forEach(function (im) {
+    im.addEventListener('click', function (e) { e.stopPropagation(); open(im.src, im.alt); });
+  });
+  box.addEventListener('click', close);
+  // 열려 있을 때는 넘기기 키가 장을 넘기지 않고 창만 닫는다
+  ['next', 'prev', 'show'].forEach(function (k) {
+    var f = window[k];
+    if (typeof f !== 'function') return;
+    window[k] = function () { if (box.classList.contains('on')) { close(); return; } return f.apply(this, arguments); };
+  });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+});
 
 </script>
 <script>
