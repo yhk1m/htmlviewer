@@ -342,6 +342,25 @@
 .m-tip { margin-top: 32px; padding: 28px 44px; }
 .m-tip .head { font-size: 34px; }
 
+/* 교과서 도구와 e-GIS 비교: 세 칸, 셋째 칸 강조 */
+.cards.m-why { grid-template-columns: repeat(3, 1fr); margin-top: 56px; }
+.cards.m-why .m-alt { border-top-color: var(--accent); }
+.cards.m-why .m-alt b { color: var(--accent); }
+.cards.m-why { grid-template-columns: repeat(4, 1fr); }
+/* 교과서 쪽 그림 세 칸 */
+.m-tb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 40px; }
+.m-tb figure { margin: 0; display: flex; gap: 20px; align-items: flex-start; }
+.m-tb img { height: 600px; width: auto; border: 1px solid var(--g2); }
+.m-tb figcaption { font-size: 22px; line-height: 1.5; color: var(--g6); }
+.m-tb figcaption b { display: block; font-size: 30px; font-weight: 600; color: var(--fg); margin-bottom: 8px; }
+.m-tb figcaption small { display: block; margin-top: 12px; font-size: 18px; color: var(--g5); }
+.m-tb { gap: 64px; margin-top: 32px; }
+.m-tb figure { flex-direction: column; gap: 16px; align-items: center; }
+.m-tb img { height: 520px; }
+.m-tb figcaption { text-align: center; }
+.m-tb figcaption b { display: inline; font-size: 26px; margin: 0 10px 0 0; }
+.m-tb figcaption small { margin-top: 6px; }
+
 </style>
 </head>
 <body>
@@ -455,6 +474,35 @@
       </div>
     </div>
   </div>
+</section>
+
+<!-- 왜 e-GIS인가 | .cards(네 칸) -->
+<section class="slide" data-sec="적용 사례">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>두 과목 교과서 속 GIS 실습</h2>
+    <p class="gray" style="font-size:30px;margin-top:20px">「한국지리 탐구」, 「도시의 미래 탐구」 교과서 모두 GIS 활용 사례와 실습 수록</p>
+    <div class="cards m-why">
+      <div><span class="n">교과서 도구</span><b>SGIS</b><p>기능 한계가 분명함</p><p>제공된 통계 지도 보기 중심</p><p>내 자료로 공간 분석하기 어려움</p></div>
+      <div class="frag"><span class="n">교과서 도구</span><b>QGIS</b><p>설치와 구동의 한계</p><p>프로그램 설치, 컴퓨터실 필요</p><p>학생 태블릿에서 실행 불가</p></div>
+      <div class="frag"><span class="n">교과서 도구</span><b>ArcGIS</b><p>전문가용 상용 프로그램</p><p>유료 라이선스, 계정 필요</p><p>설치와 높은 컴퓨터 사양</p></div>
+      <div class="frag m-alt"><span class="n">대체 도구</span><b>e-GIS</b><p>설치 없이 웹에서 실행</p><p>일반 교실, 개인 태블릿</p><p>버퍼, 등시선 등 공간 분석</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 교과서 실습 예시 | .m-tb 세 칸 그림 -->
+<section class="slide" data-sec="적용 사례">
+  <div class="hd"></div>
+  <div class="bd">
+    <h2>교과서 GIS 실습 예시</h2>
+    <div class="m-tb">
+      <figure><img src="img/tb-sgis.jpg" alt="미래엔 도시의 미래 탐구 91쪽"><figcaption><b>SGIS</b>상점의 입지 선정<small>미래엔 「도시의 미래 탐구」 91쪽</small></figcaption></figure>
+      <figure class="frag"><img src="img/tb-qgis.jpg" alt="비상교육 한국지리 탐구 23쪽"><figcaption><b>QGIS</b>지리정보기술 프로그램으로 지도 그리기<small>비상교육 「한국지리 탐구」 23쪽</small></figcaption></figure>
+      <figure class="frag"><img src="img/tb-gis.jpg" alt="천재교육 도시의 미래 탐구 111쪽"><figcaption><b>GIS 중첩</b>스마트하게 도시 관리하기<small>천재교육 「도시의 미래 탐구」 111쪽</small></figcaption></figure>
+    </div>
+  </div>
+  <div class="src">출처: 미래엔, 비상교육, 천재교육 2022 개정 교과서</div>
 </section>
 
 <!-- 6. 적용 개요 | .tt.c3 -->
